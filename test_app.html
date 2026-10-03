@@ -1,16 +1,172 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Flashcard App Test</title>
+    <title>Flashcard App Unit Tests</title>
     <style>
-        body { font-family: Arial, sans-serif; padding: 20px; }
-        .test { margin: 10px 0; padding: 10px; border-left: 3px solid #ccc; }
-        .pass { border-color: green; background: #e8f5e9; }
-        .fail { border-color: red; background: #ffebee; }
+        body { 
+            font-family: Arial, sans-serif; 
+            padding: 20px;
+            background: #f5f5f5;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            color: #333;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+        
+        .summary {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .summary h2 {
+            margin-top: 0;
+            color: #667eea;
+        }
+        
+        .stats {
+            display: flex;
+            gap: 20px;
+            margin: 15px 0;
+        }
+        
+        .stat {
+            flex: 1;
+            padding: 15px;
+            border-radius: 4px;
+            text-align: center;
+        }
+        
+        .stat.passed {
+            background: #e8f5e9;
+            border: 2px solid #4caf50;
+        }
+        
+        .stat.failed {
+            background: #ffebee;
+            border: 2px solid #f44336;
+        }
+        
+        .stat .number {
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .stat .label {
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .test { 
+            margin: 10px 0; 
+            padding: 10px 15px; 
+            border-left: 4px solid #ccc;
+            background: white;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .test .icon {
+            font-size: 20px;
+            min-width: 25px;
+        }
+        
+        .test .message {
+            flex: 1;
+        }
+        
+        .test .time {
+            color: #999;
+            font-size: 12px;
+        }
+        
+        .pass { 
+            border-color: #4caf50; 
+            background: #e8f5e9; 
+        }
+        
+        .fail { 
+            border-color: #f44336; 
+            background: #ffebee; 
+        }
+        
+        .error-detail {
+            color: #d32f2f;
+            font-size: 12px;
+            margin-top: 5px;
+            padding: 5px 10px;
+            background: #ffcdd2;
+            border-radius: 3px;
+            font-family: monospace;
+        }
+        
+        .test-group {
+            margin: 20px 0;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .test-group h3 {
+            margin-top: 0;
+            color: #667eea;
+            border-bottom: 2px solid #e0e0e0;
+            padding-bottom: 8px;
+        }
+        
+        .completion-message {
+            margin-top: 20px;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 18px;
+            font-weight: bold;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .completion-message.success {
+            background: #4caf50;
+            color: white;
+        }
+        
+        .completion-message.failure {
+            background: #f44336;
+            color: white;
+        }
     </style>
 </head>
 <body>
-    <h1>Flashcard App Tests</h1>
+    <h1>🧪 Flashcard App Unit Tests</h1>
+    <div class="summary">
+        <h2>Test Summary</h2>
+        <div class="stats">
+            <div class="stat passed">
+                <div class="number" id="passed-count">0</div>
+                <div class="label">Passed</div>
+            </div>
+            <div class="stat failed">
+                <div class="number" id="failed-count">0</div>
+                <div class="label">Failed</div>
+            </div>
+            <div class="stat" style="background: #e3f2fd; border: 2px solid #2196f3;">
+                <div class="number" id="total-count">0</div>
+                <div class="label">Total</div>
+            </div>
+        </div>
+        <div id="completion-status"></div>
+    </div>
     <div id="results"></div>
     
     <script>
@@ -29,14 +185,89 @@
         });
 
         const results = document.getElementById('results');
+        let testStats = { passed: 0, failed: 0, total: 0 };
         
-        function test(name, fn) {
+        function test(name, fn, group = null) {
+            testStats.total++;
+            const startTime = performance.now();
+            
             try {
                 fn();
-                results.innerHTML += `<div class="test pass">✓ ${name}</div>`;
+                const endTime = performance.now();
+                const duration = (endTime - startTime).toFixed(2);
+                testStats.passed++;
+                
+                const testEl = document.createElement('div');
+                testEl.className = 'test pass';
+                testEl.innerHTML = `
+                    <span class="icon">✓</span>
+                    <span class="message">${name}</span>
+                    <span class="time">${duration}ms</span>
+                `;
+                
+                if (group) {
+                    document.getElementById(group).appendChild(testEl);
+                } else {
+                    results.appendChild(testEl);
+                }
+                
+                updateStats();
             } catch (error) {
-                results.innerHTML += `<div class="test fail">✗ ${name}: ${error.message}</div>`;
+                const endTime = performance.now();
+                const duration = (endTime - startTime).toFixed(2);
+                testStats.failed++;
+                
+                const testEl = document.createElement('div');
+                testEl.className = 'test fail';
+                testEl.innerHTML = `
+                    <span class="icon">✗</span>
+                    <div class="message">
+                        ${name}
+                        <div class="error-detail">${error.message}</div>
+                    </div>
+                    <span class="time">${duration}ms</span>
+                `;
+                
+                if (group) {
+                    document.getElementById(group).appendChild(testEl);
+                } else {
+                    results.appendChild(testEl);
+                }
+                
+                updateStats();
             }
+        }
+        
+        function updateStats() {
+            document.getElementById('passed-count').textContent = testStats.passed;
+            document.getElementById('failed-count').textContent = testStats.failed;
+            document.getElementById('total-count').textContent = testStats.total;
+        }
+        
+        function createTestGroup(id, title) {
+            const group = document.createElement('div');
+            group.className = 'test-group';
+            group.innerHTML = `<h3>${title}</h3>`;
+            const container = document.createElement('div');
+            container.id = id;
+            group.appendChild(container);
+            results.appendChild(group);
+        }
+        
+        function showCompletionStatus() {
+            const statusDiv = document.getElementById('completion-status');
+            const completionMsg = document.createElement('div');
+            completionMsg.className = 'completion-message';
+            
+            if (testStats.failed === 0) {
+                completionMsg.className += ' success';
+                completionMsg.textContent = '✅ All tests passed! The application is working correctly.';
+            } else {
+                completionMsg.className += ' failure';
+                completionMsg.textContent = `❌ ${testStats.failed} test(s) failed. Please review the errors above.`;
+            }
+            
+            statusDiv.appendChild(completionMsg);
         }
         
         // Simple mock DOM elements
@@ -64,78 +295,211 @@
         script.src = 'app.js';
         script.onload = () => {
             setTimeout(() => {
-                // Run tests
-                test('App initializes', () => {
+                // Create test groups
+                createTestGroup('initialization', '📋 Initialization Tests');
+                createTestGroup('card-management', '🎴 Card Management Tests');
+                createTestGroup('navigation', '🧭 Navigation Tests');
+                createTestGroup('persistence', '💾 Data Persistence Tests');
+                createTestGroup('validation', '✅ Input Validation Tests');
+                createTestGroup('edge-cases', '⚠️ Edge Case Tests');
+                
+                // Initialization Tests
+                test('App initializes correctly', () => {
                     if (!window.app) throw new Error('App not initialized');
-                });
+                    if (typeof app.addCard !== 'function') throw new Error('Missing addCard method');
+                    if (typeof app.deleteCard !== 'function') throw new Error('Missing deleteCard method');
+                }, 'initialization');
                 
                 test('Cards array is empty initially', () => {
-                    if (app.cards.length !== 0) throw new Error('Cards should be empty');
-                });
+                    if (app.cards.length !== 0) throw new Error(`Expected 0 cards, got ${app.cards.length}`);
+                }, 'initialization');
                 
-                test('Can add a card', () => {
+                test('Initial state is correct', () => {
+                    if (app.currentCardIndex !== 0) throw new Error('currentCardIndex should be 0');
+                    if (app.reviewedToday !== 0) throw new Error('reviewedToday should be 0');
+                    if (app.isFlipped !== false) throw new Error('isFlipped should be false');
+                }, 'initialization');
+                
+                // Card Management Tests
+                test('Can add a card with valid data', () => {
                     const card = app.addCard('Здравей', 'Hello');
                     if (!card) throw new Error('Card not created');
                     if (card.bulgarian !== 'Здравей') throw new Error('Bulgarian text incorrect');
                     if (card.english !== 'Hello') throw new Error('English text incorrect');
-                });
+                    if (!card.id) throw new Error('Card missing id');
+                    if (!card.createdAt) throw new Error('Card missing createdAt');
+                }, 'card-management');
                 
-                test('Cards are stored', () => {
-                    if (app.cards.length !== 1) throw new Error('Card not stored');
-                });
+                test('Added card is stored in array', () => {
+                    if (app.cards.length !== 1) throw new Error(`Expected 1 card, got ${app.cards.length}`);
+                }, 'card-management');
                 
                 test('Can add multiple cards', () => {
                     app.addCard('Добър ден', 'Good day');
                     app.addCard('Довиждане', 'Goodbye');
-                    if (app.cards.length !== 3) throw new Error('Expected 3 cards');
-                });
+                    app.addCard('Благодаря', 'Thank you');
+                    if (app.cards.length !== 4) throw new Error(`Expected 4 cards, got ${app.cards.length}`);
+                }, 'card-management');
                 
-                test('Can delete a card', () => {
+                test('Can delete a card by id', () => {
                     const id = app.cards[0].id;
+                    const initialLength = app.cards.length;
                     app.deleteCard(id);
-                    if (app.cards.length !== 2) throw new Error('Card not deleted');
-                });
+                    if (app.cards.length !== initialLength - 1) throw new Error('Card not deleted');
+                    if (app.cards.some(c => c.id === id)) throw new Error('Deleted card still exists');
+                }, 'card-management');
                 
-                test('localStorage persistence', () => {
-                    const stored = localStorage.getItem('flashcards');
-                    if (!stored) throw new Error('Not saved to localStorage');
-                    const parsed = JSON.parse(stored);
-                    if (parsed.length !== 2) throw new Error('Wrong number of cards in storage');
-                });
+                test('Cards have unique IDs', () => {
+                    const ids = app.cards.map(c => c.id);
+                    const uniqueIds = new Set(ids);
+                    if (ids.length !== uniqueIds.size) throw new Error('Duplicate IDs found');
+                }, 'card-management');
                 
-                test('Current card index is valid', () => {
-                    if (app.currentCardIndex < 0 || app.currentCardIndex >= app.cards.length) {
-                        throw new Error('Invalid current index');
-                    }
-                });
+                test('Card trim spaces from input', () => {
+                    const card = app.addCard('  Моля  ', '  Please  ');
+                    if (card.bulgarian !== 'Моля') throw new Error('Bulgarian not trimmed');
+                    if (card.english !== 'Please') throw new Error('English not trimmed');
+                }, 'card-management');
                 
-                test('Can navigate between cards', () => {
+                // Navigation Tests
+                test('Can navigate to next card', () => {
                     app.currentCardIndex = 0;
                     app.nextCard();
-                    if (app.currentCardIndex !== 1) throw new Error('Next card failed');
-                    app.previousCard();
-                    if (app.currentCardIndex !== 0) throw new Error('Previous card failed');
-                });
+                    if (app.currentCardIndex !== 1) throw new Error(`Expected index 1, got ${app.currentCardIndex}`);
+                }, 'navigation');
                 
-                test('Navigation bounds are respected', () => {
+                test('Can navigate to previous card', () => {
+                    app.previousCard();
+                    if (app.currentCardIndex !== 0) throw new Error(`Expected index 0, got ${app.currentCardIndex}`);
+                }, 'navigation');
+                
+                test('Navigation respects lower bound', () => {
                     app.currentCardIndex = 0;
                     app.previousCard();
                     if (app.currentCardIndex !== 0) throw new Error('Should not go below 0');
-                    
+                }, 'navigation');
+                
+                test('Navigation respects upper bound', () => {
                     app.currentCardIndex = app.cards.length - 1;
+                    const beforeIndex = app.currentCardIndex;
                     app.nextCard();
-                    if (app.currentCardIndex !== app.cards.length - 1) {
-                        throw new Error('Should not exceed max');
-                    }
-                });
+                    if (app.currentCardIndex !== beforeIndex) throw new Error('Should not exceed max index');
+                }, 'navigation');
                 
-                test('Review count tracks', () => {
+                test('Navigation resets flip state', () => {
+                    app.isFlipped = true;
+                    app.nextCard();
+                    if (app.isFlipped !== false) throw new Error('Flip state should reset on navigation');
+                }, 'navigation');
+                
+                test('Review count increments on next', () => {
                     const before = app.reviewedToday;
-                    app.incrementReviewCount();
+                    app.currentCardIndex = 0;
+                    app.nextCard();
                     if (app.reviewedToday !== before + 1) throw new Error('Review count not incremented');
-                });
+                }, 'navigation');
                 
-                results.innerHTML += '<div class="test" style="border-color: blue; background: #e3f2fd; margin-top: 20px;">All tests completed!</div>';
+                // Data Persistence Tests
+                test('Cards persist to localStorage', () => {
+                    const stored = localStorage.getItem('flashcards');
+                    if (!stored) throw new Error('Not saved to localStorage');
+                    const parsed = JSON.parse(stored);
+                    if (!Array.isArray(parsed)) throw new Error('localStorage data is not an array');
+                }, 'persistence');
+                
+                test('Correct number of cards in storage', () => {
+                    const stored = JSON.parse(localStorage.getItem('flashcards'));
+                    if (stored.length !== app.cards.length) {
+                        throw new Error(`Storage has ${stored.length} cards, app has ${app.cards.length}`);
+                    }
+                }, 'persistence');
+                
+                test('Review count persists to localStorage', () => {
+                    app.incrementReviewCount();
+                    const stored = localStorage.getItem('reviewedToday');
+                    if (!stored) throw new Error('Review count not stored');
+                    if (parseInt(stored) !== app.reviewedToday) throw new Error('Stored count does not match');
+                }, 'persistence');
+                
+                test('Review date is tracked', () => {
+                    const stored = localStorage.getItem('reviewDate');
+                    if (!stored) throw new Error('Review date not stored');
+                    const today = new Date().toDateString();
+                    if (stored !== today) throw new Error('Review date incorrect');
+                }, 'persistence');
+                
+                // Input Validation Tests
+                test('escapeHtml prevents XSS', () => {
+                    const malicious = '<script>alert("xss")</script>';
+                    const escaped = app.escapeHtml(malicious);
+                    if (escaped.includes('<script>')) throw new Error('HTML not escaped properly');
+                    if (!escaped.includes('&lt;') || !escaped.includes('&gt;')) {
+                        throw new Error('HTML entities not created');
+                    }
+                }, 'validation');
+                
+                test('Card IDs are numeric timestamps', () => {
+                    const card = app.addCard('Test', 'Test');
+                    if (typeof card.id !== 'number') throw new Error('ID is not a number');
+                    if (card.id < 1000000000000) throw new Error('ID is not a valid timestamp');
+                }, 'validation');
+                
+                test('createdAt is valid ISO date', () => {
+                    const card = app.addCard('Test', 'Test');
+                    const date = new Date(card.createdAt);
+                    if (isNaN(date.getTime())) throw new Error('createdAt is not a valid date');
+                }, 'validation');
+                
+                // Edge Cases
+                test('Current index adjusts when deleting current card', () => {
+                    // Add cards to ensure we have enough
+                    while (app.cards.length < 5) {
+                        app.addCard('Test', 'Test');
+                    }
+                    app.currentCardIndex = app.cards.length - 1;
+                    const lastId = app.cards[app.cards.length - 1].id;
+                    app.deleteCard(lastId);
+                    if (app.currentCardIndex >= app.cards.length) {
+                        throw new Error('Index not adjusted after deletion');
+                    }
+                }, 'edge-cases');
+                
+                test('Can delete all cards', () => {
+                    while (app.cards.length > 0) {
+                        app.deleteCard(app.cards[0].id);
+                    }
+                    if (app.cards.length !== 0) throw new Error('Not all cards deleted');
+                    if (app.currentCardIndex !== 0) throw new Error('Index should reset to 0');
+                }, 'edge-cases');
+                
+                test('App handles empty state', () => {
+                    if (app.cards.length !== 0) throw new Error('Should be in empty state');
+                    // Should not throw errors
+                    app.updateUI();
+                }, 'edge-cases');
+                
+                test('Can add card after deleting all', () => {
+                    const card = app.addCard('New', 'New');
+                    if (!card) throw new Error('Cannot add card after delete all');
+                    if (app.cards.length !== 1) throw new Error('Card not added properly');
+                }, 'edge-cases');
+                
+                test('Special characters are preserved', () => {
+                    const bulgarian = 'Как си? "Добре"!';
+                    const english = 'How are you? "Good"!';
+                    const card = app.addCard(bulgarian, english);
+                    if (card.bulgarian !== bulgarian) throw new Error('Bulgarian special chars not preserved');
+                    if (card.english !== english) throw new Error('English special chars not preserved');
+                }, 'edge-cases');
+                
+                test('Long text is handled', () => {
+                    const longText = 'A'.repeat(500);
+                    const card = app.addCard(longText, longText);
+                    if (card.bulgarian.length !== 500) throw new Error('Long text not preserved');
+                }, 'edge-cases');
+                
+                // Show completion status
+                showCompletionStatus();
             }, 100);
         };
         document.head.appendChild(script);

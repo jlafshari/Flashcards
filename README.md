@@ -65,6 +65,17 @@ This app was designed to be simpler and more flexible than Anki:
 - **Responsive Design** - Works on desktop and mobile devices
 - **Keyboard Shortcuts** - Arrow keys for navigation, Space/Enter to flip
 
+## Testing
+
+This project includes comprehensive testing tools to ensure quality:
+
+- **Unit Tests**: Open `test_app.html` for automated unit tests
+- **End-to-End Tests**: Open `test_e2e.html` for user workflow testing  
+- **File Validation**: Run `node validate_html.js` to verify structure
+- **Manual Testing**: See `TESTING.md` for detailed testing guide
+
+For complete testing instructions, see [TESTING.md](TESTING.md).
+
 ## Browser Compatibility
 
 Works in all modern browsers:
