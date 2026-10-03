@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Flashcard App Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .test { margin: 10px 0; padding: 10px; border-left: 3px solid #ccc; }
+        .pass { border-color: green; background: #e8f5e9; }
+        .fail { border-color: red; background: #ffebee; }
+    </style>
+</head>
+<body>
+    <h1>Flashcard App Tests</h1>
+    <div id="results"></div>
+    
+    <script>
+        // Mock localStorage for testing
+        const localStorageMock = (() => {
+            let store = {};
+            return {
+                getItem: (key) => store[key] || null,
+                setItem: (key, value) => store[key] = value.toString(),
+                clear: () => store = {}
+            };
+        })();
+        
+        Object.defineProperty(window, 'localStorage', {
+            value: localStorageMock
+        });
+
+        const results = document.getElementById('results');
+        
+        function test(name, fn) {
+            try {
+                fn();
+                results.innerHTML += `<div class="test pass">✓ ${name}</div>`;
+            } catch (error) {
+                results.innerHTML += `<div class="test fail">✗ ${name}: ${error.message}</div>`;
+            }
+        }
+        
+        // Simple mock DOM elements
+        document.getElementById = (id) => {
+            return {
+                textContent: '',
+                value: '',
+                innerHTML: '',
+                style: {},
+                disabled: false,
+                classList: {
+                    add: () => {},
+                    remove: () => {}
+                },
+                addEventListener: () => {}
+            };
+        };
+        
+        document.querySelectorAll = () => [];
+        document.addEventListener = () => {};
+        document.createElement = () => ({ textContent: '', innerHTML: '' });
+
+        // Load the app code
+        const script = document.createElement('script');
+        script.src = 'app.js';
+        script.onload = () => {
+            setTimeout(() => {
+                // Run tests
+                test('App initializes', () => {
+                    if (!window.app) throw new Error('App not initialized');
+                });
+                
+                test('Cards array is empty initially', () => {
+                    if (app.cards.length !== 0) throw new Error('Cards should be empty');
+                });
+                
+                test('Can add a card', () => {
+                    const card = app.addCard('Здравей', 'Hello');
+                    if (!card) throw new Error('Card not created');
+                    if (card.bulgarian !== 'Здравей') throw new Error('Bulgarian text incorrect');
+                    if (card.english !== 'Hello') throw new Error('English text incorrect');
+                });
+                
+                test('Cards are stored', () => {
+                    if (app.cards.length !== 1) throw new Error('Card not stored');
+                });
+                
+                test('Can add multiple cards', () => {
+                    app.addCard('Добър ден', 'Good day');
+                    app.addCard('Довиждане', 'Goodbye');
+                    if (app.cards.length !== 3) throw new Error('Expected 3 cards');
+                });
+                
+                test('Can delete a card', () => {
+                    const id = app.cards[0].id;
+                    app.deleteCard(id);
+                    if (app.cards.length !== 2) throw new Error('Card not deleted');
+                });
+                
+                test('localStorage persistence', () => {
+                    const stored = localStorage.getItem('flashcards');
+                    if (!stored) throw new Error('Not saved to localStorage');
+                    const parsed = JSON.parse(stored);
+                    if (parsed.length !== 2) throw new Error('Wrong number of cards in storage');
+                });
+                
+                test('Current card index is valid', () => {
+                    if (app.currentCardIndex < 0 || app.currentCardIndex >= app.cards.length) {
+                        throw new Error('Invalid current index');
+                    }
+                });
+                
+                test('Can navigate between cards', () => {
+                    app.currentCardIndex = 0;
+                    app.nextCard();
+                    if (app.currentCardIndex !== 1) throw new Error('Next card failed');
+                    app.previousCard();
+                    if (app.currentCardIndex !== 0) throw new Error('Previous card failed');
+                });
+                
+                test('Navigation bounds are respected', () => {
+                    app.currentCardIndex = 0;
+                    app.previousCard();
+                    if (app.currentCardIndex !== 0) throw new Error('Should not go below 0');
+                    
+                    app.currentCardIndex = app.cards.length - 1;
+                    app.nextCard();
+                    if (app.currentCardIndex !== app.cards.length - 1) {
+                        throw new Error('Should not exceed max');
+                    }
+                });
+                
+                test('Review count tracks', () => {
+                    const before = app.reviewedToday;
+                    app.incrementReviewCount();
+                    if (app.reviewedToday !== before + 1) throw new Error('Review count not incremented');
+                });
+                
+                results.innerHTML += '<div class="test" style="border-color: blue; background: #e3f2fd; margin-top: 20px;">All tests completed!</div>';
+            }, 100);
+        };
+        document.head.appendChild(script);
+    </script>
+</body>
+</html>

@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flashcards - Bulgarian to English</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎴 Flashcards</h1>
+            <p class="subtitle">Learn English from Bulgarian</p>
+        </header>
+
+        <nav class="tabs">
+            <button class="tab-button active" data-tab="study">Study</button>
+            <button class="tab-button" data-tab="manage">Manage Cards</button>
+        </nav>
+
+        <!-- Study Tab -->
+        <div id="study-tab" class="tab-content active">
+            <div class="stats">
+                <div class="stat-item">
+                    <span class="stat-label">Total Cards:</span>
+                    <span id="total-cards" class="stat-value">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Reviewed Today:</span>
+                    <span id="reviewed-today" class="stat-value">0</span>
+                </div>
+            </div>
+
+            <div id="no-cards-message" class="message">
+                <p>No flashcards yet! Go to "Manage Cards" to add some.</p>
+            </div>
+
+            <div id="card-container" class="card-container" style="display: none;">
+                <div class="flashcard" id="flashcard">
+                    <div class="card-inner">
+                        <div class="card-front">
+                            <div class="card-language">Bulgarian</div>
+                            <div class="card-text" id="card-front-text"></div>
+                        </div>
+                        <div class="card-back">
+                            <div class="card-language">English</div>
+                            <div class="card-text" id="card-back-text"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="controls">
+                    <button id="flip-btn" class="btn btn-primary">Flip Card</button>
+                </div>
+
+                <div class="navigation">
+                    <button id="prev-btn" class="btn btn-secondary">← Previous</button>
+                    <span id="card-position" class="card-position">1 / 1</span>
+                    <button id="next-btn" class="btn btn-secondary">Next →</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Manage Cards Tab -->
+        <div id="manage-tab" class="tab-content">
+            <div class="add-card-form">
+                <h2>Add New Card</h2>
+                <div class="form-group">
+                    <label for="bulgarian-input">Bulgarian (Front):</label>
+                    <input type="text" id="bulgarian-input" placeholder="Enter Bulgarian word or phrase" autofocus>
+                </div>
+                <div class="form-group">
+                    <label for="english-input">English (Back):</label>
+                    <input type="text" id="english-input" placeholder="Enter English translation">
+                </div>
+                <button id="add-card-btn" class="btn btn-primary">Add Card</button>
+            </div>
+
+            <div class="card-list">
+                <h2>All Cards (<span id="card-count">0</span>)</h2>
+                <div id="cards-list"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
