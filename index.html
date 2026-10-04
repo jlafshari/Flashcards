@@ -36,14 +36,20 @@
             </div>
 
             <div id="card-container" class="card-container" style="display: none;">
+                <div class="direction-selector">
+                    <label>Study Direction:</label>
+                    <button id="direction-bg-en" class="direction-btn active">Bulgarian → English</button>
+                    <button id="direction-en-bg" class="direction-btn">English → Bulgarian</button>
+                </div>
+
                 <div class="flashcard" id="flashcard">
                     <div class="card-inner">
                         <div class="card-front">
-                            <div class="card-language">Bulgarian</div>
+                            <div class="card-language" id="card-front-lang">Bulgarian</div>
                             <div class="card-text" id="card-front-text"></div>
                         </div>
                         <div class="card-back">
-                            <div class="card-language">English</div>
+                            <div class="card-language" id="card-back-lang">English</div>
                             <div class="card-text" id="card-back-text"></div>
                         </div>
                     </div>
@@ -66,11 +72,11 @@
             <div class="add-card-form">
                 <h2>Add New Card</h2>
                 <div class="form-group">
-                    <label for="bulgarian-input">Bulgarian (Front):</label>
+                    <label for="bulgarian-input">Bulgarian:</label>
                     <input type="text" id="bulgarian-input" placeholder="Enter Bulgarian word or phrase" autofocus>
                 </div>
                 <div class="form-group">
-                    <label for="english-input">English (Back):</label>
+                    <label for="english-input">English:</label>
                     <input type="text" id="english-input" placeholder="Enter English translation">
                 </div>
                 <button id="add-card-btn" class="btn btn-primary">Add Card</button>

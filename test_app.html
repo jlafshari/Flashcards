@@ -318,6 +318,7 @@
                     if (app.currentCardIndex !== 0) throw new Error('currentCardIndex should be 0');
                     if (app.reviewedToday !== 0) throw new Error('reviewedToday should be 0');
                     if (app.isFlipped !== false) throw new Error('isFlipped should be false');
+                    if (app.direction !== 'bg-en') throw new Error('default direction should be bg-en');
                 }, 'initialization');
                 
                 // Card Management Tests
@@ -426,6 +427,20 @@
                     if (!stored) throw new Error('Review date not stored');
                     const today = new Date().toDateString();
                     if (stored !== today) throw new Error('Review date incorrect');
+                }, 'persistence');
+                
+                test('Study direction persists to localStorage', () => {
+                    app.setDirection('en-bg');
+                    const stored = localStorage.getItem('studyDirection');
+                    if (!stored) throw new Error('Direction not stored');
+                    if (stored !== 'en-bg') throw new Error('Stored direction incorrect');
+                }, 'persistence');
+                
+                test('Direction can be changed', () => {
+                    app.setDirection('bg-en');
+                    if (app.direction !== 'bg-en') throw new Error('Direction not changed to bg-en');
+                    app.setDirection('en-bg');
+                    if (app.direction !== 'en-bg') throw new Error('Direction not changed to en-bg');
                 }, 'persistence');
                 
                 // Input Validation Tests

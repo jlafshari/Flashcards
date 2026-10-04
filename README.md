@@ -6,6 +6,7 @@ A simple, user-friendly flashcard web application for learning English from Bulg
 
 - ✨ **Simple Interface** - Clean, intuitive design that's easy to understand and use
 - 🎴 **Card Management** - Add, view, and delete flashcards with Bulgarian and English text
+- 🔄 **Bidirectional Testing** - Study from Bulgarian to English OR English to Bulgarian
 - 🔄 **Flip Animation** - Click or press Space/Enter to flip cards and reveal translations
 - ⌨️ **Keyboard Navigation** - Use arrow keys to navigate between cards
 - 💾 **Automatic Saving** - All cards are saved to browser local storage
@@ -40,9 +41,14 @@ Then navigate to `http://localhost:8000` in your browser.
 
 ### Studying Cards
 1. Click the **"Study"** tab to review your flashcards
-2. Click on a card or press Space/Enter to flip and see the translation
-3. Use the **Previous/Next** buttons or arrow keys (← →) to navigate
-4. Review as many cards as you like - there are no daily limits!
+2. **Choose your study direction:**
+   - **Bulgarian → English**: See Bulgarian word, guess the English translation
+   - **English → Bulgarian**: See English word, guess the Bulgarian translation
+3. Click on a card or press Space/Enter to flip and see the translation
+4. Use the **Previous/Next** buttons or arrow keys (← →) to navigate
+5. Review as many cards as you like - there are no daily limits!
+
+The app remembers your preferred study direction, so you can practice both ways!
 
 ### Managing Cards
 - View all your cards in the **"Manage Cards"** tab
@@ -53,10 +59,11 @@ Then navigate to `http://localhost:8000` in your browser.
 This app was designed to be simpler and more flexible than Anki:
 
 1. **No Daily Limits** - Review as many cards as you want, anytime
-2. **Simpler UI** - Clear tabs and straightforward controls
-3. **Instant Start** - No complex setup or deck configuration
-4. **Browser-Based** - Works in any modern web browser
-5. **Lightweight** - Just three files (HTML, CSS, JavaScript)
+2. **Bidirectional Testing** - Easily switch between Bulgarian→English and English→Bulgarian
+3. **Simpler UI** - Clear tabs and straightforward controls
+4. **Instant Start** - No complex setup or deck configuration
+5. **Browser-Based** - Works in any modern web browser
+6. **Lightweight** - Just three files (HTML, CSS, JavaScript)
 
 ## Technical Details
 

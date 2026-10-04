@@ -7,6 +7,7 @@ class FlashcardApp {
         this.currentCardIndex = 0;
         this.reviewedToday = 0;
         this.isFlipped = false;
+        this.direction = 'bg-en'; // 'bg-en' or 'en-bg'
         
         this.init();
     }
@@ -33,6 +34,12 @@ class FlashcardApp {
             this.reviewedToday = 0;
             localStorage.setItem('reviewDate', today);
             localStorage.setItem('reviewedToday', '0');
+        }
+        
+        // Load direction preference
+        const savedDirection = localStorage.getItem('studyDirection');
+        if (savedDirection) {
+            this.direction = savedDirection;
         }
     }
 
@@ -132,9 +139,22 @@ class FlashcardApp {
 
         const currentCard = this.cards[this.currentCardIndex];
         
-        // Update card content
-        document.getElementById('card-front-text').textContent = currentCard.bulgarian;
-        document.getElementById('card-back-text').textContent = currentCard.english;
+        // Update direction buttons
+        document.getElementById('direction-bg-en').classList.toggle('active', this.direction === 'bg-en');
+        document.getElementById('direction-en-bg').classList.toggle('active', this.direction === 'en-bg');
+        
+        // Update card content based on direction
+        if (this.direction === 'bg-en') {
+            document.getElementById('card-front-lang').textContent = 'Bulgarian';
+            document.getElementById('card-back-lang').textContent = 'English';
+            document.getElementById('card-front-text').textContent = currentCard.bulgarian;
+            document.getElementById('card-back-text').textContent = currentCard.english;
+        } else {
+            document.getElementById('card-front-lang').textContent = 'English';
+            document.getElementById('card-back-lang').textContent = 'Bulgarian';
+            document.getElementById('card-front-text').textContent = currentCard.english;
+            document.getElementById('card-back-text').textContent = currentCard.bulgarian;
+        }
         
         // Update position
         document.getElementById('card-position').textContent = 
@@ -182,6 +202,15 @@ class FlashcardApp {
                 const tabName = e.target.dataset.tab;
                 this.switchTab(tabName);
             });
+        });
+
+        // Direction switching
+        document.getElementById('direction-bg-en').addEventListener('click', () => {
+            this.setDirection('bg-en');
+        });
+
+        document.getElementById('direction-en-bg').addEventListener('click', () => {
+            this.setDirection('en-bg');
         });
 
         // Study tab controls
@@ -239,6 +268,13 @@ class FlashcardApp {
                 this.handleAddCard();
             }
         });
+    }
+
+    setDirection(direction) {
+        this.direction = direction;
+        localStorage.setItem('studyDirection', direction);
+        this.resetFlip();
+        this.updateUI();
     }
 
     handleAddCard() {

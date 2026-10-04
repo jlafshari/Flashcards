@@ -58,10 +58,22 @@ Expected output: `✅ All checks passed!`
 #### Studying Cards
 - [ ] Click "Study" tab
 - [ ] Total Cards shows "1"
+- [ ] Direction selector shows two buttons: "Bulgarian → English" and "English → Bulgarian"
+- [ ] "Bulgarian → English" button is active (highlighted) by default
 - [ ] Card displays with "Bulgarian" label and "Здравей" text
 - [ ] Card position shows "1 / 1"
 - [ ] Previous button is disabled
 - [ ] Next button is disabled (only 1 card)
+
+#### Direction Switching
+- [ ] Click "English → Bulgarian" button
+- [ ] Button becomes active (highlighted)
+- [ ] "Bulgarian → English" button becomes inactive
+- [ ] Card now shows "English" label and "Hello" text (front side)
+- [ ] Flip the card - back side shows "Bulgarian" label and "Здравей"
+- [ ] Click "Bulgarian → English" button to switch back
+- [ ] Card resets to show "Bulgarian" label and "Здравей" (front side)
+- [ ] Flip the card - back side shows "English" label and "Hello"
 
 #### Card Flipping
 - [ ] Click on the card - it flips to show "Hello"
@@ -96,10 +108,12 @@ Add more cards first:
 
 #### Data Persistence
 - [ ] Add several cards
+- [ ] Switch between study directions (Bulgarian → English and English → Bulgarian)
 - [ ] Close the browser tab completely
 - [ ] Open `index.html` again
 - [ ] All cards are still there
 - [ ] Review count persists for same day
+- [ ] Last selected study direction is remembered
 
 #### Input Validation
 - [ ] Try to add a card with empty Bulgarian field

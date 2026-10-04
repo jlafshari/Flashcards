@@ -8,10 +8,13 @@
 2. Click "Manage Cards" tab
 3. Add a card: `Здравей` → `Hello`
 4. Click "Study" tab
-5. Click the card to flip it
-6. Verify it shows "Hello"
+5. Try both study directions:
+   - Click "Bulgarian → English" button (should show `Здравей`)
+   - Click "English → Bulgarian" button (should show `Hello`)
+6. Click the card to flip it
+7. Verify both sides work correctly
 
-✅ **Pass**: If you can add and flip cards  
+✅ **Pass**: If you can add cards, switch directions, and flip cards  
 ❌ **Fail**: If errors appear in console (F12)
 
 ### 2. 🧪 Automated Unit Tests (30 seconds)

@@ -204,11 +204,16 @@
             </div>
             <div class="step pending" data-step="5">
                 <span class="step-number">5.</span>
-                <span>Navigate through all cards</span>
+                <span>Test direction switching</span>
                 <span class="step-status">⏳</span>
             </div>
             <div class="step pending" data-step="6">
                 <span class="step-number">6.</span>
+                <span>Navigate through all cards</span>
+                <span class="step-status">⏳</span>
+            </div>
+            <div class="step pending" data-step="7">
+                <span class="step-number">7.</span>
                 <span>Verify review count incremented</span>
                 <span class="step-status">⏳</span>
             </div>
@@ -479,6 +484,29 @@
             );
 
             allPassed &= await TestRunner.runStep('scenario-1', 5,
+                'Test direction switching',
+                async () => {
+                    // Default direction should be Bulgarian → English
+                    TestRunner.assert(TestRunner.app.direction === 'bg-en', 
+                        'Default direction should be bg-en');
+                    
+                    // Switch to English → Bulgarian
+                    await TestRunner.clickElement('#direction-en-bg');
+                    await TestRunner.sleep(100);
+                    
+                    TestRunner.assert(TestRunner.app.direction === 'en-bg', 
+                        'Direction should change to en-bg');
+                    
+                    // Switch back to Bulgarian → English
+                    await TestRunner.clickElement('#direction-bg-en');
+                    await TestRunner.sleep(100);
+                    
+                    TestRunner.assert(TestRunner.app.direction === 'bg-en', 
+                        'Direction should change back to bg-en');
+                }
+            );
+
+            allPassed &= await TestRunner.runStep('scenario-1', 6,
                 'Navigate through all cards',
                 async () => {
                     TestRunner.assert(TestRunner.app.currentCardIndex === 0, 
@@ -493,7 +521,7 @@
                 }
             );
 
-            allPassed &= await TestRunner.runStep('scenario-1', 6,
+            allPassed &= await TestRunner.runStep('scenario-1', 7,
                 'Verify review count incremented',
                 async () => {
                     TestRunner.assert(TestRunner.app.reviewedToday === 4, 
