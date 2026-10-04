@@ -24,20 +24,18 @@ body {
 /* Tabs */
 .tabs {
     display: flex;
+    align-items: center;
     gap: 5px;
     margin-bottom: 20px;
     border-bottom: 2px solid #e0e0e0;
 }
 
-header {
-    text-align: center;
-    margin-bottom: 15px;
-}
-
-header h1 {
+.tabs h1 {
     font-size: 1.8em;
     color: #667eea;
-    margin-bottom: 5px;
+    margin: 0;
+    margin-right: auto;
+    padding-right: 20px;
 }
 
 .tab-button {
@@ -367,8 +365,8 @@ header h1 {
         padding: 20px;
     }
 
-    header h1 {
-        font-size: 2em;
+    .tabs h1 {
+        font-size: 1.5em;
     }
 
     .card-text {
