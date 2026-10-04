@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>End-to-End Test - Flashcards</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        
+        .test-container {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            color: #333;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+        
+        h2 {
+            color: #667eea;
+            margin-top: 0;
+        }
+        
+        .scenario {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        
+        .step {
+            padding: 10px;
+            margin: 8px 0;
+            background: white;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .step.pending {
+            border-left: 3px solid #ffc107;
+        }
+        
+        .step.running {
+            border-left: 3px solid #2196f3;
+            background: #e3f2fd;
+        }
+        
+        .step.pass {
+            border-left: 3px solid #4caf50;
+            background: #e8f5e9;
+        }
+        
+        .step.fail {
+            border-left: 3px solid #f44336;
+            background: #ffebee;
+        }
+        
+        .step-number {
+            font-weight: bold;
+            min-width: 30px;
+        }
+        
+        .step-status {
+            margin-left: auto;
+            font-size: 20px;
+        }
+        
+        .controls {
+            margin: 20px 0;
+            display: flex;
+            gap: 10px;
+        }
+        
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        
+        button.primary {
+            background: #667eea;
+            color: white;
+        }
+        
+        button.primary:hover {
+            background: #5568d3;
+        }
+        
+        button.secondary {
+            background: #e0e0e0;
+            color: #333;
+        }
+        
+        button.secondary:hover {
+            background: #d0d0d0;
+        }
+        
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .results {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        
+        .results.success {
+            background: #4caf50;
+            color: white;
+        }
+        
+        .results.failure {
+            background: #f44336;
+            color: white;
+        }
+        
+        .app-frame {
+            width: 100%;
+            height: 600px;
+            border: 2px solid #ddd;
+            border-radius: 4px;
+            margin: 20px 0;
+        }
+        
+        .log {
+            background: #263238;
+            color: #aed581;
+            padding: 15px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+            margin: 15px 0;
+        }
+        
+        .log-entry {
+            margin: 2px 0;
+        }
+        
+        .log-entry.info { color: #81d4fa; }
+        .log-entry.success { color: #aed581; }
+        .log-entry.error { color: #ff5252; }
+        .log-entry.warning { color: #ffb74d; }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🧪 End-to-End Testing Suite</h1>
+        <p>This page runs automated end-to-end tests to simulate real user workflows.</p>
+        
+        <div class="controls">
+            <button class="primary" id="run-all-btn">Run All Scenarios</button>
+            <button class="secondary" id="run-scenario-1">Scenario 1: First-Time User</button>
+            <button class="secondary" id="run-scenario-2">Scenario 2: Card Management</button>
+            <button class="secondary" id="run-scenario-3">Scenario 3: Keyboard Navigation</button>
+            <button class="secondary" id="clear-log-btn">Clear Log</button>
+        </div>
+        
+        <div class="log" id="log"></div>
+    </div>
+
+    <div class="test-container">
+        <h2>Scenario 1: First-Time User Journey</h2>
+        <div class="scenario" id="scenario-1">
+            <div class="step pending" data-step="1">
+                <span class="step-number">1.</span>
+                <span>Verify app loads with no cards</span>
+                <span class="step-status">⏳</span>
+            </div>
+            <div class="step pending" data-step="2">
+                <span class="step-number">2.</span>
+                <span>Switch to Manage Cards tab</span>
+                <span class="step-status">⏳</span>
+            </div>
+            <div class="step pending" data-step="3">
+                <span class="step-number">3.</span>
+                <span>Add 5 flashcards</span>
+                <span class="step-status">⏳</span>
+            </div>
+            <div class="step pending" data-step="4">
+                <span class="step-number">4.</span>
+                <span>Switch back to Study tab</span>
+                <span class="step-status">⏳</span>
+            </div>
+            <div class="step pending" data-step="5">
+                <span class="step-number">5.</span>
+                <span>Test direction switching</span>
+                <span class="step-status">⏳</span>
+            </div>
+            <div class="step pending" data-step="6">
+                <span class="step-number">6.</span>
+                <span>Navigate through all cards</span>
+                <span class="step-status">⏳</span>
+            </div>
+            <div class="step pending" data-step="7">
+                <span class="step-number">7.</span>
+                <span>Verify review count incremented</span>
+                <span class="step-status">⏳</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="test-container">
+        <h2>Scenario 2: Card Management</h2>
+        <div class="scenario" id="scenario-2">
+            <div class="step pending" data-step="1">
+                <span class="step-number">1.</span>
+                <span>Add 10 cards</span>
+                <span class="step-status">⏳</span>
+            </div>
+            <div class="step pending" data-step="2">
+                <span class="step-number">2.</span>
+                <span>Verify all cards appear in list</span>
+                <span class="step-status">⏳</span>
+            </div>
+            <div class="step pending" data-step="3">
+                <span class="step-number">3.</span>
+                <span>Delete 3 cards</span>
+                <span class="step-status">⏳</span>
+            </div>
+            <div class="step pending" data-step="4">
+                <span class="step-number">4.</span>
+                <span>Verify count updated to 7</span>
+                <span class="step-status">⏳</span>
+            </div>
+            <div class="step pending" data-step="5">
+                <span class="step-number">5.</span>
+                <span>Delete all remaining cards</span>
+                <span class="step-status">⏳</span>
+            </div>
+            <div class="step pending" data-step="6">
+                <span class="step-number">6.</span>
+                <span>Verify empty state restored</span>
+                <span class="step-status">⏳</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="test-container">
+        <h2>Scenario 3: Keyboard Navigation</h2>
+        <div class="scenario" id="scenario-3">
+            <div class="step pending" data-step="1">
+                <span class="step-number">1.</span>
+                <span>Add 5 test cards</span>
+                <span class="step-status">⏳</span>
+            </div>
+            <div class="step pending" data-step="2">
+                <span class="step-number">2.</span>
+                <span>Navigate to Study tab</span>
+                <span class="step-status">⏳</span>
+            </div>
+            <div class="step pending" data-step="3">
+                <span class="step-number">3.</span>
+                <span>Simulate Space key to flip card</span>
+                <span class="step-status">⏳</span>
+            </div>
+            <div class="step pending" data-step="4">
+                <span class="step-number">4.</span>
+                <span>Simulate Arrow Right to next card</span>
+                <span class="step-status">⏳</span>
+            </div>
+            <div class="step pending" data-step="5">
+                <span class="step-number">5.</span>
+                <span>Simulate Arrow Left to previous card</span>
+                <span class="step-status">⏳</span>
+            </div>
+            <div class="step pending" data-step="6">
+                <span class="step-number">6.</span>
+                <span>Verify keyboard shortcuts work correctly</span>
+                <span class="step-status">⏳</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="test-container">
+        <h2>Test Application (iFrame)</h2>
+        <p>The app runs in this iframe for automated testing:</p>
+        <iframe id="app-frame" class="app-frame" src="index.html"></iframe>
+    </div>
+
+    <script>
+        // Logging utility
+        const log = {
+            container: document.getElementById('log'),
+            
+            write(message, type = 'info') {
+                const entry = document.createElement('div');
+                entry.className = `log-entry ${type}`;
+                const timestamp = new Date().toLocaleTimeString();
+                entry.textContent = `[${timestamp}] ${message}`;
+                this.container.appendChild(entry);
+                this.container.scrollTop = this.container.scrollHeight;
+            },
+            
+            info(msg) { this.write(msg, 'info'); },
+            success(msg) { this.write(msg, 'success'); },
+            error(msg) { this.write(msg, 'error'); },
+            warning(msg) { this.write(msg, 'warning'); },
+            
+            clear() {
+                this.container.innerHTML = '';
+            }
+        };
+
+        // Test utilities
+        const TestRunner = {
+            iframe: null,
+            app: null,
+            
+            async init() {
+                this.iframe = document.getElementById('app-frame');
+                await this.waitForLoad();
+            },
+            
+            waitForLoad() {
+                return new Promise((resolve) => {
+                    if (this.iframe.contentWindow.app) {
+                        this.app = this.iframe.contentWindow.app;
+                        resolve();
+                    } else {
+                        this.iframe.addEventListener('load', () => {
+                            setTimeout(() => {
+                                this.app = this.iframe.contentWindow.app;
+                                resolve();
+                            }, 100);
+                        });
+                    }
+                });
+            },
+            
+            async reset() {
+                log.info('Resetting application state...');
+                this.app.cards = [];
+                this.app.currentCardIndex = 0;
+                this.app.reviewedToday = 0;
+                this.app.isFlipped = false;
+                this.app.saveToStorage();
+                this.app.updateUI();
+                await this.sleep(100);
+            },
+            
+            sleep(ms) {
+                return new Promise(resolve => setTimeout(resolve, ms));
+            },
+            
+            updateStepStatus(scenarioId, stepNum, status) {
+                const scenario = document.getElementById(scenarioId);
+                const step = scenario.querySelector(`[data-step="${stepNum}"]`);
+                step.className = `step ${status}`;
+                const statusIcon = {
+                    'pending': '⏳',
+                    'running': '▶️',
+                    'pass': '✅',
+                    'fail': '❌'
+                }[status];
+                step.querySelector('.step-status').textContent = statusIcon;
+            },
+            
+            async runStep(scenarioId, stepNum, description, testFn) {
+                this.updateStepStatus(scenarioId, stepNum, 'running');
+                log.info(`Running: ${description}`);
+                
+                try {
+                    await testFn();
+                    this.updateStepStatus(scenarioId, stepNum, 'pass');
+                    log.success(`✓ ${description}`);
+                    return true;
+                } catch (error) {
+                    this.updateStepStatus(scenarioId, stepNum, 'fail');
+                    log.error(`✗ ${description}: ${error.message}`);
+                    return false;
+                }
+            },
+            
+            assert(condition, message) {
+                if (!condition) {
+                    throw new Error(message);
+                }
+            },
+            
+            async clickElement(selector) {
+                const doc = this.iframe.contentDocument;
+                const element = doc.querySelector(selector);
+                if (!element) throw new Error(`Element not found: ${selector}`);
+                element.click();
+                await this.sleep(100);
+            },
+            
+            async typeText(selector, text) {
+                const doc = this.iframe.contentDocument;
+                const element = doc.querySelector(selector);
+                if (!element) throw new Error(`Element not found: ${selector}`);
+                element.value = text;
+                await this.sleep(50);
+            },
+            
+            async simulateKey(key) {
+                const event = new KeyboardEvent('keydown', { key, bubbles: true });
+                this.iframe.contentDocument.dispatchEvent(event);
+                await this.sleep(100);
+            }
+        };
+
+        // Scenario 1: First-Time User Journey
+        async function runScenario1() {
+            log.info('=== Starting Scenario 1: First-Time User Journey ===');
+            await TestRunner.reset();
+            
+            let allPassed = true;
+
+            allPassed &= await TestRunner.runStep('scenario-1', 1, 
+                'Verify app loads with no cards',
+                async () => {
+                    TestRunner.assert(TestRunner.app.cards.length === 0, 
+                        'Expected 0 cards initially');
+                    TestRunner.assert(TestRunner.app.reviewedToday === 0, 
+                        'Expected 0 reviews initially');
+                }
+            );
+
+            allPassed &= await TestRunner.runStep('scenario-1', 2,
+                'Switch to Manage Cards tab',
+                async () => {
+                    await TestRunner.clickElement('[data-tab="manage"]');
+                    const doc = TestRunner.iframe.contentDocument;
+                    const manageTab = doc.getElementById('manage-tab');
+                    TestRunner.assert(manageTab.classList.contains('active'), 
+                        'Manage tab should be active');
+                }
+            );
+
+            allPassed &= await TestRunner.runStep('scenario-1', 3,
+                'Add 5 flashcards',
+                async () => {
+                    const words = [
+                        ['Здравей', 'Hello'],
+                        ['Довиждане', 'Goodbye'],
+                        ['Благодаря', 'Thank you'],
+                        ['Моля', 'Please'],
+                        ['Да', 'Yes']
+                    ];
+                    
+                    for (const [bg, en] of words) {
+                        await TestRunner.typeText('#bulgarian-input', bg);
+                        await TestRunner.typeText('#english-input', en);
+                        await TestRunner.clickElement('#add-card-btn');
+                        await TestRunner.sleep(100);
+                    }
+                    
+                    TestRunner.assert(TestRunner.app.cards.length === 5, 
+                        `Expected 5 cards, got ${TestRunner.app.cards.length}`);
+                }
+            );
+
+            allPassed &= await TestRunner.runStep('scenario-1', 4,
+                'Switch back to Study tab',
+                async () => {
+                    await TestRunner.clickElement('[data-tab="study"]');
+                    const doc = TestRunner.iframe.contentDocument;
+                    const studyTab = doc.getElementById('study-tab');
+                    TestRunner.assert(studyTab.classList.contains('active'), 
+                        'Study tab should be active');
+                }
+            );
+
+            allPassed &= await TestRunner.runStep('scenario-1', 5,
+                'Test direction switching',
+                async () => {
+                    // Default direction should be Bulgarian → English
+                    TestRunner.assert(TestRunner.app.direction === 'bg-en', 
+                        'Default direction should be bg-en');
+                    
+                    // Switch to English → Bulgarian
+                    await TestRunner.clickElement('#direction-en-bg');
+                    await TestRunner.sleep(100);
+                    
+                    TestRunner.assert(TestRunner.app.direction === 'en-bg', 
+                        'Direction should change to en-bg');
+                    
+                    // Switch back to Bulgarian → English
+                    await TestRunner.clickElement('#direction-bg-en');
+                    await TestRunner.sleep(100);
+                    
+                    TestRunner.assert(TestRunner.app.direction === 'bg-en', 
+                        'Direction should change back to bg-en');
+                }
+            );
+
+            allPassed &= await TestRunner.runStep('scenario-1', 6,
+                'Navigate through all cards',
+                async () => {
+                    TestRunner.assert(TestRunner.app.currentCardIndex === 0, 
+                        'Should start at first card');
+                    
+                    for (let i = 0; i < 4; i++) {
+                        await TestRunner.clickElement('#next-btn');
+                    }
+                    
+                    TestRunner.assert(TestRunner.app.currentCardIndex === 4, 
+                        'Should be at last card');
+                }
+            );
+
+            allPassed &= await TestRunner.runStep('scenario-1', 7,
+                'Verify review count incremented',
+                async () => {
+                    TestRunner.assert(TestRunner.app.reviewedToday === 4, 
+                        `Expected 4 reviews, got ${TestRunner.app.reviewedToday}`);
+                }
+            );
+
+            if (allPassed) {
+                log.success('=== Scenario 1 PASSED ===');
+            } else {
+                log.error('=== Scenario 1 FAILED ===');
+            }
+            
+            return allPassed;
+        }
+
+        // Scenario 2: Card Management
+        async function runScenario2() {
+            log.info('=== Starting Scenario 2: Card Management ===');
+            await TestRunner.reset();
+            
+            let allPassed = true;
+
+            allPassed &= await TestRunner.runStep('scenario-2', 1,
+                'Add 10 cards',
+                async () => {
+                    await TestRunner.clickElement('[data-tab="manage"]');
+                    
+                    for (let i = 1; i <= 10; i++) {
+                        TestRunner.app.addCard(`Bulgarian ${i}`, `English ${i}`);
+                    }
+                    
+                    TestRunner.assert(TestRunner.app.cards.length === 10, 
+                        `Expected 10 cards, got ${TestRunner.app.cards.length}`);
+                }
+            );
+
+            allPassed &= await TestRunner.runStep('scenario-2', 2,
+                'Verify all cards appear in list',
+                async () => {
+                    const doc = TestRunner.iframe.contentDocument;
+                    const cardItems = doc.querySelectorAll('.card-item');
+                    TestRunner.assert(cardItems.length === 10, 
+                        `Expected 10 card items in DOM, got ${cardItems.length}`);
+                }
+            );
+
+            let cardIds = [];
+            allPassed &= await TestRunner.runStep('scenario-2', 3,
+                'Delete 3 cards',
+                async () => {
+                    cardIds = TestRunner.app.cards.slice(0, 3).map(c => c.id);
+                    
+                    for (const id of cardIds) {
+                        TestRunner.app.deleteCard(id);
+                        await TestRunner.sleep(100);
+                    }
+                    
+                    TestRunner.assert(TestRunner.app.cards.length === 7, 
+                        `Expected 7 cards after deletion, got ${TestRunner.app.cards.length}`);
+                }
+            );
+
+            allPassed &= await TestRunner.runStep('scenario-2', 4,
+                'Verify count updated to 7',
+                async () => {
+                    const doc = TestRunner.iframe.contentDocument;
+                    const countEl = doc.getElementById('card-count');
+                    TestRunner.assert(countEl.textContent === '7', 
+                        `Expected count '7', got '${countEl.textContent}'`);
+                }
+            );
+
+            allPassed &= await TestRunner.runStep('scenario-2', 5,
+                'Delete all remaining cards',
+                async () => {
+                    while (TestRunner.app.cards.length > 0) {
+                        const id = TestRunner.app.cards[0].id;
+                        TestRunner.app.deleteCard(id);
+                        await TestRunner.sleep(50);
+                    }
+                    
+                    TestRunner.assert(TestRunner.app.cards.length === 0, 
+                        `Expected 0 cards, got ${TestRunner.app.cards.length}`);
+                }
+            );
+
+            allPassed &= await TestRunner.runStep('scenario-2', 6,
+                'Verify empty state restored',
+                async () => {
+                    await TestRunner.clickElement('[data-tab="study"]');
+                    const doc = TestRunner.iframe.contentDocument;
+                    const noCardsMsg = doc.getElementById('no-cards-message');
+                    const isVisible = noCardsMsg.style.display !== 'none';
+                    TestRunner.assert(isVisible, 
+                        'Empty state message should be visible');
+                }
+            );
+
+            if (allPassed) {
+                log.success('=== Scenario 2 PASSED ===');
+            } else {
+                log.error('=== Scenario 2 FAILED ===');
+            }
+            
+            return allPassed;
+        }
+
+        // Scenario 3: Keyboard Navigation
+        async function runScenario3() {
+            log.info('=== Starting Scenario 3: Keyboard Navigation ===');
+            await TestRunner.reset();
+            
+            let allPassed = true;
+
+            allPassed &= await TestRunner.runStep('scenario-3', 1,
+                'Add 5 test cards',
+                async () => {
+                    for (let i = 1; i <= 5; i++) {
+                        TestRunner.app.addCard(`Test ${i}`, `Test ${i}`);
+                    }
+                    TestRunner.assert(TestRunner.app.cards.length === 5, 
+                        `Expected 5 cards, got ${TestRunner.app.cards.length}`);
+                }
+            );
+
+            allPassed &= await TestRunner.runStep('scenario-3', 2,
+                'Navigate to Study tab',
+                async () => {
+                    await TestRunner.clickElement('[data-tab="study"]');
+                    TestRunner.assert(TestRunner.app.currentCardIndex === 0, 
+                        'Should be at first card');
+                }
+            );
+
+            allPassed &= await TestRunner.runStep('scenario-3', 3,
+                'Simulate Space key to flip card',
+                async () => {
+                    const wasFlipped = TestRunner.app.isFlipped;
+                    await TestRunner.simulateKey(' ');
+                    TestRunner.assert(TestRunner.app.isFlipped !== wasFlipped, 
+                        'Card should flip when Space is pressed');
+                }
+            );
+
+            allPassed &= await TestRunner.runStep('scenario-3', 4,
+                'Simulate Arrow Right to next card',
+                async () => {
+                    TestRunner.app.currentCardIndex = 0;
+                    await TestRunner.simulateKey('ArrowRight');
+                    TestRunner.assert(TestRunner.app.currentCardIndex === 1, 
+                        `Expected index 1, got ${TestRunner.app.currentCardIndex}`);
+                }
+            );
+
+            allPassed &= await TestRunner.runStep('scenario-3', 5,
+                'Simulate Arrow Left to previous card',
+                async () => {
+                    await TestRunner.simulateKey('ArrowLeft');
+                    TestRunner.assert(TestRunner.app.currentCardIndex === 0, 
+                        `Expected index 0, got ${TestRunner.app.currentCardIndex}`);
+                }
+            );
+
+            allPassed &= await TestRunner.runStep('scenario-3', 6,
+                'Verify keyboard shortcuts work correctly',
+                async () => {
+                    // Test Enter key for flip
+                    const wasFlipped = TestRunner.app.isFlipped;
+                    await TestRunner.simulateKey('Enter');
+                    TestRunner.assert(TestRunner.app.isFlipped !== wasFlipped, 
+                        'Card should flip when Enter is pressed');
+                    
+                    // Test navigation to last card
+                    for (let i = 0; i < 4; i++) {
+                        await TestRunner.simulateKey('ArrowRight');
+                    }
+                    TestRunner.assert(TestRunner.app.currentCardIndex === 4, 
+                        'Should navigate to last card');
+                }
+            );
+
+            if (allPassed) {
+                log.success('=== Scenario 3 PASSED ===');
+            } else {
+                log.error('=== Scenario 3 FAILED ===');
+            }
+            
+            return allPassed;
+        }
+
+        // Run all scenarios
+        async function runAllScenarios() {
+            log.clear();
+            log.info('Initializing test runner...');
+            
+            await TestRunner.init();
+            log.success('Test runner initialized');
+            
+            const results = {
+                scenario1: await runScenario1(),
+                scenario2: await runScenario2(),
+                scenario3: await runScenario3()
+            };
+            
+            const totalPassed = Object.values(results).filter(r => r).length;
+            const totalScenarios = Object.keys(results).length;
+            
+            log.info('');
+            log.info('='.repeat(50));
+            if (totalPassed === totalScenarios) {
+                log.success(`✅ ALL SCENARIOS PASSED (${totalPassed}/${totalScenarios})`);
+            } else {
+                log.error(`❌ SOME SCENARIOS FAILED (${totalPassed}/${totalScenarios} passed)`);
+            }
+            log.info('='.repeat(50));
+        }
+
+        // Event listeners
+        document.getElementById('run-all-btn').addEventListener('click', async () => {
+            document.getElementById('run-all-btn').disabled = true;
+            await runAllScenarios();
+            document.getElementById('run-all-btn').disabled = false;
+        });
+
+        document.getElementById('run-scenario-1').addEventListener('click', async () => {
+            log.clear();
+            await TestRunner.init();
+            await runScenario1();
+        });
+
+        document.getElementById('run-scenario-2').addEventListener('click', async () => {
+            log.clear();
+            await TestRunner.init();
+            await runScenario2();
+        });
+
+        document.getElementById('run-scenario-3').addEventListener('click', async () => {
+            log.clear();
+            await TestRunner.init();
+            await runScenario3();
+        });
+
+        document.getElementById('clear-log-btn').addEventListener('click', () => {
+            log.clear();
+        });
+
+        // Auto-run on page load (optional)
+        window.addEventListener('load', () => {
+            log.info('End-to-end test suite ready. Click "Run All Scenarios" to begin.');
+        });
+    </script>
+</body>
+</html>
