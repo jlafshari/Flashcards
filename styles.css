@@ -23,33 +23,33 @@ body {
 
 header {
     text-align: center;
-    margin-bottom: 30px;
+    margin-bottom: 15px;
 }
 
 header h1 {
-    font-size: 2.5em;
+    font-size: 1.8em;
     color: #667eea;
-    margin-bottom: 10px;
+    margin-bottom: 5px;
 }
 
 .subtitle {
     color: #666;
-    font-size: 1.1em;
+    font-size: 0.95em;
 }
 
 /* Tabs */
 .tabs {
     display: flex;
-    gap: 10px;
-    margin-bottom: 30px;
+    gap: 5px;
+    margin-bottom: 20px;
     border-bottom: 2px solid #e0e0e0;
 }
 
 .tab-button {
     background: none;
     border: none;
-    padding: 15px 30px;
-    font-size: 1em;
+    padding: 10px 20px;
+    font-size: 0.9em;
     cursor: pointer;
     color: #666;
     border-bottom: 3px solid transparent;
@@ -78,9 +78,9 @@ header h1 {
 .stats {
     display: flex;
     justify-content: center;
-    gap: 40px;
-    margin-bottom: 30px;
-    padding: 20px;
+    gap: 30px;
+    margin-bottom: 20px;
+    padding: 15px;
     background: #f8f9fa;
     border-radius: 10px;
 }
@@ -92,13 +92,13 @@ header h1 {
 .stat-label {
     display: block;
     color: #666;
-    font-size: 0.9em;
-    margin-bottom: 5px;
+    font-size: 0.85em;
+    margin-bottom: 3px;
 }
 
 .stat-value {
     display: block;
-    font-size: 2em;
+    font-size: 1.5em;
     font-weight: bold;
     color: #667eea;
 }
@@ -113,35 +113,38 @@ header h1 {
 
 /* Flashcard */
 .card-container {
-    margin: 40px 0;
+    margin: 20px 0;
 }
 
 /* Direction Selector */
 .direction-selector {
     text-align: center;
-    margin-bottom: 20px;
-    padding: 15px;
+    margin-bottom: 15px;
+    padding: 10px;
     background: #f8f9fa;
-    border-radius: 10px;
+    border-radius: 8px;
 }
 
 .direction-selector label {
-    display: block;
-    margin-bottom: 10px;
+    display: inline-block;
+    margin-right: 10px;
+    margin-bottom: 0;
     color: #666;
     font-weight: 500;
+    font-size: 0.9em;
 }
 
 .direction-btn {
-    padding: 10px 20px;
-    margin: 0 5px;
+    padding: 6px 14px;
+    margin: 0 3px;
     border: 2px solid #e0e0e0;
     background: white;
-    border-radius: 8px;
+    border-radius: 6px;
     cursor: pointer;
     transition: all 0.3s;
     font-weight: 500;
     color: #333;
+    font-size: 0.85em;
 }
 
 .direction-btn:hover {
