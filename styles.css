@@ -214,20 +214,18 @@ body {
 
 /* Controls */
 .controls {
-    text-align: center;
-    margin-bottom: 20px;
-}
-
-.navigation {
     display: flex;
-    justify-content: space-between;
+    justify-content: center;
     align-items: center;
-    gap: 20px;
+    gap: 15px;
+    margin-bottom: 20px;
 }
 
 .card-position {
     color: #666;
     font-weight: 500;
+    min-width: 60px;
+    text-align: center;
 }
 
 /* Buttons */
@@ -378,11 +376,19 @@ body {
         gap: 20px;
     }
 
-    .navigation {
-        flex-direction: column;
+    .controls {
+        flex-wrap: wrap;
+        gap: 10px;
     }
 
     .btn {
-        width: 100%;
+        flex: 1 1 auto;
+        min-width: 120px;
+    }
+
+    .card-position {
+        flex-basis: 100%;
+        order: -1;
+        margin-bottom: 5px;
     }
 }
