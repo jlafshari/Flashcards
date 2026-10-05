@@ -130,24 +130,30 @@ class FlashcardApp {
     }
 
     markEasy() {
-        // Show animation
+        // Show animation first, then navigate after animation completes
         this.animateButton('easy-btn');
         
-        // Card was easy - increment review count and move to next
-        this.nextCard();
+        // Delay navigation to allow animation to complete
+        setTimeout(() => {
+            // Card was easy - increment review count and move to next
+            this.nextCard();
+        }, 300);
     }
 
     markForReview() {
-        // Show animation
+        // Show animation first, then navigate after animation completes
         this.animateButton('review-btn');
         
-        // Card needs review - move to next card without incrementing review count
-        // Future enhancement: could mark card with needsReview flag
-        if (this.currentCardIndex < this.cards.length - 1) {
-            this.currentCardIndex++;
-            this.resetFlip();
-            this.updateUI();
-        }
+        // Delay navigation to allow animation to complete
+        setTimeout(() => {
+            // Card needs review - move to next card without incrementing review count
+            // Future enhancement: could mark card with needsReview flag
+            if (this.currentCardIndex < this.cards.length - 1) {
+                this.currentCardIndex++;
+                this.resetFlip();
+                this.updateUI();
+            }
+        }, 300);
     }
 
     animateButton(buttonId) {
