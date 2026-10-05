@@ -98,8 +98,10 @@ class FlashcardApp {
         
         if (this.isFlipped) {
             flashcard.classList.add('flipped');
+            this.showFeedbackButtons();
         } else {
             flashcard.classList.remove('flipped');
+            this.hideFeedbackButtons();
         }
     }
 
@@ -107,11 +109,39 @@ class FlashcardApp {
         this.isFlipped = false;
         const flashcard = document.getElementById('flashcard');
         flashcard.classList.remove('flipped');
+        this.hideFeedbackButtons();
     }
 
     incrementReviewCount() {
         this.reviewedToday++;
         localStorage.setItem('reviewedToday', this.reviewedToday.toString());
+    }
+
+    showFeedbackButtons() {
+        document.getElementById('next-btn').style.display = 'none';
+        document.getElementById('easy-btn').style.display = 'inline-block';
+        document.getElementById('review-btn').style.display = 'inline-block';
+    }
+
+    hideFeedbackButtons() {
+        document.getElementById('next-btn').style.display = 'inline-block';
+        document.getElementById('easy-btn').style.display = 'none';
+        document.getElementById('review-btn').style.display = 'none';
+    }
+
+    markEasy() {
+        // Card was easy - increment review count and move to next
+        this.nextCard();
+    }
+
+    markForReview() {
+        // Card needs review - move to next card without incrementing review count
+        // Future enhancement: could mark card with needsReview flag
+        if (this.currentCardIndex < this.cards.length - 1) {
+            this.currentCardIndex++;
+            this.resetFlip();
+            this.updateUI();
+        }
     }
 
     // UI updates
@@ -161,8 +191,11 @@ class FlashcardApp {
             `${this.currentCardIndex + 1} / ${this.cards.length}`;
 
         // Update navigation buttons
+        const isLastCard = this.currentCardIndex === this.cards.length - 1;
         document.getElementById('prev-btn').disabled = this.currentCardIndex === 0;
-        document.getElementById('next-btn').disabled = this.currentCardIndex === this.cards.length - 1;
+        document.getElementById('next-btn').disabled = isLastCard;
+        document.getElementById('easy-btn').disabled = isLastCard;
+        document.getElementById('review-btn').disabled = isLastCard;
     }
 
     updateManageTab() {
@@ -224,6 +257,14 @@ class FlashcardApp {
 
         document.getElementById('next-btn').addEventListener('click', () => {
             this.nextCard();
+        });
+
+        document.getElementById('easy-btn').addEventListener('click', () => {
+            this.markEasy();
+        });
+
+        document.getElementById('review-btn').addEventListener('click', () => {
+            this.markForReview();
         });
 
         // Click on card to flip

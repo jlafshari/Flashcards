@@ -275,6 +275,38 @@ body {
     background: #e04455;
 }
 
+.btn-easy {
+    background: #4caf50;
+    color: white;
+}
+
+.btn-easy:hover {
+    background: #45a049;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(76, 175, 80, 0.4);
+}
+
+.btn-easy:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.btn-review {
+    background: #ff9800;
+    color: white;
+}
+
+.btn-review:hover {
+    background: #e68900;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(255, 152, 0, 0.4);
+}
+
+.btn-review:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
 /* Form */
 .add-card-form {
     background: #f8f9fa;
