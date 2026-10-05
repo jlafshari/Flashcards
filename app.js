@@ -284,6 +284,21 @@ class FlashcardApp {
                 } else if (e.key === ' ' || e.key === 'Enter') {
                     e.preventDefault();
                     this.flipCard();
+                } else if (this.isFlipped) {
+                    // Feedback shortcuts only work when card is flipped
+                    if (e.key === '1') {
+                        e.preventDefault();
+                        const easyBtn = document.getElementById('easy-btn');
+                        if (!easyBtn.disabled) {
+                            this.markEasy();
+                        }
+                    } else if (e.key === '2') {
+                        e.preventDefault();
+                        const reviewBtn = document.getElementById('review-btn');
+                        if (!reviewBtn.disabled) {
+                            this.markForReview();
+                        }
+                    }
                 }
             }
         });
