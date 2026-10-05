@@ -320,26 +320,36 @@ body {
     }
 }
 
-@keyframes button-glow {
+@keyframes button-glow-easy {
     0% {
-        box-shadow: 0 0 0 0 currentColor;
+        box-shadow: 0 0 0 0 rgba(76, 175, 80, 0);
     }
     50% {
-        box-shadow: 0 0 20px 5px currentColor;
+        box-shadow: 0 0 30px 10px rgba(76, 175, 80, 0.8);
     }
     100% {
-        box-shadow: 0 0 0 0 currentColor;
+        box-shadow: 0 0 0 0 rgba(76, 175, 80, 0);
+    }
+}
+
+@keyframes button-glow-review {
+    0% {
+        box-shadow: 0 0 0 0 rgba(255, 152, 0, 0);
+    }
+    50% {
+        box-shadow: 0 0 30px 10px rgba(255, 152, 0, 0.8);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(255, 152, 0, 0);
     }
 }
 
 .btn-easy.animating {
-    animation: button-press 0.3s ease-out, button-glow 0.3s ease-out;
-    box-shadow: 0 0 20px 5px rgba(76, 175, 80, 0.6);
+    animation: button-press 0.3s ease-out, button-glow-easy 0.3s ease-out;
 }
 
 .btn-review.animating {
-    animation: button-press 0.3s ease-out, button-glow 0.3s ease-out;
-    box-shadow: 0 0 20px 5px rgba(255, 152, 0, 0.6);
+    animation: button-press 0.3s ease-out, button-glow-review 0.3s ease-out;
 }
 
 /* Form */
