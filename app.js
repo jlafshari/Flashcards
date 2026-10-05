@@ -130,11 +130,17 @@ class FlashcardApp {
     }
 
     markEasy() {
+        // Show animation
+        this.animateButton('easy-btn');
+        
         // Card was easy - increment review count and move to next
         this.nextCard();
     }
 
     markForReview() {
+        // Show animation
+        this.animateButton('review-btn');
+        
         // Card needs review - move to next card without incrementing review count
         // Future enhancement: could mark card with needsReview flag
         if (this.currentCardIndex < this.cards.length - 1) {
@@ -142,6 +148,16 @@ class FlashcardApp {
             this.resetFlip();
             this.updateUI();
         }
+    }
+
+    animateButton(buttonId) {
+        const button = document.getElementById(buttonId);
+        button.classList.add('animating');
+        
+        // Remove animation class after animation completes
+        setTimeout(() => {
+            button.classList.remove('animating');
+        }, 300);
     }
 
     // UI updates

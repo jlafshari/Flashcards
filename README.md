@@ -48,6 +48,7 @@ Then navigate to `http://localhost:8000` in your browser.
 4. After flipping, indicate if the card was:
    - **Easy ✓** (press **1**) - You knew it well, counts toward daily review
    - **Review Again ↻** (press **2**) - Needs more practice, moves to next without counting
+   - When you use a keyboard shortcut, the button will **pulse and glow** to show which option was selected
 5. Use the **Previous/Next** buttons or arrow keys (← →) to navigate
 6. Review as many cards as you like - there are no daily limits!
 
