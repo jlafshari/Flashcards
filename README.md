@@ -45,8 +45,12 @@ Then navigate to `http://localhost:8000` in your browser.
    - **Bulgarian → English**: See Bulgarian word, guess the English translation
    - **English → Bulgarian**: See English word, guess the Bulgarian translation
 3. Click on a card or press Space/Enter to flip and see the translation
-4. Use the **Previous/Next** buttons or arrow keys (← →) to navigate
-5. Review as many cards as you like - there are no daily limits!
+4. After flipping, indicate if the card was:
+   - **Easy ✓** (press **1**) - You knew it well, counts toward daily review
+   - **Review Again ↻** (press **2**) - Needs more practice, moves to next without counting
+   - When you use a keyboard shortcut, the button will **pulse and glow** to show which option was selected
+5. Use the **Previous/Next** buttons or arrow keys (← →) to navigate
+6. Review as many cards as you like - there are no daily limits!
 
 The app remembers your preferred study direction, so you can practice both ways!
 
@@ -70,7 +74,11 @@ This app was designed to be simpler and more flexible than Anki:
 - **Pure JavaScript** - No frameworks or build tools required
 - **Local Storage** - All data stored in browser (no server needed)
 - **Responsive Design** - Works on desktop and mobile devices
-- **Keyboard Shortcuts** - Arrow keys for navigation, Space/Enter to flip
+- **Keyboard Shortcuts**:
+  - Arrow keys (← →) for navigation
+  - Space/Enter to flip cards
+  - **1** for Easy (after flipping)
+  - **2** for Review Again (after flipping)
 
 ## Testing
 

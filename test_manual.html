@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manual Test - Feedback Buttons</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 { color: #667eea; }
+        h2 { color: #333; }
+        .pass { color: green; font-weight: bold; }
+        .fail { color: red; font-weight: bold; }
+        .instruction {
+            background: #e3f2fd;
+            padding: 15px;
+            border-left: 4px solid #2196f3;
+            margin: 15px 0;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>Manual Test: Feedback Buttons Feature</h1>
+    
+    <div class="test-section">
+        <h2>Test Instructions</h2>
+        <div class="instruction">
+            <strong>Setup:</strong> Open index.html in a browser and add at least 3 cards
+        </div>
+        
+        <h3>Test Cases:</h3>
+        <ol>
+            <li><strong>Initial State (Card Not Flipped)</strong>
+                <ul>
+                    <li>✓ "Next →" button should be visible</li>
+                    <li>✓ "Easy ✓" button should be hidden</li>
+                    <li>✓ "Review Again ↻" button should be hidden</li>
+                </ul>
+            </li>
+            
+            <li><strong>After Flipping Card</strong>
+                <ul>
+                    <li>✓ Click "Flip Card" or click on the card</li>
+                    <li>✓ "Next →" button should be hidden</li>
+                    <li>✓ "Easy ✓" button should appear (green)</li>
+                    <li>✓ "Review Again ↻" button should appear (orange)</li>
+                </ul>
+            </li>
+            
+            <li><strong>Easy Button Functionality</strong>
+                <ul>
+                    <li>✓ Click "Easy ✓" button</li>
+                    <li>✓ Should move to next card</li>
+                    <li>✓ "Reviewed Today" count should increment</li>
+                    <li>✓ New card should not be flipped (showing "Next →")</li>
+                </ul>
+            </li>
+            
+            <li><strong>Review Again Button Functionality</strong>
+                <ul>
+                    <li>✓ Flip a card</li>
+                    <li>✓ Click "Review Again ↻" button</li>
+                    <li>✓ Should move to next card</li>
+                    <li>✓ "Reviewed Today" count should NOT increment</li>
+                    <li>✓ New card should not be flipped (showing "Next →")</li>
+                </ul>
+            </li>
+            
+            <li><strong>Last Card Behavior</strong>
+                <ul>
+                    <li>✓ Navigate to last card</li>
+                    <li>✓ Flip the card</li>
+                    <li>✓ "Easy ✓" button should be disabled</li>
+                    <li>✓ "Review Again ↻" button should be disabled</li>
+                </ul>
+            </li>
+            
+            <li><strong>Previous Button</strong>
+                <ul>
+                    <li>✓ "← Previous" button should always be visible</li>
+                    <li>✓ Should work regardless of flip state</li>
+                </ul>
+            </li>
+            
+            <li><strong>Flip Card Button</strong>
+                <ul>
+                    <li>✓ "Flip Card" button should always be visible</li>
+                    <li>✓ Can toggle between flipped/unflipped state</li>
+                </ul>
+            </li>
+            
+            <li><strong>Keyboard Shortcuts</strong>
+                <ul>
+                    <li>✓ Arrow keys should still work for navigation</li>
+                    <li>✓ Space/Enter should still flip the card</li>
+                </ul>
+            </li>
+            
+            <li><strong>Responsive Design</strong>
+                <ul>
+                    <li>✓ Resize browser to mobile width</li>
+                    <li>✓ Buttons should still be usable</li>
+                    <li>✓ Layout should adapt appropriately</li>
+                </ul>
+            </li>
+        </ol>
+    </div>
+    
+    <div class="test-section">
+        <h2>Quick Visual Test</h2>
+        <p>Open the browser console and run these commands to verify:</p>
+        <pre style="background: #f5f5f5; padding: 15px; border-radius: 5px;">
+// Check buttons exist
+console.log('Next button:', document.getElementById('next-btn'));
+console.log('Easy button:', document.getElementById('easy-btn'));
+console.log('Review button:', document.getElementById('review-btn'));
+
+// Check initial visibility (assuming cards exist)
+console.log('Next visible:', document.getElementById('next-btn').style.display !== 'none');
+console.log('Easy visible:', document.getElementById('easy-btn').style.display !== 'none');
+console.log('Review visible:', document.getElementById('review-btn').style.display !== 'none');
+        </pre>
+    </div>
+    
+    <div class="test-section">
+        <h2>Expected Behavior Summary</h2>
+        <table style="width: 100%; border-collapse: collapse;">
+            <tr style="background: #f5f5f5;">
+                <th style="padding: 10px; border: 1px solid #ddd;">State</th>
+                <th style="padding: 10px; border: 1px solid #ddd;">Next Button</th>
+                <th style="padding: 10px; border: 1px solid #ddd;">Easy Button</th>
+                <th style="padding: 10px; border: 1px solid #ddd;">Review Button</th>
+            </tr>
+            <tr>
+                <td style="padding: 10px; border: 1px solid #ddd;"><strong>Not Flipped</strong></td>
+                <td style="padding: 10px; border: 1px solid #ddd;">✓ Visible</td>
+                <td style="padding: 10px; border: 1px solid #ddd;">✗ Hidden</td>
+                <td style="padding: 10px; border: 1px solid #ddd;">✗ Hidden</td>
+            </tr>
+            <tr style="background: #f9f9f9;">
+                <td style="padding: 10px; border: 1px solid #ddd;"><strong>Flipped</strong></td>
+                <td style="padding: 10px; border: 1px solid #ddd;">✗ Hidden</td>
+                <td style="padding: 10px; border: 1px solid #ddd;">✓ Visible (Green)</td>
+                <td style="padding: 10px; border: 1px solid #ddd;">✓ Visible (Orange)</td>
+            </tr>
+        </table>
+    </div>
+    
+</body>
+</html>

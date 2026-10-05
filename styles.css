@@ -275,6 +275,83 @@ body {
     background: #e04455;
 }
 
+.btn-easy {
+    background: #4caf50;
+    color: white;
+}
+
+.btn-easy:hover {
+    background: #45a049;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(76, 175, 80, 0.4);
+}
+
+.btn-easy:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.btn-review {
+    background: #ff9800;
+    color: white;
+}
+
+.btn-review:hover {
+    background: #e68900;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(255, 152, 0, 0.4);
+}
+
+.btn-review:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Button press animation */
+@keyframes button-press {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(0.95);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+@keyframes button-glow-easy {
+    0% {
+        box-shadow: 0 0 0 0 rgba(76, 175, 80, 0);
+    }
+    50% {
+        box-shadow: 0 0 30px 10px rgba(76, 175, 80, 0.8);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(76, 175, 80, 0);
+    }
+}
+
+@keyframes button-glow-review {
+    0% {
+        box-shadow: 0 0 0 0 rgba(255, 152, 0, 0);
+    }
+    50% {
+        box-shadow: 0 0 30px 10px rgba(255, 152, 0, 0.8);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(255, 152, 0, 0);
+    }
+}
+
+.btn-easy.animating {
+    animation: button-press 0.3s ease-out, button-glow-easy 0.3s ease-out;
+}
+
+.btn-review.animating {
+    animation: button-press 0.3s ease-out, button-glow-review 0.3s ease-out;
+}
+
 /* Form */
 .add-card-form {
     background: #f8f9fa;
