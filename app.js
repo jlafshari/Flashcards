@@ -249,6 +249,187 @@ class FlashcardApp {
         return div.innerHTML;
     }
 
+    // Import/Export functionality
+    exportCards() {
+        if (this.cards.length === 0) {
+            alert('No cards to export!');
+            return;
+        }
+
+        // Generate CSV content: English in column 1, Bulgarian in column 2
+        const csvContent = this.cards.map(card => {
+            const english = this.escapeCsvField(card.english);
+            const bulgarian = this.escapeCsvField(card.bulgarian);
+            return `${english},${bulgarian}`;
+        }).join('\n');
+
+        // Create blob and download
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+        
+        const date = new Date().toISOString().split('T')[0];
+        link.setAttribute('href', url);
+        link.setAttribute('download', `flashcards-export-${date}.csv`);
+        link.style.visibility = 'hidden';
+        
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+
+    escapeCsvField(field) {
+        // If field contains comma, quote, or newline, wrap in quotes and escape quotes
+        if (field.includes(',') || field.includes('"') || field.includes('\n')) {
+            return `"${field.replace(/"/g, '""')}"`;
+        }
+        return field;
+    }
+
+    parseCSV(text) {
+        const rows = [];
+        let currentRow = [];
+        let currentField = '';
+        let inQuotes = false;
+
+        for (let i = 0; i < text.length; i++) {
+            const char = text[i];
+            const nextChar = text[i + 1];
+
+            if (inQuotes) {
+                if (char === '"') {
+                    if (nextChar === '"') {
+                        // Escaped quote
+                        currentField += '"';
+                        i++; // Skip next quote
+                    } else {
+                        // End of quoted field
+                        inQuotes = false;
+                    }
+                } else {
+                    currentField += char;
+                }
+            } else {
+                if (char === '"') {
+                    // Start of quoted field
+                    inQuotes = true;
+                } else if (char === ',') {
+                    // Field separator
+                    currentRow.push(currentField.trim());
+                    currentField = '';
+                } else if (char === '\n') {
+                    // Row separator
+                    currentRow.push(currentField.trim());
+                    if (currentRow.some(field => field !== '')) {
+                        rows.push(currentRow);
+                    }
+                    currentRow = [];
+                    currentField = '';
+                } else if (char === '\r') {
+                    // Skip \r (handle \r\n line endings)
+                    continue;
+                } else {
+                    currentField += char;
+                }
+            }
+        }
+
+        // Add last field and row
+        if (currentField !== '' || currentRow.length > 0) {
+            currentRow.push(currentField.trim());
+            if (currentRow.some(field => field !== '')) {
+                rows.push(currentRow);
+            }
+        }
+
+        return rows;
+    }
+
+    validateCardData(english, bulgarian) {
+        return english && bulgarian && 
+               typeof english === 'string' && typeof bulgarian === 'string' &&
+               english.trim() !== '' && bulgarian.trim() !== '';
+    }
+
+    isDuplicate(english, bulgarian) {
+        return this.cards.some(card => 
+            card.english.toLowerCase() === english.toLowerCase() && 
+            card.bulgarian.toLowerCase() === bulgarian.toLowerCase()
+        );
+    }
+
+    importCards(file, replace = false) {
+        const reader = new FileReader();
+        
+        reader.onload = (e) => {
+            try {
+                const text = e.target.result;
+                const rows = this.parseCSV(text);
+
+                if (rows.length === 0) {
+                    alert('CSV file is empty!');
+                    return;
+                }
+
+                let importedCount = 0;
+                let skippedCount = 0;
+                const newCards = [];
+
+                for (const row of rows) {
+                    if (row.length < 2) {
+                        continue; // Skip rows with less than 2 columns
+                    }
+
+                    const english = row[0];
+                    const bulgarian = row[1];
+
+                    if (!this.validateCardData(english, bulgarian)) {
+                        continue; // Skip invalid cards
+                    }
+
+                    if (!replace && this.isDuplicate(english, bulgarian)) {
+                        skippedCount++;
+                        continue; // Skip duplicates when merging
+                    }
+
+                    newCards.push({
+                        id: Date.now() + importedCount,
+                        english: english.trim(),
+                        bulgarian: bulgarian.trim(),
+                        createdAt: new Date().toISOString()
+                    });
+                    importedCount++;
+                }
+
+                if (replace) {
+                    this.cards = newCards;
+                } else {
+                    this.cards.push(...newCards);
+                }
+
+                this.saveToStorage();
+                this.updateUI();
+
+                // Show feedback
+                let message = `Successfully imported ${importedCount} card${importedCount !== 1 ? 's' : ''}`;
+                if (skippedCount > 0) {
+                    message += ` (${skippedCount} duplicate${skippedCount !== 1 ? 's' : ''} skipped)`;
+                }
+                alert(message);
+
+            } catch (error) {
+                alert('Failed to import CSV file. Please check the file format.');
+                console.error('Import error:', error);
+            }
+        };
+
+        reader.onerror = () => {
+            alert('Failed to read file.');
+        };
+
+        reader.readAsText(file);
+    }
+
     // Event listeners
     setupEventListeners() {
         // Tab switching
@@ -344,6 +525,34 @@ class FlashcardApp {
         englishInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
                 this.handleAddCard();
+            }
+        });
+
+        // Import/Export buttons
+        document.getElementById('export-btn').addEventListener('click', () => {
+            this.exportCards();
+        });
+
+        document.getElementById('import-merge-btn').addEventListener('click', () => {
+            document.getElementById('import-file-input').click();
+            document.getElementById('import-file-input').dataset.mode = 'merge';
+        });
+
+        document.getElementById('import-replace-btn').addEventListener('click', () => {
+            const confirmed = confirm('This will delete all existing cards and replace them with imported cards. Continue?');
+            if (confirmed) {
+                document.getElementById('import-file-input').click();
+                document.getElementById('import-file-input').dataset.mode = 'replace';
+            }
+        });
+
+        document.getElementById('import-file-input').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const mode = e.target.dataset.mode || 'merge';
+                this.importCards(file, mode === 'replace');
+                // Reset file input so same file can be selected again
+                e.target.value = '';
             }
         });
     }

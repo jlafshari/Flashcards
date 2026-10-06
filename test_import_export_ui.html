@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Import/Export Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        h1 { color: #667eea; }
+        .test-section {
+            background: #f8f9fa;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+        .success { color: #4caf50; font-weight: bold; }
+        .error { color: #f5576c; font-weight: bold; }
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            border: none;
+            border-radius: 5px;
+            background: #667eea;
+            color: white;
+            cursor: pointer;
+        }
+        button:hover { background: #5568d3; }
+        #results { 
+            margin-top: 20px;
+            padding: 10px;
+            background: white;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 Import/Export Functionality Test</h1>
+    
+    <div class="test-section">
+        <h2>Test Instructions</h2>
+        <ol>
+            <li>Open the main app (index.html) in another tab</li>
+            <li>Add some test cards in the "Manage Cards" tab</li>
+            <li>Click "Export Cards" - should download a CSV file</li>
+            <li>Open the CSV file in a text editor and verify:
+                <ul>
+                    <li>English text is in column 1</li>
+                    <li>Bulgarian text is in column 2</li>
+                    <li>Fields with commas/quotes are properly quoted</li>
+                </ul>
+            </li>
+            <li>Click "Import Cards (Merge)" and select the CSV file</li>
+            <li>Verify existing cards are preserved and new ones added</li>
+            <li>Try "Import Cards (Replace)" with confirmation dialog</li>
+        </ol>
+    </div>
+
+    <div class="test-section">
+        <h2>Quick Automated Checks</h2>
+        <button onclick="runTests()">Run Tests</button>
+        <div id="results"></div>
+    </div>
+
+    <script>
+        function runTests() {
+            const results = document.getElementById('results');
+            results.innerHTML = '<h3>Running tests...</h3>';
+            
+            let passed = 0;
+            let failed = 0;
+            let output = '';
+
+            // Test 1: Check if import/export section exists in main page
+            output += '<h4>Test 1: UI Elements</h4>';
+            try {
+                const iframe = document.createElement('iframe');
+                iframe.style.display = 'none';
+                iframe.src = 'index.html';
+                document.body.appendChild(iframe);
+                
+                iframe.onload = () => {
+                    const doc = iframe.contentDocument;
+                    const exportBtn = doc.getElementById('export-btn');
+                    const importMergeBtn = doc.getElementById('import-merge-btn');
+                    const importReplaceBtn = doc.getElementById('import-replace-btn');
+                    const fileInput = doc.getElementById('import-file-input');
+                    
+                    if (exportBtn && importMergeBtn && importReplaceBtn && fileInput) {
+                        output += '<p class="success">✓ All UI elements found</p>';
+                        passed++;
+                    } else {
+                        output += '<p class="error">✗ Missing UI elements</p>';
+                        failed++;
+                    }
+                    
+                    // Test 2: Check if methods exist
+                    output += '<h4>Test 2: JavaScript Methods</h4>';
+                    const app = iframe.contentWindow.app;
+                    if (app && 
+                        typeof app.exportCards === 'function' &&
+                        typeof app.importCards === 'function' &&
+                        typeof app.parseCSV === 'function' &&
+                        typeof app.escapeCsvField === 'function') {
+                        output += '<p class="success">✓ All methods exist</p>';
+                        passed++;
+                    } else {
+                        output += '<p class="error">✗ Missing methods</p>';
+                        failed++;
+                    }
+                    
+                    // Test 3: Test CSV escaping
+                    output += '<h4>Test 3: CSV Escaping</h4>';
+                    const testCases = [
+                        { input: 'Hello', expected: 'Hello' },
+                        { input: 'Hello, world', expected: '"Hello, world"' },
+                        { input: 'Say "Hi"', expected: '"Say ""Hi"""' },
+                        { input: 'Line\nbreak', expected: '"Line\nbreak"' }
+                    ];
+                    
+                    let escapeTestsPassed = true;
+                    testCases.forEach(test => {
+                        const result = app.escapeCsvField(test.input);
+                        if (result !== test.expected) {
+                            output += `<p class="error">✗ Failed: "${test.input}" -> "${result}" (expected "${test.expected}")</p>`;
+                            escapeTestsPassed = false;
+                        }
+                    });
+                    
+                    if (escapeTestsPassed) {
+                        output += '<p class="success">✓ CSV escaping works correctly</p>';
+                        passed++;
+                    } else {
+                        failed++;
+                    }
+                    
+                    // Test 4: Test CSV parsing
+                    output += '<h4>Test 4: CSV Parsing</h4>';
+                    const csvTests = [
+                        { 
+                            input: 'Hello,Здравей\nGoodbye,Довиждане', 
+                            expected: [['Hello', 'Здравей'], ['Goodbye', 'Довиждане']]
+                        },
+                        { 
+                            input: '"Field with, comma","Another field"', 
+                            expected: [['Field with, comma', 'Another field']]
+                        }
+                    ];
+                    
+                    let parseTestsPassed = true;
+                    csvTests.forEach(test => {
+                        const result = app.parseCSV(test.input);
+                        if (JSON.stringify(result) !== JSON.stringify(test.expected)) {
+                            output += `<p class="error">✗ Parse failed</p>`;
+                            parseTestsPassed = false;
+                        }
+                    });
+                    
+                    if (parseTestsPassed) {
+                        output += '<p class="success">✓ CSV parsing works correctly</p>';
+                        passed++;
+                    } else {
+                        failed++;
+                    }
+                    
+                    // Summary
+                    output += `<h3>Summary: ${passed} passed, ${failed} failed</h3>`;
+                    if (failed === 0) {
+                        output += '<p class="success">✓ All automated tests passed!</p>';
+                    }
+                    
+                    results.innerHTML = output;
+                    document.body.removeChild(iframe);
+                };
+            } catch (e) {
+                output += `<p class="error">✗ Error: ${e.message}</p>`;
+                results.innerHTML = output;
+            }
+        }
+    </script>
+</body>
+</html>
