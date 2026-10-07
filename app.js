@@ -622,6 +622,7 @@ class FlashcardApp {
         // Add card form
         const bulgarianInput = document.getElementById('bulgarian-input');
         const englishInput = document.getElementById('english-input');
+        const categoryInput = document.getElementById('category-input');
         const addButton = document.getElementById('add-card-btn');
 
         addButton.addEventListener('click', () => {
@@ -636,6 +637,12 @@ class FlashcardApp {
         });
 
         englishInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                categoryInput.focus();
+            }
+        });
+
+        categoryInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
                 this.handleAddCard();
             }
@@ -680,20 +687,23 @@ class FlashcardApp {
     handleAddCard() {
         const bulgarianInput = document.getElementById('bulgarian-input');
         const englishInput = document.getElementById('english-input');
+        const categoryInput = document.getElementById('category-input');
         
         const bulgarian = bulgarianInput.value.trim();
         const english = englishInput.value.trim();
+        const category = categoryInput.value.trim();
 
         if (!bulgarian || !english) {
             alert('Please fill in both Bulgarian and English fields');
             return;
         }
 
-        this.addCard(bulgarian, english);
+        this.addCard(bulgarian, english, category);
         
         // Clear inputs
         bulgarianInput.value = '';
         englishInput.value = '';
+        categoryInput.value = '';
         bulgarianInput.focus();
 
         // Show success feedback
