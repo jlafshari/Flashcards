@@ -455,16 +455,17 @@ class FlashcardApp {
         return rows;
     }
 
-    validateCardData(english, bulgarian) {
+    validateCardData(english, bulgarian, category = '') {
         return english && bulgarian && 
                typeof english === 'string' && typeof bulgarian === 'string' &&
                english.trim() !== '' && bulgarian.trim() !== '';
     }
 
-    isDuplicate(english, bulgarian) {
+    isDuplicate(english, bulgarian, category = '') {
         return this.cards.some(card => 
             card.english.toLowerCase() === english.toLowerCase() && 
-            card.bulgarian.toLowerCase() === bulgarian.toLowerCase()
+            card.bulgarian.toLowerCase() === bulgarian.toLowerCase() &&
+            (card.category || '').toLowerCase() === category.toLowerCase()
         );
     }
 
@@ -492,12 +493,13 @@ class FlashcardApp {
 
                     const english = row[0];
                     const bulgarian = row[1];
+                    const category = row.length >= 3 ? row[2] : ''; // Parse third column as category
 
-                    if (!this.validateCardData(english, bulgarian)) {
+                    if (!this.validateCardData(english, bulgarian, category)) {
                         continue; // Skip invalid cards
                     }
 
-                    if (!replace && this.isDuplicate(english, bulgarian)) {
+                    if (!replace && this.isDuplicate(english, bulgarian, category)) {
                         skippedCount++;
                         continue; // Skip duplicates when merging
                     }
@@ -506,6 +508,7 @@ class FlashcardApp {
                         id: Date.now() + importedCount,
                         english: english.trim(),
                         bulgarian: bulgarian.trim(),
+                        category: category.trim(),
                         createdAt: new Date().toISOString()
                     });
                     importedCount++;
