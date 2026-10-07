@@ -6,11 +6,13 @@ A simple, user-friendly flashcard web application for learning English from Bulg
 
 - ✨ **Simple Interface** - Clean, intuitive design that's easy to understand and use
 - 🎴 **Card Management** - Add, view, and delete flashcards with Bulgarian and English text
+- 🏷️ **Categories** - Organize cards by category (e.g., Greetings, Food, Verbs) and filter by category when studying
 - 🔄 **Bidirectional Testing** - Study from Bulgarian to English OR English to Bulgarian
 - 🔄 **Flip Animation** - Click or press Space/Enter to flip cards and reveal translations
 - ⌨️ **Keyboard Navigation** - Use arrow keys to navigate between cards
 - 💾 **Automatic Saving** - All cards are saved to browser local storage
 - 📊 **Study Tracking** - See how many cards you've reviewed today
+- 📥📤 **Import/Export** - Backup and share your cards with CSV files
 - 🚫 **No Limits** - Review as many cards as you want, whenever you want
 
 ## Getting Started
@@ -37,25 +39,40 @@ Then navigate to `http://localhost:8000` in your browser.
 1. Click the **"Manage Cards"** tab
 2. Enter a Bulgarian word or phrase in the first field
 3. Enter the English translation in the second field
-4. Click **"Add Card"** or press Enter
+4. (Optional) Enter a category like "Greetings", "Food", or "Verbs"
+5. Click **"Add Card"** or press Enter
 
 ### Studying Cards
 1. Click the **"Study"** tab to review your flashcards
-2. **Choose your study direction:**
+2. **Filter by category** (if you have categorized cards):
+   - Check/uncheck categories to study specific topics
+   - All categories are shown by default
+   - Your selection is remembered for next time
+3. **Choose your study direction:**
    - **Bulgarian → English**: See Bulgarian word, guess the English translation
    - **English → Bulgarian**: See English word, guess the Bulgarian translation
-3. Click on a card or press Space/Enter to flip and see the translation
-4. After flipping, indicate if the card was:
+4. Click on a card or press Space/Enter to flip and see the translation
+5. After flipping, indicate if the card was:
    - **Easy ✓** (press **1**) - You knew it well, counts toward daily review
    - **Review Again ↻** (press **2**) - Needs more practice, moves to next without counting
    - When you use a keyboard shortcut, the button will **pulse and glow** to show which option was selected
-5. Use the **Previous/Next** buttons or arrow keys (← →) to navigate
-6. Review as many cards as you like - there are no daily limits!
+6. Use the **Previous/Next** buttons or arrow keys (← →) to navigate
+7. Review as many cards as you like - there are no daily limits!
 
-The app remembers your preferred study direction, so you can practice both ways!
+The app remembers your preferred study direction and category filter, so you can focus on what you want to practice!
+
+### Import/Export Cards
+- **Export**: Click "Export Cards" to save all your cards to a CSV file
+  - Format: English, Bulgarian, Category (3 columns)
+  - Use this to backup your cards or share with others
+- **Import (Merge)**: Add cards from a CSV file without deleting existing cards
+- **Import (Replace)**: Replace all cards with cards from a CSV file
+- CSV files can have 2 columns (English, Bulgarian) or 3 columns (English, Bulgarian, Category)
+- See `test_import_categories.csv` for an example format
 
 ### Managing Cards
 - View all your cards in the **"Manage Cards"** tab
+- Each card shows Bulgarian, English, and Category (if set)
 - Click **"Delete"** to remove cards you no longer need
 
 ## Key Differences from Anki
@@ -109,12 +126,12 @@ All flashcards are stored in your browser's local storage. This means:
 ## Future Enhancements
 
 Potential features for future versions:
-- Import/export cards to JSON or CSV
 - Multiple decks for different topics
 - Shuffle/randomize card order
-- Search and filter cards
+- Search cards by text
 - Dark mode
 - Progress statistics and graphs
+- Spaced repetition algorithm
 
 ## License
 
