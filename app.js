@@ -8,12 +8,14 @@ class FlashcardApp {
         this.reviewedToday = 0;
         this.isFlipped = false;
         this.direction = 'bg-en'; // 'bg-en' or 'en-bg'
+        this.activeCategories = []; // Empty means show all categories
         
         this.init();
     }
 
     init() {
         this.loadFromStorage();
+        this.loadCategoryPreference();
         this.setupEventListeners();
         this.updateUI();
     }
@@ -47,11 +49,12 @@ class FlashcardApp {
         localStorage.setItem('flashcards', JSON.stringify(this.cards));
     }
 
-    addCard(bulgarian, english) {
+    addCard(bulgarian, english, category = '') {
         const card = {
             id: Date.now(),
             bulgarian: bulgarian.trim(),
             english: english.trim(),
+            category: category.trim(),
             createdAt: new Date().toISOString()
         };
         
@@ -76,7 +79,8 @@ class FlashcardApp {
 
     // Navigation
     nextCard() {
-        if (this.currentCardIndex < this.cards.length - 1) {
+        const filteredCards = this.getFilteredCards();
+        if (this.currentCardIndex < filteredCards.length - 1) {
             this.currentCardIndex++;
             this.resetFlip();
             this.incrementReviewCount();
@@ -148,7 +152,8 @@ class FlashcardApp {
         setTimeout(() => {
             // Card needs review - move to next card without incrementing review count
             // Future enhancement: could mark card with needsReview flag
-            if (this.currentCardIndex < this.cards.length - 1) {
+            const filteredCards = this.getFilteredCards();
+            if (this.currentCardIndex < filteredCards.length - 1) {
                 this.currentCardIndex++;
                 this.resetFlip();
                 this.updateUI();
@@ -166,6 +171,49 @@ class FlashcardApp {
         }, 300);
     }
 
+    // Category management
+    getCategories() {
+        // Get unique categories from all cards
+        const categories = new Set();
+        this.cards.forEach(card => {
+            const category = card.category || '';
+            categories.add(category);
+        });
+        return Array.from(categories).sort();
+    }
+
+    setActiveCategories(categories) {
+        this.activeCategories = categories;
+        localStorage.setItem('activeCategories', JSON.stringify(categories));
+        this.currentCardIndex = 0; // Reset to first card when filter changes
+        this.resetFlip();
+        this.updateUI();
+    }
+
+    getFilteredCards() {
+        // If no categories selected or activeCategories is empty, show all cards
+        if (this.activeCategories.length === 0) {
+            return this.cards;
+        }
+        
+        // Filter cards by active categories
+        return this.cards.filter(card => {
+            const category = card.category || '';
+            return this.activeCategories.includes(category);
+        });
+    }
+
+    loadCategoryPreference() {
+        const saved = localStorage.getItem('activeCategories');
+        if (saved) {
+            try {
+                this.activeCategories = JSON.parse(saved);
+            } catch (e) {
+                this.activeCategories = [];
+            }
+        }
+    }
+
     // UI updates
     updateUI() {
         this.updateStudyTab();
@@ -173,14 +221,17 @@ class FlashcardApp {
     }
 
     updateStudyTab() {
+        // Get filtered cards based on active categories
+        const filteredCards = this.getFilteredCards();
+        
         // Update stats
-        document.getElementById('total-cards').textContent = this.cards.length;
+        document.getElementById('total-cards').textContent = filteredCards.length;
         document.getElementById('reviewed-today').textContent = this.reviewedToday;
 
         const noCardsMessage = document.getElementById('no-cards-message');
         const cardContainer = document.getElementById('card-container');
 
-        if (this.cards.length === 0) {
+        if (filteredCards.length === 0) {
             noCardsMessage.style.display = 'block';
             cardContainer.style.display = 'none';
             return;
@@ -189,7 +240,12 @@ class FlashcardApp {
         noCardsMessage.style.display = 'none';
         cardContainer.style.display = 'block';
 
-        const currentCard = this.cards[this.currentCardIndex];
+        // Ensure current index is within bounds
+        if (this.currentCardIndex >= filteredCards.length) {
+            this.currentCardIndex = 0;
+        }
+
+        const currentCard = filteredCards[this.currentCardIndex];
         
         // Update direction buttons
         document.getElementById('direction-bg-en').classList.toggle('active', this.direction === 'bg-en');
@@ -210,14 +266,17 @@ class FlashcardApp {
         
         // Update position
         document.getElementById('card-position').textContent = 
-            `${this.currentCardIndex + 1} / ${this.cards.length}`;
+            `${this.currentCardIndex + 1} / ${filteredCards.length}`;
 
         // Update navigation buttons
-        const isLastCard = this.currentCardIndex === this.cards.length - 1;
+        const isLastCard = this.currentCardIndex === filteredCards.length - 1;
         document.getElementById('prev-btn').disabled = this.currentCardIndex === 0;
         document.getElementById('next-btn').disabled = isLastCard;
         document.getElementById('easy-btn').disabled = isLastCard;
         document.getElementById('review-btn').disabled = isLastCard;
+        
+        // Update category filter display
+        this.updateCategoryFilterDisplay();
     }
 
     updateManageTab() {
@@ -235,12 +294,62 @@ class FlashcardApp {
                 <div class="card-item-content">
                     <div class="card-item-front">${this.escapeHtml(card.bulgarian)}</div>
                     <div class="card-item-back">${this.escapeHtml(card.english)}</div>
+                    ${card.category ? `<div class="card-item-category">Category: ${this.escapeHtml(card.category)}</div>` : ''}
                 </div>
                 <div class="card-item-actions">
                     <button class="btn btn-danger" onclick="app.deleteCard(${card.id})">Delete</button>
                 </div>
             </div>
         `).join('');
+    }
+
+    updateCategoryFilterDisplay() {
+        const filterContainer = document.getElementById('category-filter');
+        if (!filterContainer) return;
+
+        const categories = this.getCategories();
+        
+        if (categories.length === 0 || (categories.length === 1 && categories[0] === '')) {
+            // No categories or only empty category - hide filter
+            filterContainer.style.display = 'none';
+            return;
+        }
+
+        filterContainer.style.display = 'block';
+        
+        const checkboxesContainer = document.getElementById('category-checkboxes');
+        checkboxesContainer.innerHTML = categories.map(category => {
+            const displayName = category || 'Uncategorized';
+            const isChecked = this.activeCategories.length === 0 || this.activeCategories.includes(category);
+            return `
+                <label class="category-checkbox">
+                    <input type="checkbox" value="${this.escapeHtml(category)}" ${isChecked ? 'checked' : ''}>
+                    <span>${this.escapeHtml(displayName)}</span>
+                </label>
+            `;
+        }).join('');
+
+        // Add event listeners to checkboxes
+        checkboxesContainer.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+            checkbox.addEventListener('change', () => {
+                this.handleCategoryFilterChange();
+            });
+        });
+    }
+
+    handleCategoryFilterChange() {
+        const checkboxes = document.querySelectorAll('#category-checkboxes input[type="checkbox"]');
+        const selectedCategories = Array.from(checkboxes)
+            .filter(cb => cb.checked)
+            .map(cb => cb.value);
+        
+        // If all are checked or none are checked, show all
+        const allCategories = this.getCategories();
+        if (selectedCategories.length === 0 || selectedCategories.length === allCategories.length) {
+            this.setActiveCategories([]);
+        } else {
+            this.setActiveCategories(selectedCategories);
+        }
     }
 
     escapeHtml(text) {
