@@ -96,6 +96,57 @@ body {
     color: #667eea;
 }
 
+/* Category Filter */
+.category-filter {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+}
+
+.category-filter h3 {
+    font-size: 1em;
+    color: #667eea;
+    margin-bottom: 12px;
+    font-weight: 600;
+}
+
+.category-checkboxes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.category-checkbox {
+    display: flex;
+    align-items: center;
+    padding: 8px 14px;
+    background: white;
+    border: 2px solid #e0e0e0;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.3s;
+    user-select: none;
+}
+
+.category-checkbox:hover {
+    border-color: #667eea;
+    background: #f0f4ff;
+}
+
+.category-checkbox input[type="checkbox"] {
+    margin-right: 8px;
+    cursor: pointer;
+    width: 16px;
+    height: 16px;
+}
+
+.category-checkbox span {
+    font-size: 0.9em;
+    color: #333;
+    font-weight: 500;
+}
+
 /* Messages */
 .message {
     text-align: center;
@@ -454,6 +505,13 @@ body {
     color: #666;
 }
 
+.card-item-category {
+    color: #999;
+    font-size: 0.85em;
+    margin-top: 5px;
+    font-style: italic;
+}
+
 .card-item-actions {
     display: flex;
     gap: 10px;
@@ -475,6 +533,14 @@ body {
     .stats {
         flex-direction: column;
         gap: 20px;
+    }
+
+    .category-checkboxes {
+        flex-direction: column;
+    }
+
+    .category-checkbox {
+        width: 100%;
     }
 
     .controls {
