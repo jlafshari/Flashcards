@@ -365,11 +365,12 @@ class FlashcardApp {
             return;
         }
 
-        // Generate CSV content: English in column 1, Bulgarian in column 2
+        // Generate CSV content: English in column 1, Bulgarian in column 2, Category in column 3
         const csvContent = this.cards.map(card => {
             const english = this.escapeCsvField(card.english);
             const bulgarian = this.escapeCsvField(card.bulgarian);
-            return `${english},${bulgarian}`;
+            const category = this.escapeCsvField(card.category || '');
+            return `${english},${bulgarian},${category}`;
         }).join('\n');
 
         // Create blob and download
