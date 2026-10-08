@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Session Feature Test</title>
+</head>
+<body>
+    <h1>Study Session Feature - Manual Test</h1>
+    
+    <h2>Test Instructions:</h2>
+    <ol>
+        <li><strong>Initial State Test</strong>
+            <ul>
+                <li>Open index.html in a browser</li>
+                <li>Go to "Manage Cards" and add at least 3 cards with different categories</li>
+                <li>Go back to "Study" tab</li>
+                <li>Verify: "Start Study Session" button is visible</li>
+                <li>Verify: Study options (category filter and direction selector) are visible</li>
+                <li>Verify: Flashcard and controls are NOT visible</li>
+            </ul>
+        </li>
+        
+        <li><strong>Start Session Test</strong>
+            <ul>
+                <li>Select specific categories if available</li>
+                <li>Choose a study direction (Bulgarian → English or English → Bulgarian)</li>
+                <li>Click "Start Study Session" button</li>
+                <li>Verify: "Start Study Session" button disappears</li>
+                <li>Verify: Study options disappear</li>
+                <li>Verify: Flashcard appears with first card</li>
+                <li>Verify: Controls (Previous, Flip Card, Next) are visible</li>
+                <li>Verify: "End Session" button appears at the bottom</li>
+            </ul>
+        </li>
+        
+        <li><strong>Session Navigation Test</strong>
+            <ul>
+                <li>Click "Flip Card" to see the back</li>
+                <li>Verify: "Easy ✓" and "Review Again ↻" buttons appear</li>
+                <li>Click "Easy ✓" to mark card as easy</li>
+                <li>Verify: Moves to next card</li>
+                <li>Flip the card and click "Review Again ↻"</li>
+                <li>Verify: Card moves to end of deck</li>
+            </ul>
+        </li>
+        
+        <li><strong>Keyboard Shortcuts Test</strong>
+            <ul>
+                <li>Use Arrow Left/Right to navigate</li>
+                <li>Use Space or Enter to flip card</li>
+                <li>When flipped, use "1" for Easy, "2" for Review Again</li>
+                <li>Verify: All keyboard shortcuts work during session</li>
+            </ul>
+        </li>
+        
+        <li><strong>Session Completion Test</strong>
+            <ul>
+                <li>Mark all cards as "Easy ✓" (or navigate through all)</li>
+                <li>Verify: Alert shows "Session complete! You reviewed X cards."</li>
+                <li>Verify: Returns to pre-session state with options visible</li>
+            </ul>
+        </li>
+        
+        <li><strong>Manual End Session Test</strong>
+            <ul>
+                <li>Start a new session</li>
+                <li>Review 1-2 cards</li>
+                <li>Click "End Session" button</li>
+                <li>Verify: Returns to pre-session state</li>
+                <li>Verify: Study options are visible again</li>
+            </ul>
+        </li>
+        
+        <li><strong>Tab Switching Test</strong>
+            <ul>
+                <li>Start a session</li>
+                <li>Switch to "Manage Cards" tab</li>
+                <li>Switch back to "Study" tab</li>
+                <li>Verify: Session ended automatically</li>
+                <li>Verify: Shows pre-session state</li>
+            </ul>
+        </li>
+        
+        <li><strong>Category Filter Test</strong>
+            <ul>
+                <li>Before starting session, select only one category</li>
+                <li>Start session</li>
+                <li>Verify: Only cards from selected category appear</li>
+                <li>End session</li>
+                <li>Try changing categories</li>
+                <li>Verify: Can change categories when not in session</li>
+            </ul>
+        </li>
+        
+        <li><strong>Direction Lock Test</strong>
+            <ul>
+                <li>Choose "English → Bulgarian" direction</li>
+                <li>Start session</li>
+                <li>Try clicking the other direction button</li>
+                <li>Verify: Direction does NOT change during session</li>
+            </ul>
+        </li>
+    </ol>
+    
+    <h2>Expected Behavior Summary:</h2>
+    <ul>
+        <li>✅ Pre-session: Show options and start button, hide cards</li>
+        <li>✅ In session: Show cards and end button, hide options</li>
+        <li>✅ Session tracks reviewed cards</li>
+        <li>✅ Session auto-completes when all cards reviewed</li>
+        <li>✅ Manual end session returns to start state</li>
+        <li>✅ Tab switching ends session</li>
+        <li>✅ Direction and categories locked during session</li>
+        <li>✅ Keyboard shortcuts work during session</li>
+    </ul>
+    
+    <p><a href="index.html">Open Flashcards App</a></p>
+</body>
+</html>
