@@ -198,16 +198,32 @@ class FlashcardApp {
     }
 
     getFilteredCards() {
-        // If no categories selected or activeCategories is empty, show all cards
+        // Get base filtered cards by category
+        let filteredCards;
         if (this.activeCategories.length === 0) {
-            return this.cards;
+            filteredCards = this.cards;
+        } else {
+            filteredCards = this.cards.filter(card => {
+                const category = card.category || '';
+                return this.activeCategories.includes(category);
+            });
         }
         
-        // Filter cards by active categories
-        return this.cards.filter(card => {
-            const category = card.category || '';
-            return this.activeCategories.includes(category);
-        });
+        // Append cards from review queue to the end
+        if (this.reviewQueue.length > 0) {
+            // Get card IDs already in filtered cards to avoid duplicates
+            const filteredCardIds = new Set(filteredCards.map(card => card.id));
+            
+            // Add queued cards that aren't already in the filtered list
+            const queuedCards = this.reviewQueue
+                .map(id => this.cards.find(card => card.id === id))
+                .filter(card => card && !filteredCardIds.has(card.id));
+            
+            // Return filtered cards + queued cards
+            return [...filteredCards, ...queuedCards];
+        }
+        
+        return filteredCards;
     }
 
     loadCategoryPreference() {
