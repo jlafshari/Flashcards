@@ -32,10 +32,17 @@
             </div>
 
             <div id="card-container" class="card-container" style="display: none;">
-                <div class="direction-selector">
-                    <label>Study Direction:</label>
-                    <button id="direction-bg-en" class="direction-btn active">Bulgarian → English</button>
-                    <button id="direction-en-bg" class="direction-btn">English → Bulgarian</button>
+                <div id="study-options" class="study-options">
+                    <div id="category-filter" class="category-filter-inline" style="display: none;">
+                        <div id="category-checkboxes" class="category-checkboxes">
+                            <!-- Category checkboxes will be dynamically added here -->
+                        </div>
+                    </div>
+                    
+                    <div class="direction-selector">
+                        <button id="direction-bg-en" class="direction-btn active">Bulgarian → English</button>
+                        <button id="direction-en-bg" class="direction-btn">English → Bulgarian</button>
+                    </div>
                 </div>
 
                 <div class="flashcard" id="flashcard">
@@ -83,6 +90,10 @@
                 <div class="form-group">
                     <label for="english-input">English:</label>
                     <input type="text" id="english-input" placeholder="Enter English translation">
+                </div>
+                <div class="form-group">
+                    <label for="category-input">Category (optional):</label>
+                    <input type="text" id="category-input" placeholder="Enter category (e.g., Food, Greetings)">
                 </div>
                 <button id="add-card-btn" class="btn btn-primary">Add Card</button>
             </div>
