@@ -12,6 +12,11 @@ class FlashcardApp {
         this.reviewQueue = []; // Cards marked for review again
         this.lastCardId = 0; // Counter to ensure unique IDs even in rapid succession
         
+        // Study session state
+        this.inSession = false; // Whether a study session is active
+        this.sessionCards = []; // Cards to review in this session (snapshot)
+        this.sessionReviewedCards = new Set(); // IDs of cards reviewed in current session
+        
         this.init();
     }
 
@@ -83,14 +88,46 @@ class FlashcardApp {
         this.updateUI();
     }
 
+    // Session management
+    startSession() {
+        this.inSession = true;
+        this.sessionCards = this.getFilteredCards(); // Snapshot of filtered cards
+        this.sessionReviewedCards = new Set();
+        this.currentCardIndex = 0;
+        this.reviewQueue = []; // Clear review queue for new session
+        this.resetFlip();
+        this.updateUI();
+    }
+
+    endSession() {
+        this.inSession = false;
+        this.sessionCards = [];
+        this.sessionReviewedCards = new Set();
+        this.reviewQueue = []; // Clear review queue
+        this.resetFlip();
+        this.updateUI();
+    }
+
+    isSessionComplete() {
+        if (!this.inSession) return false;
+        
+        // Session is complete when all cards have been reviewed
+        return this.sessionCards.every(card => this.sessionReviewedCards.has(card.id));
+    }
+
     // Navigation
     nextCard() {
-        const filteredCards = this.getFilteredCards();
+        const filteredCards = this.inSession ? this.sessionCards : this.getFilteredCards();
         if (this.currentCardIndex < filteredCards.length - 1) {
             this.currentCardIndex++;
             this.resetFlip();
             this.incrementReviewCount();
             this.updateUI();
+        } else if (this.inSession) {
+            // If we're at the last card in a session, check if session is complete
+            if (this.isSessionComplete()) {
+                this.showSessionComplete();
+            }
         }
     }
 
@@ -145,6 +182,14 @@ class FlashcardApp {
         
         // Delay navigation to allow animation to complete
         setTimeout(() => {
+            // Mark card as reviewed in session
+            if (this.inSession) {
+                const currentCard = this.sessionCards[this.currentCardIndex];
+                if (currentCard) {
+                    this.sessionReviewedCards.add(currentCard.id);
+                }
+            }
+            
             // Card was easy - increment review count and move to next
             this.nextCard();
         }, 300);
@@ -156,24 +201,49 @@ class FlashcardApp {
         
         // Delay navigation to allow animation to complete
         setTimeout(() => {
-            // Add current card to review queue if not already present
-            const filteredCards = this.getFilteredCards();
-            const currentCard = filteredCards[this.currentCardIndex];
-            
-            if (currentCard && !this.reviewQueue.includes(currentCard.id)) {
-                this.reviewQueue.push(currentCard.id);
+            if (this.inSession) {
+                // In session mode: add to review queue within session
+                const currentCard = this.sessionCards[this.currentCardIndex];
                 
-                // After adding to queue, the card moves to the end of the filtered list.
-                // The card that was next is now at the current index, so we don't need
-                // to increment currentCardIndex. We just reset and update UI.
-                this.resetFlip();
-                this.updateUI();
-            } else {
-                // If card is already in queue or doesn't exist, just move to next card
-                if (this.currentCardIndex < filteredCards.length - 1) {
-                    this.currentCardIndex++;
+                if (currentCard && !this.reviewQueue.includes(currentCard.id)) {
+                    this.reviewQueue.push(currentCard.id);
+                    
+                    // Mark as reviewed (we'll see it again at the end)
+                    this.sessionReviewedCards.add(currentCard.id);
+                    
+                    // After adding to queue, the card moves to the end of the session cards.
+                    // The card that was next is now at the current index, so we don't need
+                    // to increment currentCardIndex. We just reset and update UI.
                     this.resetFlip();
                     this.updateUI();
+                } else {
+                    // If card is already in queue or doesn't exist, just move to next card
+                    if (this.currentCardIndex < this.sessionCards.length - 1) {
+                        this.currentCardIndex++;
+                        this.resetFlip();
+                        this.updateUI();
+                    }
+                }
+            } else {
+                // Not in session mode: use existing behavior
+                const filteredCards = this.getFilteredCards();
+                const currentCard = filteredCards[this.currentCardIndex];
+                
+                if (currentCard && !this.reviewQueue.includes(currentCard.id)) {
+                    this.reviewQueue.push(currentCard.id);
+                    
+                    // After adding to queue, the card moves to the end of the filtered list.
+                    // The card that was next is now at the current index, so we don't need
+                    // to increment currentCardIndex. We just reset and update UI.
+                    this.resetFlip();
+                    this.updateUI();
+                } else {
+                    // If card is already in queue or doesn't exist, just move to next card
+                    if (this.currentCardIndex < filteredCards.length - 1) {
+                        this.currentCardIndex++;
+                        this.resetFlip();
+                        this.updateUI();
+                    }
                 }
             }
         }, 300);
@@ -210,6 +280,31 @@ class FlashcardApp {
     }
 
     getFilteredCards() {
+        // In session mode, return session cards with review queue ordering
+        if (this.inSession) {
+            // If there are cards in the review queue, reorganize the deck
+            if (this.reviewQueue.length > 0) {
+                const queuedCardIds = new Set(this.reviewQueue);
+                
+                // Split into non-queued and queued groups
+                const nonQueuedCards = [];
+                const queuedCards = [];
+                
+                for (const card of this.sessionCards) {
+                    if (queuedCardIds.has(card.id)) {
+                        queuedCards.push(card);
+                    } else {
+                        nonQueuedCards.push(card);
+                    }
+                }
+                
+                // Return non-queued cards first, then queued cards at the end
+                return [...nonQueuedCards, ...queuedCards];
+            }
+            
+            return this.sessionCards;
+        }
+        
         // Get base filtered cards by category
         let filteredCards;
         if (this.activeCategories.length === 0) {
@@ -265,8 +360,8 @@ class FlashcardApp {
     }
 
     updateStudyTab() {
-        // Get filtered cards based on active categories
-        const filteredCards = this.getFilteredCards();
+        // Get filtered cards based on active categories or session cards
+        const filteredCards = this.inSession ? this.sessionCards : this.getFilteredCards();
         
         // Update stats
         document.getElementById('total-cards').textContent = filteredCards.length;
@@ -274,15 +369,36 @@ class FlashcardApp {
 
         const noCardsMessage = document.getElementById('no-cards-message');
         const cardContainer = document.getElementById('card-container');
+        const startSessionBtn = document.getElementById('start-session-btn');
+        const endSessionBtn = document.getElementById('end-session-btn');
+        const studyOptions = document.getElementById('study-options');
 
         if (filteredCards.length === 0) {
             noCardsMessage.style.display = 'block';
             cardContainer.style.display = 'none';
+            if (startSessionBtn) startSessionBtn.style.display = 'none';
             return;
         }
 
         noCardsMessage.style.display = 'none';
-        cardContainer.style.display = 'block';
+        
+        if (this.inSession) {
+            // In session: show card and controls, hide options and start button
+            cardContainer.style.display = 'block';
+            if (studyOptions) studyOptions.style.display = 'none';
+            if (startSessionBtn) startSessionBtn.style.display = 'none';
+            if (endSessionBtn) endSessionBtn.style.display = 'inline-block';
+        } else {
+            // Not in session: show options and start button, hide card
+            cardContainer.style.display = 'none';
+            if (studyOptions) studyOptions.style.display = 'flex';
+            if (startSessionBtn) startSessionBtn.style.display = 'inline-block';
+            if (endSessionBtn) endSessionBtn.style.display = 'none';
+            
+            // Still update category filter display when not in session
+            this.updateCategoryFilterDisplay();
+            return;
+        }
 
         // Ensure current index is within bounds
         if (this.currentCardIndex >= filteredCards.length) {
@@ -318,9 +434,6 @@ class FlashcardApp {
         document.getElementById('next-btn').disabled = isLastCard;
         document.getElementById('easy-btn').disabled = isLastCard;
         document.getElementById('review-btn').disabled = isLastCard;
-        
-        // Update category filter display
-        this.updateCategoryFilterDisplay();
     }
 
     updateManageTab() {
@@ -394,6 +507,13 @@ class FlashcardApp {
         } else {
             this.setActiveCategories(selectedCategories);
         }
+    }
+
+    showSessionComplete() {
+        const filteredCards = this.sessionCards;
+        const reviewedCount = filteredCards.length;
+        alert(`Session complete! You reviewed ${reviewedCount} card${reviewedCount !== 1 ? 's' : ''}.`);
+        this.endSession();
     }
 
     escapeHtml(text) {
@@ -606,6 +726,21 @@ class FlashcardApp {
             this.setDirection('en-bg');
         });
 
+        // Session management
+        const startSessionBtn = document.getElementById('start-session-btn');
+        if (startSessionBtn) {
+            startSessionBtn.addEventListener('click', () => {
+                this.startSession();
+            });
+        }
+
+        const endSessionBtn = document.getElementById('end-session-btn');
+        if (endSessionBtn) {
+            endSessionBtn.addEventListener('click', () => {
+                this.endSession();
+            });
+        }
+
         // Study tab controls
         document.getElementById('flip-btn').addEventListener('click', () => {
             this.flipCard();
@@ -636,7 +771,8 @@ class FlashcardApp {
         document.addEventListener('keydown', (e) => {
             const activeTab = document.querySelector('.tab-content.active').id;
             
-            if (activeTab === 'study-tab' && this.cards.length > 0) {
+            // Keyboard shortcuts only work in study tab when in a session
+            if (activeTab === 'study-tab' && this.inSession && this.cards.length > 0) {
                 if (e.key === 'ArrowLeft') {
                     this.previousCard();
                 } else if (e.key === 'ArrowRight') {
@@ -722,6 +858,11 @@ class FlashcardApp {
     }
 
     setDirection(direction) {
+        // Don't allow direction changes during an active session
+        if (this.inSession) {
+            return;
+        }
+        
         this.direction = direction;
         localStorage.setItem('studyDirection', direction);
         this.reviewQueue = []; // Clear review queue when direction changes
@@ -764,8 +905,11 @@ class FlashcardApp {
     }
 
     switchTab(tabName) {
-        // Clear review queue when leaving study tab
+        // End session and clear review queue when leaving study tab
         if (tabName !== 'study') {
+            if (this.inSession) {
+                this.endSession();
+            }
             this.reviewQueue = [];
         }
         
