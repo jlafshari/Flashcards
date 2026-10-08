@@ -9,6 +9,7 @@ class FlashcardApp {
         this.isFlipped = false;
         this.direction = 'bg-en'; // 'bg-en' or 'en-bg'
         this.activeCategories = []; // Empty means show all categories
+        this.reviewQueue = []; // Cards marked for review again
         
         this.init();
     }
