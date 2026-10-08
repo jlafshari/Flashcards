@@ -193,6 +193,7 @@ class FlashcardApp {
         this.activeCategories = categories;
         localStorage.setItem('activeCategories', JSON.stringify(categories));
         this.currentCardIndex = 0; // Reset to first card when filter changes
+        this.reviewQueue = []; // Clear review queue when filter changes
         this.resetFlip();
         this.updateUI();
     }
@@ -703,6 +704,7 @@ class FlashcardApp {
     setDirection(direction) {
         this.direction = direction;
         localStorage.setItem('studyDirection', direction);
+        this.reviewQueue = []; // Clear review queue when direction changes
         this.resetFlip();
         this.updateUI();
     }
@@ -742,6 +744,11 @@ class FlashcardApp {
     }
 
     switchTab(tabName) {
+        // Clear review queue when leaving study tab
+        if (tabName !== 'study') {
+            this.reviewQueue = [];
+        }
+        
         // Update tab buttons
         document.querySelectorAll('.tab-button').forEach(button => {
             if (button.dataset.tab === tabName) {
