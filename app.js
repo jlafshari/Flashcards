@@ -10,6 +10,7 @@ class FlashcardApp {
         this.direction = 'bg-en'; // 'bg-en' or 'en-bg'
         this.activeCategories = []; // Empty means show all categories
         this.reviewQueue = []; // Cards marked for review again
+        this.lastCardId = 0; // Counter to ensure unique IDs even in rapid succession
         
         this.init();
     }
@@ -51,8 +52,12 @@ class FlashcardApp {
     }
 
     addCard(bulgarian, english, category = '') {
+        // Generate a unique ID using timestamp + counter to avoid collisions
+        const timestamp = Date.now();
+        this.lastCardId = Math.max(timestamp, this.lastCardId + 1);
+        
         const card = {
-            id: Date.now(),
+            id: this.lastCardId,
             bulgarian: bulgarian.trim(),
             english: english.trim(),
             category: category.trim(),
@@ -157,13 +162,19 @@ class FlashcardApp {
             
             if (currentCard && !this.reviewQueue.includes(currentCard.id)) {
                 this.reviewQueue.push(currentCard.id);
-            }
-            
-            // Card needs review - move to next card without incrementing review count
-            if (this.currentCardIndex < filteredCards.length - 1) {
-                this.currentCardIndex++;
+                
+                // After adding to queue, the card moves to the end of the filtered list.
+                // The card that was next is now at the current index, so we don't need
+                // to increment currentCardIndex. We just reset and update UI.
                 this.resetFlip();
                 this.updateUI();
+            } else {
+                // If card is already in queue or doesn't exist, just move to next card
+                if (this.currentCardIndex < filteredCards.length - 1) {
+                    this.currentCardIndex++;
+                    this.resetFlip();
+                    this.updateUI();
+                }
             }
         }, 300);
     }
@@ -210,18 +221,27 @@ class FlashcardApp {
             });
         }
         
-        // Append cards from review queue to the end
+        // If there are cards in the review queue, reorganize the deck
         if (this.reviewQueue.length > 0) {
-            // Get card IDs already in filtered cards to avoid duplicates
-            const filteredCardIds = new Set(filteredCards.map(card => card.id));
+            // Create a Set of queued card IDs for fast lookup
+            const queuedCardIds = new Set(this.reviewQueue);
             
-            // Add queued cards that aren't already in the filtered list
-            const queuedCards = this.reviewQueue
-                .map(id => this.cards.find(card => card.id === id))
-                .filter(card => card && !filteredCardIds.has(card.id));
+            // Split filtered cards into two groups:
+            // 1. Cards NOT in the queue (keep in original order)
+            // 2. Cards in the queue (will be appended at the end)
+            const nonQueuedCards = [];
+            const queuedCards = [];
             
-            // Return filtered cards + queued cards
-            return [...filteredCards, ...queuedCards];
+            for (const card of filteredCards) {
+                if (queuedCardIds.has(card.id)) {
+                    queuedCards.push(card);
+                } else {
+                    nonQueuedCards.push(card);
+                }
+            }
+            
+            // Return non-queued cards first, then queued cards at the end
+            return [...nonQueuedCards, ...queuedCards];
         }
         
         return filteredCards;
