@@ -27,22 +27,23 @@
                 </div>
             </div>
 
-            <div id="category-filter" class="category-filter" style="display: none;">
-                <h3>Select Categories to Study:</h3>
-                <div id="category-checkboxes" class="category-checkboxes">
-                    <!-- Category checkboxes will be dynamically added here -->
-                </div>
-            </div>
-
             <div id="no-cards-message" class="message">
                 <p>No flashcards yet! Go to "Manage Cards" to add some.</p>
             </div>
 
             <div id="card-container" class="card-container" style="display: none;">
-                <div class="direction-selector">
-                    <label>Study Direction:</label>
-                    <button id="direction-bg-en" class="direction-btn active">Bulgarian → English</button>
-                    <button id="direction-en-bg" class="direction-btn">English → Bulgarian</button>
+                <div id="study-options" class="study-options">
+                    <div id="category-filter" class="category-filter-inline" style="display: none;">
+                        <h3>Categories:</h3>
+                        <div id="category-checkboxes" class="category-checkboxes">
+                            <!-- Category checkboxes will be dynamically added here -->
+                        </div>
+                    </div>
+                    
+                    <div class="direction-selector">
+                        <button id="direction-bg-en" class="direction-btn active">Bulgarian → English</button>
+                        <button id="direction-en-bg" class="direction-btn">English → Bulgarian</button>
+                    </div>
                 </div>
 
                 <div class="flashcard" id="flashcard">
