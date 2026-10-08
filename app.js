@@ -151,9 +151,15 @@ class FlashcardApp {
         
         // Delay navigation to allow animation to complete
         setTimeout(() => {
-            // Card needs review - move to next card without incrementing review count
-            // Future enhancement: could mark card with needsReview flag
+            // Add current card to review queue if not already present
             const filteredCards = this.getFilteredCards();
+            const currentCard = filteredCards[this.currentCardIndex];
+            
+            if (currentCard && !this.reviewQueue.includes(currentCard.id)) {
+                this.reviewQueue.push(currentCard.id);
+            }
+            
+            // Card needs review - move to next card without incrementing review count
             if (this.currentCardIndex < filteredCards.length - 1) {
                 this.currentCardIndex++;
                 this.resetFlip();
