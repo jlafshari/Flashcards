@@ -78,8 +78,31 @@ global.alert = function() {};
 
 // Load the app code
 const fs = require('fs');
+const vm = require('vm');
 const appCode = fs.readFileSync('app.js', 'utf8');
-eval(appCode);
+
+// Create a context with all necessary globals
+const context = {
+    document: document,
+    localStorage: localStorage,
+    alert: function() {},
+    console: console,
+    Date: Date,
+    Math: Math,
+    JSON: JSON,
+    Set: Set,
+    Array: Array,
+    String: String,
+    Number: Number,
+    Object: Object,
+    FlashcardApp: null
+};
+
+vm.createContext(context);
+vm.runInContext(appCode, context);
+
+// Get FlashcardApp from the context
+const FlashcardApp = context.FlashcardApp;
 
 // Run tests
 console.log('\n=== Session UI Fix Tests ===\n');
@@ -111,7 +134,7 @@ app.switchTab('study');
 
 // Test 1: Pre-session state
 assert(
-    mockElements['study-options'].style.display === 'block',
+    mockElements['study-options'].style.display === 'flex',
     'Test 1: Study options visible before session'
 );
 
@@ -169,7 +192,7 @@ assert(
 );
 
 assert(
-    mockElements['study-options'].style.display === 'block',
+    mockElements['study-options'].style.display === 'flex',
     'Test 11: Study options visible after ending session'
 );
 
