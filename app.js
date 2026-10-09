@@ -389,13 +389,13 @@ class FlashcardApp {
             if (startSessionBtn) startSessionBtn.style.display = 'none';
             if (endSessionBtn) endSessionBtn.style.display = 'inline-block';
         } else {
-            // Not in session: show options and start button, hide card
+            // Not in session: show options and start button, hide card container
             cardContainer.style.display = 'none';
-            if (studyOptions) studyOptions.style.display = 'flex';
+            if (studyOptions) studyOptions.style.display = 'block';
             if (startSessionBtn) startSessionBtn.style.display = 'inline-block';
             if (endSessionBtn) endSessionBtn.style.display = 'none';
             
-            // Still update category filter display when not in session
+            // Update category filter display when not in session
             this.updateCategoryFilterDisplay();
             return;
         }
