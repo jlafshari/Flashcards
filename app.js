@@ -391,7 +391,7 @@ class FlashcardApp {
         } else {
             // Not in session: show options and start button, hide card container
             cardContainer.style.display = 'none';
-            if (studyOptions) studyOptions.style.display = 'block';
+            if (studyOptions) studyOptions.style.display = 'flex';
             if (startSessionBtn) startSessionBtn.style.display = 'inline-block';
             if (endSessionBtn) endSessionBtn.style.display = 'none';
             
