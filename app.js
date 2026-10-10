@@ -13,6 +13,7 @@ class FlashcardApp {
         this.lastCardId = 0; // Counter to ensure unique IDs even in rapid succession
         
         // Study session state
+        this.showingOptions = false; // Whether showing configuration options
         this.inSession = false; // Whether a study session is active
         this.sessionCards = []; // Cards to review in this session (snapshot)
         this.sessionReviewedCards = new Set(); // IDs of cards reviewed in current session
@@ -90,16 +91,30 @@ class FlashcardApp {
 
     // Session management
     startSession() {
-        this.inSession = true;
-        this.sessionCards = this.getFilteredCards(); // Snapshot of filtered cards
-        this.sessionReviewedCards = new Set();
-        this.currentCardIndex = 0;
-        this.reviewQueue = []; // Clear review queue for new session
-        this.resetFlip();
-        this.updateUI();
+        if (!this.showingOptions) {
+            // First click: show options
+            this.showingOptions = true;
+            this.updateUI();
+        } else {
+            // Second click: start actual session with selected options
+            const filteredCards = this.getFilteredCards();
+            if (filteredCards.length === 0) {
+                alert('No cards match the selected categories. Please select at least one category with cards.');
+                return;
+            }
+            
+            this.inSession = true;
+            this.sessionCards = filteredCards; // Snapshot of filtered cards
+            this.sessionReviewedCards = new Set();
+            this.currentCardIndex = 0;
+            this.reviewQueue = []; // Clear review queue for new session
+            this.resetFlip();
+            this.updateUI();
+        }
     }
 
     endSession() {
+        this.showingOptions = false;
         this.inSession = false;
         this.sessionCards = [];
         this.sessionReviewedCards = new Set();
@@ -360,43 +375,66 @@ class FlashcardApp {
     }
 
     updateStudyTab() {
-        // Get filtered cards based on active categories or session cards
-        const filteredCards = this.inSession ? this.sessionCards : this.getFilteredCards();
-        
-        // Update stats
-        document.getElementById('total-cards').textContent = filteredCards.length;
-        document.getElementById('reviewed-today').textContent = this.reviewedToday;
-
         const noCardsMessage = document.getElementById('no-cards-message');
         const cardContainer = document.getElementById('card-container');
         const startSessionBtn = document.getElementById('start-session-btn');
         const endSessionBtn = document.getElementById('end-session-btn');
         const studyOptions = document.getElementById('study-options');
 
-        if (filteredCards.length === 0) {
+        // Always update stats based on total cards (not filtered)
+        document.getElementById('total-cards').textContent = this.cards.length;
+        document.getElementById('reviewed-today').textContent = this.reviewedToday;
+
+        // Check if we have any cards at all
+        if (this.cards.length === 0) {
             noCardsMessage.style.display = 'block';
             cardContainer.style.display = 'none';
+            if (studyOptions) studyOptions.style.display = 'none';
             if (startSessionBtn) startSessionBtn.style.display = 'none';
+            if (endSessionBtn) endSessionBtn.style.display = 'none';
             return;
         }
 
         noCardsMessage.style.display = 'none';
         
         if (this.inSession) {
-            // In session: show card and controls, hide options and start button
+            // State 3: In session - show card and controls, hide options and start button
             cardContainer.style.display = 'block';
             if (studyOptions) studyOptions.style.display = 'none';
             if (startSessionBtn) startSessionBtn.style.display = 'none';
             if (endSessionBtn) endSessionBtn.style.display = 'inline-block';
-        } else {
-            // Not in session: show options and start button, hide card container
+            
+            // Update the card display
+            this.updateCardDisplay();
+        } else if (this.showingOptions) {
+            // State 2: Showing options - hide card, show options and start button
             cardContainer.style.display = 'none';
             if (studyOptions) studyOptions.style.display = 'flex';
-            if (startSessionBtn) startSessionBtn.style.display = 'inline-block';
+            if (startSessionBtn) {
+                startSessionBtn.style.display = 'inline-block';
+                startSessionBtn.textContent = 'Start Study Session';
+            }
             if (endSessionBtn) endSessionBtn.style.display = 'none';
             
-            // Update category filter display when not in session
+            // Update category filter display when showing options
             this.updateCategoryFilterDisplay();
+        } else {
+            // State 1: Initial - show only start button, hide everything else
+            cardContainer.style.display = 'none';
+            if (studyOptions) studyOptions.style.display = 'none';
+            if (startSessionBtn) {
+                startSessionBtn.style.display = 'inline-block';
+                startSessionBtn.textContent = 'Start Study Session';
+            }
+            if (endSessionBtn) endSessionBtn.style.display = 'none';
+        }
+    }
+    
+    updateCardDisplay() {
+        // Get filtered cards based on session cards
+        const filteredCards = this.sessionCards;
+        
+        if (filteredCards.length === 0) {
             return;
         }
 
