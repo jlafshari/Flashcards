@@ -195,6 +195,14 @@ class FlashcardApp {
                 if (currentCard) {
                     this.sessionReviewedCards.add(currentCard.id);
                 }
+                
+                // If we're on the last card, check if session is complete
+                if (this.currentCardIndex === this.sessionCards.length - 1) {
+                    if (this.isSessionComplete()) {
+                        this.showSessionComplete();
+                        return;
+                    }
+                }
             }
             
             // Card was easy - increment review count and move to next
@@ -217,6 +225,14 @@ class FlashcardApp {
                     
                     // Mark as reviewed (we'll see it again at the end)
                     this.sessionReviewedCards.add(currentCard.id);
+                    
+                    // If we're on the last card, check if session is complete
+                    if (this.currentCardIndex === this.sessionCards.length - 1) {
+                        if (this.isSessionComplete()) {
+                            this.showSessionComplete();
+                            return;
+                        }
+                    }
                     
                     // Move to the next card - use nextCard() to handle session completion
                     this.nextCard();
