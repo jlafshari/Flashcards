@@ -195,6 +195,13 @@ class FlashcardApp {
                 if (currentCard) {
                     this.sessionReviewedCards.add(currentCard.id);
                 }
+                
+                // If we're on the last card, end the session
+                // (User has reviewed all cards they wanted to review)
+                if (this.currentCardIndex === this.sessionCards.length - 1) {
+                    this.showSessionComplete();
+                    return;
+                }
             }
             
             // Card was easy - increment review count and move to next
@@ -218,18 +225,18 @@ class FlashcardApp {
                     // Mark as reviewed (we'll see it again at the end)
                     this.sessionReviewedCards.add(currentCard.id);
                     
-                    // After adding to queue, the card moves to the end of the session cards.
-                    // The card that was next is now at the current index, so we don't need
-                    // to increment currentCardIndex. We just reset and update UI.
-                    this.resetFlip();
-                    this.updateUI();
+                    // If we're on the last card, end the session
+                    // (User has reviewed all cards they wanted to review)
+                    if (this.currentCardIndex === this.sessionCards.length - 1) {
+                        this.showSessionComplete();
+                        return;
+                    }
+                    
+                    // Move to the next card - use nextCard() to handle session completion
+                    this.nextCard();
                 } else {
                     // If card is already in queue or doesn't exist, just move to next card
-                    if (this.currentCardIndex < this.sessionCards.length - 1) {
-                        this.currentCardIndex++;
-                        this.resetFlip();
-                        this.updateUI();
-                    }
+                    this.nextCard();
                 }
             } else {
                 // Not in session mode: use existing behavior
@@ -239,18 +246,11 @@ class FlashcardApp {
                 if (currentCard && !this.reviewQueue.includes(currentCard.id)) {
                     this.reviewQueue.push(currentCard.id);
                     
-                    // After adding to queue, the card moves to the end of the filtered list.
-                    // The card that was next is now at the current index, so we don't need
-                    // to increment currentCardIndex. We just reset and update UI.
-                    this.resetFlip();
-                    this.updateUI();
+                    // Move to the next card
+                    this.nextCard();
                 } else {
                     // If card is already in queue or doesn't exist, just move to next card
-                    if (this.currentCardIndex < filteredCards.length - 1) {
-                        this.currentCardIndex++;
-                        this.resetFlip();
-                        this.updateUI();
-                    }
+                    this.nextCard();
                 }
             }
         }, 300);
@@ -458,8 +458,8 @@ class FlashcardApp {
         const isLastCard = this.currentCardIndex === filteredCards.length - 1;
         document.getElementById('prev-btn').disabled = this.currentCardIndex === 0;
         document.getElementById('next-btn').disabled = isLastCard;
-        document.getElementById('easy-btn').disabled = isLastCard;
-        document.getElementById('review-btn').disabled = isLastCard;
+        // Easy and Review buttons should always be enabled when the card is flipped
+        // The session completion logic in markEasy() and markForReview() will handle what happens
     }
 
     updateManageTab() {
