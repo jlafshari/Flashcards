@@ -301,6 +301,85 @@ test('Bug 2: markForReview on last card adds to queue and allows review', () => 
     assert(app.sessionReviewedCards.has(secondCardId), 'Last card should be marked as reviewed');
 });
 
+// Test 6: Skip cards with Next, then markEasy on last card should end session
+test('Bug 3: Skip cards with Next, markEasy on last card ends session', () => {
+    const app = new FlashcardApp();
+    app.addCard('Здравей', 'Hello', '');
+    app.addCard('Довиждане', 'Goodbye', '');
+    app.addCard('Благодаря', 'Thank you', '');
+    
+    app.startSession();
+    assert(app.inSession, 'Session should be active');
+    
+    // Skip first card using nextCard (simulating Next button)
+    app.nextCard();
+    assertEquals(app.currentCardIndex, 1, 'Should be at card 1');
+    
+    // Skip second card
+    app.nextCard();
+    assertEquals(app.currentCardIndex, 2, 'Should be at card 2 (last card)');
+    
+    // Now mark the last card as easy - should end the session
+    const thirdCardId = app.sessionCards[2].id;
+    app.markEasy();
+    
+    // Session should have ended
+    assert(!app.inSession, 'Session should have ended after marking last card as easy');
+    assert(app.sessionReviewedCards.has(thirdCardId), 'Last card should be marked as reviewed');
+});
+
+// Test 7: Skip cards with Next, then markForReview on last card should end session
+test('Bug 3: Skip cards with Next, markForReview on last card ends session', () => {
+    const app = new FlashcardApp();
+    app.addCard('Здравей', 'Hello', '');
+    app.addCard('Довиждане', 'Goodbye', '');
+    app.addCard('Благодаря', 'Thank you', '');
+    
+    app.startSession();
+    assert(app.inSession, 'Session should be active');
+    
+    // Skip first card
+    app.nextCard();
+    assertEquals(app.currentCardIndex, 1, 'Should be at card 1');
+    
+    // Skip second card
+    app.nextCard();
+    assertEquals(app.currentCardIndex, 2, 'Should be at card 2 (last card)');
+    
+    // Now mark the last card for review - should end the session
+    const thirdCardId = app.sessionCards[2].id;
+    app.markForReview();
+    
+    // Session should have ended
+    assert(!app.inSession, 'Session should have ended after marking last card for review');
+    assert(app.sessionReviewedCards.has(thirdCardId), 'Last card should be marked as reviewed');
+    assert(app.reviewQueue.includes(thirdCardId), 'Last card should be in review queue');
+});
+
+// Test 8: Skip some cards, review others, markEasy on last card should end session
+test('Bug 3: Mixed skip and review, markEasy on last card ends session', () => {
+    const app = new FlashcardApp();
+    app.addCard('Здравей', 'Hello', '');
+    app.addCard('Довиждане', 'Goodbye', '');
+    app.addCard('Благодаря', 'Thank you', '');
+    
+    app.startSession();
+    
+    // Review first card
+    app.markEasy();
+    assertEquals(app.currentCardIndex, 1, 'Should be at card 1');
+    
+    // Skip second card
+    app.nextCard();
+    assertEquals(app.currentCardIndex, 2, 'Should be at card 2 (last card)');
+    
+    // Review last card - should end session since we've reviewed all we wanted to
+    app.markEasy();
+    
+    // Session should have ended
+    assert(!app.inSession, 'Session should have ended after marking last card as easy');
+});
+
 // Restore setTimeout
 global.setTimeout = originalSetTimeout;
 
