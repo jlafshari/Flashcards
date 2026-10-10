@@ -1,34 +1,26 @@
-# Two-Step Session Flow Documentation
+# Study Session Flow Documentation
 
 ## Overview
-The study session now uses a two-step flow to allow users to configure their session before starting.
+The study session uses a simple one-step flow where options are visible upfront and the user clicks once to start studying.
 
 ## User Flow
 
-### Step 1: Initial State
+### Step 1: Initial State (Before Session)
 When the user first opens the Study tab (with cards available):
 - **Visible**: 
   - Stats (Total Cards, Reviewed Today)
+  - Study options (categories + direction selector)
   - "Start Study Session" button
 - **Hidden**: 
-  - Study options (categories + direction selector)
   - Flashcard and controls
 
-### Step 2: Configuration State (After First Click)
-When the user clicks "Start Study Session" the first time:
-- **Visible**: 
-  - Stats
-  - Study options (category checkboxes + direction selector)
-  - "Start Study Session" button (still visible for second click)
-- **Hidden**: 
-  - Flashcard and controls
-
-Users can now:
+Users can:
 - Select which categories to include (if multiple categories exist)
 - Choose study direction (Bulgarian → English or English → Bulgarian)
+- Click "Start Study Session" when ready
 
-### Step 3: Active Session State (After Second Click)
-When the user clicks "Start Study Session" the second time:
+### Step 2: Active Session State
+When the user clicks "Start Study Session":
 - **Visible**: 
   - Stats
   - Flashcard with front/back content
@@ -39,16 +31,17 @@ When the user clicks "Start Study Session" the second time:
   - Study options (locked during session)
   - "Start Study Session" button
 
-### Step 4: End Session
+### Step 3: End Session
 When the user clicks "End Session" or completes all cards:
 - Returns to Step 1 (Initial State)
+- Options become visible again
+- User can reconfigure and start a new session
 
 ## Technical Implementation
 
-### New State Property
+### State Property
 ```javascript
-this.showingOptions = false;  // Tracks if options are being shown
-this.inSession = false;       // Tracks if session is active
+this.inSession = false;  // Tracks if session is active
 ```
 
 ### State Transitions
@@ -56,48 +49,37 @@ this.inSession = false;       // Tracks if session is active
 #### startSession() Method
 ```javascript
 startSession() {
-    if (!this.showingOptions) {
-        // First click: show options
-        this.showingOptions = true;
-        this.updateUI();
-    } else {
-        // Second click: start actual session
-        const filteredCards = this.getFilteredCards();
-        if (filteredCards.length === 0) {
-            alert('No cards match the selected categories...');
-            return;
-        }
-        
-        this.inSession = true;
-        this.sessionCards = filteredCards;
-        // ... initialize session
+    // Start actual session with selected options
+    const filteredCards = this.getFilteredCards();
+    if (filteredCards.length === 0) {
+        alert('No cards match the selected categories...');
+        return;
     }
+    
+    this.inSession = true;
+    this.sessionCards = filteredCards;
+    // ... initialize session
 }
 ```
 
 #### endSession() Method
 ```javascript
 endSession() {
-    this.showingOptions = false;  // Reset configuration state
-    this.inSession = false;       // Exit session
+    this.inSession = false;  // Exit session
     // ... clear session data
 }
 ```
 
 ### UI Update Logic
 
-The `updateStudyTab()` method handles three states:
+The `updateStudyTab()` method handles two states:
 
-1. **Initial State** (`!showingOptions && !inSession`):
-   - Show start button only
-   - Hide everything else
-
-2. **Configuration State** (`showingOptions && !inSession`):
+1. **Initial State** (`!inSession`):
    - Show study options
    - Show start button
-   - Hide flashcard
+   - Hide flashcard and controls
 
-3. **Active Session** (`inSession`):
+2. **Active Session** (`inSession`):
    - Show flashcard and controls
    - Hide options and start button
    - Show end session button
@@ -110,35 +92,32 @@ The `updateStudyTab()` method handles three states:
 
 ### No Cards Match Selected Categories
 - Shows alert: "No cards match the selected categories. Please select at least one category with cards."
-- Remains in configuration state (doesn't start session)
-- User can adjust category selection
+- Remains in initial state (doesn't start session)
+- User can adjust category selection and try again
 
 ### Direction and Category Changes
-- Allowed in Initial and Configuration states
+- Allowed before session starts (initial state)
 - Blocked during Active Session state
+- Allowed again after session ends
 
-## Benefits of Two-Step Flow
+## Benefits of This Flow
 
-1. **User Control**: Users explicitly choose what to study before starting
-2. **No Surprises**: Users see their options before committing to a session
-3. **Flexibility**: Can review and adjust settings before starting
-4. **Clear Intent**: Two distinct actions (configure vs. start) are separate
+1. **Immediate Access**: Users see their options right away
+2. **Single Click**: One click to start studying after choosing options
+3. **Transparency**: All configuration is visible upfront
+4. **Simple**: Only two states to manage (before session / during session)
 
-## Migration from Previous Flow
+## Change History
 
-### Previous Behavior
-- Options were visible immediately
-- Click "Start Study Session" → immediately started session with current options
+### December 2024 (Latest)
+- Simplified from two-step to one-step flow
+- Options now visible from the start
+- Single click starts session immediately
 
-### New Behavior
-- Options hidden until user clicks "Start Study Session"
-- First click shows options
-- Second click starts session
+### October 2026
+- Implemented two-step flow with `showingOptions` state
+- Required two clicks: one to show options, one to start
 
-### Why the Change
-Users expected to:
-1. Press button to initiate the setup process
-2. See and configure options
-3. Press button again to start actual studying
-
-The new flow matches this mental model better.
+### Previous
+- Options were always visible
+- Single click to start (like current implementation)
