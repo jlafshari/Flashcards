@@ -409,6 +409,38 @@ body {
     animation: button-press 0.3s ease-out, button-glow-review 0.3s ease-out;
 }
 
+/* Session Buttons */
+.btn-start-session {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 20px 40px;
+    font-size: 1.2em;
+    display: block;
+    margin: 30px auto;
+    width: fit-content;
+    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+}
+
+.btn-start-session:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 30px rgba(102, 126, 234, 0.4);
+}
+
+.btn-end-session {
+    background: #95a5a6;
+    color: white;
+    padding: 10px 20px;
+    font-size: 0.9em;
+    display: block;
+    margin: 20px auto 0;
+    width: fit-content;
+}
+
+.btn-end-session:hover {
+    background: #7f8c8d;
+    transform: translateY(-2px);
+}
+
 /* Import/Export Section */
 .import-export-section {
     background: #f8f9fa;
