@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Session Flow</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .pass { color: green; }
+        .fail { color: red; }
+        .info { color: blue; }
+        button {
+            margin: 5px;
+            padding: 8px 15px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Study Session Flow Test</h1>
+    
+    <div class="test-section">
+        <h2>Test Instructions</h2>
+        <ol>
+            <li>Open index.html in another tab with some flashcards already added</li>
+            <li>Go to the Study tab</li>
+            <li>Initial state should show:
+                <ul>
+                    <li>✓ Stats (Total Cards, Reviewed Today)</li>
+                    <li>✓ "Start Study Session" button</li>
+                    <li>✗ Study options (hidden)</li>
+                    <li>✗ Flashcard (hidden)</li>
+                </ul>
+            </li>
+            <li>Click "Start Study Session" button</li>
+            <li>After first click, should show:
+                <ul>
+                    <li>✓ Stats</li>
+                    <li>✓ "Start Study Session" button (still visible)</li>
+                    <li>✓ Study options (categories + direction selector)</li>
+                    <li>✗ Flashcard (still hidden)</li>
+                </ul>
+            </li>
+            <li>Configure your options (select categories, choose direction)</li>
+            <li>Click "Start Study Session" button again</li>
+            <li>After second click, should show:
+                <ul>
+                    <li>✓ Stats</li>
+                    <li>✓ Flashcard with navigation controls</li>
+                    <li>✓ "End Session" button</li>
+                    <li>✗ Study options (hidden)</li>
+                    <li>✗ "Start Study Session" button (hidden)</li>
+                </ul>
+            </li>
+            <li>Study through some cards</li>
+            <li>Click "End Session" button</li>
+            <li>Should return to initial state (only "Start Study Session" button visible)</li>
+        </ol>
+    </div>
+
+    <div class="test-section">
+        <h2>Test with No Cards</h2>
+        <ol>
+            <li>If you have no cards, you should see:
+                <ul>
+                    <li>✓ Stats (showing 0 cards)</li>
+                    <li>✓ "No flashcards yet!" message</li>
+                    <li>✗ "Start Study Session" button (hidden)</li>
+                    <li>✗ Study options (hidden)</li>
+                    <li>✗ Flashcard (hidden)</li>
+                </ul>
+            </li>
+        </ol>
+    </div>
+
+    <div class="test-section">
+        <h2>Test with Category Filtering</h2>
+        <ol>
+            <li>Add cards with different categories</li>
+            <li>Click "Start Study Session" to show options</li>
+            <li>Uncheck some categories</li>
+            <li>Click "Start Study Session" again</li>
+            <li>Should only see cards from selected categories</li>
+            <li>If all categories are unchecked, should show alert: "No cards match the selected categories..."</li>
+        </ol>
+    </div>
+
+    <div class="test-section">
+        <h2>Expected Behavior Summary</h2>
+        <h3>Three States:</h3>
+        <ol>
+            <li><strong>Initial State</strong>: Stats + "Start Study Session" button only</li>
+            <li><strong>Configuration State</strong>: Stats + Study Options + "Start Study Session" button</li>
+            <li><strong>Session Active State</strong>: Stats + Flashcard + Controls + "End Session" button</li>
+        </ol>
+    </div>
+
+    <div class="test-section">
+        <h2>Manual Testing Checklist</h2>
+        <label><input type="checkbox"> Initial state shows only Start button</label><br>
+        <label><input type="checkbox"> First click shows study options</label><br>
+        <label><input type="checkbox"> Study options include categories (if any exist)</label><br>
+        <label><input type="checkbox"> Study options include direction selector</label><br>
+        <label><input type="checkbox"> Second click starts session with flashcard</label><br>
+        <label><input type="checkbox"> Category filtering works correctly</label><br>
+        <label><input type="checkbox"> Direction selection works correctly</label><br>
+        <label><input type="checkbox"> End Session returns to initial state</label><br>
+        <label><input type="checkbox"> Alert shown if no cards match selected categories</label><br>
+        <label><input type="checkbox"> No cards message shown when no cards exist</label><br>
+    </div>
+
+    <script>
+        console.log('Open index.html in another tab to perform manual testing');
+        console.log('Follow the test instructions above');
+    </script>
+</body>
+</html>

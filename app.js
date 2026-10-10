@@ -897,6 +897,7 @@ class FlashcardApp {
 
     setDirection(direction) {
         // Don't allow direction changes during an active session
+        // But allow them when showing options (before session starts)
         if (this.inSession) {
             return;
         }
