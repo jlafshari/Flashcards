@@ -373,8 +373,9 @@ class FlashcardApp {
         const endSessionBtn = document.getElementById('end-session-btn');
         const studyOptions = document.getElementById('study-options');
 
-        // Always update stats based on total cards (not filtered)
-        document.getElementById('total-cards').textContent = this.cards.length;
+        // Show filtered count when not in session, total when in session
+        const displayCount = this.inSession ? this.cards.length : this.getFilteredCards().length;
+        document.getElementById('total-cards').textContent = displayCount;
         document.getElementById('reviewed-today').textContent = this.reviewedToday;
 
         // Check if we have any cards at all
@@ -410,6 +411,10 @@ class FlashcardApp {
             
             // Update category filter display when showing options
             this.updateCategoryFilterDisplay();
+            
+            // Update direction button active states when showing options
+            document.getElementById('direction-bg-en').classList.toggle('active', this.direction === 'bg-en');
+            document.getElementById('direction-en-bg').classList.toggle('active', this.direction === 'en-bg');
         }
     }
     
