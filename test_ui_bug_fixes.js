@@ -131,8 +131,8 @@ assert(totalCardsEl1.textContent == '4', `Total cards shows 4 when both categori
 
 console.log('');
 
-// Test 3: Total cards count shows total count when in session
-console.log('Test 3: Total cards count shows total count (in session)');
+// Test 3: Total cards count shows session cards count when in session
+console.log('Test 3: Total cards count shows session cards count (in session)');
 localStorage.clear();
 const app3 = new FlashcardApp();
 app3.cards = [
@@ -146,7 +146,7 @@ app3.cards = [
 app3.activeCategories = ['Greetings'];
 app3.startSession();
 const totalCardsEl2 = document.getElementById('total-cards');
-assert(totalCardsEl2.textContent == '4', `Total cards shows total (4) when in session, not filtered count (actual: ${totalCardsEl2.textContent})`);
+assert(totalCardsEl2.textContent == '2', `Total cards shows session cards count (2) when in session, not total cards (actual: ${totalCardsEl2.textContent})`);
 
 console.log('');
 
