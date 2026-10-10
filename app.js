@@ -13,7 +13,6 @@ class FlashcardApp {
         this.lastCardId = 0; // Counter to ensure unique IDs even in rapid succession
         
         // Study session state
-        this.showingOptions = false; // Whether showing configuration options
         this.inSession = false; // Whether a study session is active
         this.sessionCards = []; // Cards to review in this session (snapshot)
         this.sessionReviewedCards = new Set(); // IDs of cards reviewed in current session
@@ -91,30 +90,23 @@ class FlashcardApp {
 
     // Session management
     startSession() {
-        if (!this.showingOptions) {
-            // First click: show options
-            this.showingOptions = true;
-            this.updateUI();
-        } else {
-            // Second click: start actual session with selected options
-            const filteredCards = this.getFilteredCards();
-            if (filteredCards.length === 0) {
-                alert('No cards match the selected categories. Please select at least one category with cards.');
-                return;
-            }
-            
-            this.inSession = true;
-            this.sessionCards = filteredCards; // Snapshot of filtered cards
-            this.sessionReviewedCards = new Set();
-            this.currentCardIndex = 0;
-            this.reviewQueue = []; // Clear review queue for new session
-            this.resetFlip();
-            this.updateUI();
+        // Start actual session with selected options
+        const filteredCards = this.getFilteredCards();
+        if (filteredCards.length === 0) {
+            alert('No cards match the selected categories. Please select at least one category with cards.');
+            return;
         }
+        
+        this.inSession = true;
+        this.sessionCards = filteredCards; // Snapshot of filtered cards
+        this.sessionReviewedCards = new Set();
+        this.currentCardIndex = 0;
+        this.reviewQueue = []; // Clear review queue for new session
+        this.resetFlip();
+        this.updateUI();
     }
 
     endSession() {
-        this.showingOptions = false;
         this.inSession = false;
         this.sessionCards = [];
         this.sessionReviewedCards = new Set();
@@ -398,7 +390,7 @@ class FlashcardApp {
         noCardsMessage.style.display = 'none';
         
         if (this.inSession) {
-            // State 3: In session - show card and controls, hide options and start button
+            // State 2: In session - show card and controls, hide options and start button
             cardContainer.style.display = 'block';
             if (studyOptions) studyOptions.style.display = 'none';
             if (startSessionBtn) startSessionBtn.style.display = 'none';
@@ -406,8 +398,8 @@ class FlashcardApp {
             
             // Update the card display
             this.updateCardDisplay();
-        } else if (this.showingOptions) {
-            // State 2: Showing options - hide card, show options and start button
+        } else {
+            // State 1: Initial/Not in session - show options and start button, hide card
             cardContainer.style.display = 'none';
             if (studyOptions) studyOptions.style.display = 'flex';
             if (startSessionBtn) {
@@ -418,15 +410,6 @@ class FlashcardApp {
             
             // Update category filter display when showing options
             this.updateCategoryFilterDisplay();
-        } else {
-            // State 1: Initial - show only start button, hide everything else
-            cardContainer.style.display = 'none';
-            if (studyOptions) studyOptions.style.display = 'none';
-            if (startSessionBtn) {
-                startSessionBtn.style.display = 'inline-block';
-                startSessionBtn.textContent = 'Start Study Session';
-            }
-            if (endSessionBtn) endSessionBtn.style.display = 'none';
         }
     }
     
