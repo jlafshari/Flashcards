@@ -196,12 +196,11 @@ class FlashcardApp {
                     this.sessionReviewedCards.add(currentCard.id);
                 }
                 
-                // If we're on the last card, check if session is complete
+                // If we're on the last card, end the session
+                // (User has reviewed all cards they wanted to review)
                 if (this.currentCardIndex === this.sessionCards.length - 1) {
-                    if (this.isSessionComplete()) {
-                        this.showSessionComplete();
-                        return;
-                    }
+                    this.showSessionComplete();
+                    return;
                 }
             }
             
@@ -226,12 +225,11 @@ class FlashcardApp {
                     // Mark as reviewed (we'll see it again at the end)
                     this.sessionReviewedCards.add(currentCard.id);
                     
-                    // If we're on the last card, check if session is complete
+                    // If we're on the last card, end the session
+                    // (User has reviewed all cards they wanted to review)
                     if (this.currentCardIndex === this.sessionCards.length - 1) {
-                        if (this.isSessionComplete()) {
-                            this.showSessionComplete();
-                            return;
-                        }
+                        this.showSessionComplete();
+                        return;
                     }
                     
                     // Move to the next card - use nextCard() to handle session completion
