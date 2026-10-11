@@ -278,6 +278,20 @@ const app15 = new FlashcardApp();
 assertEquals(app15.formatTime(1), '1 sec', 'Should handle 1 second');
 assertEquals(app15.formatTime(59), '59 sec', 'Should handle 59 seconds');
 
+// Test 16: endSession tracks time correctly
+console.log('\nTest 16: endSession tracks time correctly');
+clearStorage();
+const app16 = new FlashcardApp();
+app16.cards = [{ id: 1, bulgarian: 'тест', english: 'test', category: '' }];
+assertEquals(app16.totalTimeToday, 0, 'Should start with 0 total time');
+app16.startSession();
+// Simulate some time passing (2 seconds)
+app16.sessionStartTime = Date.now() - 2000;
+app16.endSession();
+assertTrue(app16.totalTimeToday >= 2, 'Should accumulate time when ending session');
+assertTrue(app16.totalTimeToday <= 3, 'Time should be approximately 2 seconds');
+assertEquals(localStorage.getItem('totalTimeToday'), app16.totalTimeToday.toString(), 'Should save time to localStorage');
+
 // Summary
 console.log('\n=== Test Summary ===');
 console.log(`Passed: ${testsPassed}`);
