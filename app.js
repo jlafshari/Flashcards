@@ -16,6 +16,12 @@ class FlashcardApp {
         this.inSession = false; // Whether a study session is active
         this.sessionCards = []; // Cards to review in this session (snapshot)
         this.sessionReviewedCards = new Set(); // IDs of cards reviewed in current session
+        this.sessionStartTime = null; // Timestamp when session starts
+        this.totalTimeToday = 0; // Total minutes reviewed today
+        
+        // Session preferences
+        this.shuffleEnabled = false; // Whether to shuffle cards before session
+        this.cardLimit = null; // Limit for number of cards in session (null = no limit)
         
         // Edit state
         this.editingCardId = null; // ID of card currently being edited
@@ -26,6 +32,7 @@ class FlashcardApp {
     init() {
         this.loadFromStorage();
         this.loadCategoryPreference();
+        this.loadSessionPreferences();
         this.setupEventListeners();
         this.updateUI();
     }
@@ -42,10 +49,13 @@ class FlashcardApp {
         
         if (reviewDate === today) {
             this.reviewedToday = parseInt(localStorage.getItem('reviewedToday') || '0');
+            this.totalTimeToday = parseInt(localStorage.getItem('totalTimeToday') || '0');
         } else {
             this.reviewedToday = 0;
+            this.totalTimeToday = 0;
             localStorage.setItem('reviewDate', today);
             localStorage.setItem('reviewedToday', '0');
+            localStorage.setItem('totalTimeToday', '0');
         }
         
         // Load direction preference
@@ -138,10 +148,20 @@ class FlashcardApp {
     // Session management
     startSession() {
         // Start actual session with selected options
-        const filteredCards = this.getFilteredCards();
+        let filteredCards = this.getFilteredCards();
         if (filteredCards.length === 0) {
             alert('No cards match the selected categories. Please select at least one category with cards.');
             return;
+        }
+        
+        // Apply card limit if set
+        if (this.cardLimit !== null && this.cardLimit > 0) {
+            filteredCards = filteredCards.slice(0, this.cardLimit);
+        }
+        
+        // Shuffle cards if enabled
+        if (this.shuffleEnabled) {
+            filteredCards = this.shuffleArray([...filteredCards]);
         }
         
         this.inSession = true;
@@ -149,6 +169,7 @@ class FlashcardApp {
         this.sessionReviewedCards = new Set();
         this.currentCardIndex = 0;
         this.reviewQueue = []; // Clear review queue for new session
+        this.sessionStartTime = Date.now(); // Record start time
         this.resetFlip();
         this.updateUI();
     }
@@ -158,6 +179,7 @@ class FlashcardApp {
         this.sessionCards = [];
         this.sessionReviewedCards = new Set();
         this.reviewQueue = []; // Clear review queue
+        this.sessionStartTime = null;
         this.resetFlip();
         this.updateUI();
     }
@@ -313,6 +335,16 @@ class FlashcardApp {
         }, 300);
     }
 
+    shuffleArray(array) {
+        // Fisher-Yates shuffle algorithm
+        const shuffled = [...array];
+        for (let i = shuffled.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+        }
+        return shuffled;
+    }
+
     // Category management
     getCategories() {
         // Get unique categories from all cards
@@ -407,6 +439,27 @@ class FlashcardApp {
         }
     }
 
+    loadSessionPreferences() {
+        const shuffleSaved = localStorage.getItem('shuffleEnabled');
+        if (shuffleSaved !== null) {
+            this.shuffleEnabled = shuffleSaved === 'true';
+        }
+        
+        const cardLimitSaved = localStorage.getItem('cardLimit');
+        if (cardLimitSaved !== null && cardLimitSaved !== '') {
+            this.cardLimit = parseInt(cardLimitSaved);
+        }
+    }
+
+    saveSessionPreferences() {
+        localStorage.setItem('shuffleEnabled', this.shuffleEnabled.toString());
+        if (this.cardLimit !== null) {
+            localStorage.setItem('cardLimit', this.cardLimit.toString());
+        } else {
+            localStorage.removeItem('cardLimit');
+        }
+    }
+
     // UI updates
     updateUI() {
         this.updateStudyTab();
@@ -423,7 +476,10 @@ class FlashcardApp {
         // Show filtered count (or session cards count when in session)
         const displayCount = this.inSession ? this.sessionCards.length : this.getFilteredCards().length;
         document.getElementById('total-cards').textContent = displayCount;
-        document.getElementById('reviewed-today').textContent = this.reviewedToday;
+        
+        // Update reviewed today with time
+        const timeString = this.formatTime(this.totalTimeToday);
+        document.getElementById('reviewed-today').textContent = `${this.reviewedToday} cards, ${timeString}`;
 
         // Check if we have any cards at all
         if (this.cards.length === 0) {
@@ -452,7 +508,13 @@ class FlashcardApp {
             if (studyOptions) studyOptions.style.display = 'flex';
             if (startSessionBtn) {
                 startSessionBtn.style.display = 'inline-block';
-                startSessionBtn.textContent = 'Start Study Session';
+                
+                // Update button text based on card limit
+                const filteredCount = this.getFilteredCards().length;
+                const sessionCount = this.cardLimit !== null && this.cardLimit > 0 
+                    ? Math.min(this.cardLimit, filteredCount) 
+                    : filteredCount;
+                startSessionBtn.textContent = `Start Study Session (${sessionCount} card${sessionCount !== 1 ? 's' : ''})`;
             }
             if (endSessionBtn) endSessionBtn.style.display = 'none';
             
@@ -462,6 +524,9 @@ class FlashcardApp {
             // Update direction button active states when showing options
             document.getElementById('direction-bg-en').classList.toggle('active', this.direction === 'bg-en');
             document.getElementById('direction-en-bg').classList.toggle('active', this.direction === 'en-bg');
+            
+            // Update shuffle checkbox and card limit input
+            this.updateSessionOptionsDisplay();
         }
     }
     
@@ -604,11 +669,61 @@ class FlashcardApp {
         }
     }
 
+    updateSessionOptionsDisplay() {
+        const shuffleCheckbox = document.getElementById('shuffle-checkbox');
+        const cardLimitInput = document.getElementById('card-limit-input');
+        
+        if (shuffleCheckbox) {
+            shuffleCheckbox.checked = this.shuffleEnabled;
+        }
+        
+        if (cardLimitInput) {
+            const filteredCount = this.getFilteredCards().length;
+            if (this.cardLimit === null || this.cardLimit <= 0) {
+                cardLimitInput.value = filteredCount;
+            } else {
+                cardLimitInput.value = this.cardLimit;
+            }
+            cardLimitInput.max = filteredCount;
+        }
+    }
+
     showSessionComplete() {
         const filteredCards = this.sessionCards;
         const reviewedCount = filteredCards.length;
-        alert(`Session complete! You reviewed ${reviewedCount} card${reviewedCount !== 1 ? 's' : ''}.`);
+        
+        // Calculate elapsed time
+        const elapsedSeconds = Math.round((Date.now() - this.sessionStartTime) / 1000);
+        const timeString = this.formatTime(elapsedSeconds);
+        
+        // Add session time to daily total (in seconds)
+        this.totalTimeToday += elapsedSeconds;
+        localStorage.setItem('totalTimeToday', this.totalTimeToday.toString());
+        
+        alert(`Session complete! You reviewed ${reviewedCount} card${reviewedCount !== 1 ? 's' : ''} in ${timeString}.`);
         this.endSession();
+    }
+
+    formatTime(seconds) {
+        if (seconds < 60) {
+            return `${seconds} sec`;
+        }
+        
+        const hours = Math.floor(seconds / 3600);
+        const minutes = Math.floor((seconds % 3600) / 60);
+        const secs = seconds % 60;
+        
+        if (hours > 0) {
+            if (minutes > 0) {
+                return `${hours} hr ${minutes} min`;
+            }
+            return `${hours} hr`;
+        }
+        
+        if (secs > 0) {
+            return `${minutes} min ${secs} sec`;
+        }
+        return `${minutes} min`;
     }
 
     escapeHtml(text) {
@@ -833,6 +948,30 @@ class FlashcardApp {
         if (endSessionBtn) {
             endSessionBtn.addEventListener('click', () => {
                 this.endSession();
+            });
+        }
+
+        // Session options
+        const shuffleCheckbox = document.getElementById('shuffle-checkbox');
+        if (shuffleCheckbox) {
+            shuffleCheckbox.addEventListener('change', (e) => {
+                this.shuffleEnabled = e.target.checked;
+                this.saveSessionPreferences();
+                this.updateUI();
+            });
+        }
+
+        const cardLimitInput = document.getElementById('card-limit-input');
+        if (cardLimitInput) {
+            cardLimitInput.addEventListener('input', (e) => {
+                const value = parseInt(e.target.value);
+                if (value > 0) {
+                    this.cardLimit = value;
+                } else {
+                    this.cardLimit = null;
+                }
+                this.saveSessionPreferences();
+                this.updateUI();
             });
         }
 
