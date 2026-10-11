@@ -263,6 +263,44 @@ This document provides manual test cases for the new session features:
 
 ---
 
+### Test 16: End Session Button Updates Time
+**Steps:**
+1. Clear localStorage (DevTools > Application > Local Storage > Clear All)
+2. Add 5+ test cards
+3. Go to Study tab
+4. Click "Start Study Session"
+5. Review 2-3 cards (don't complete the full session)
+6. Wait a few seconds (e.g., 10 seconds)
+7. Click "End Session" button
+8. Check the stats section at the top
+
+**Expected:**
+- Stats show "Reviewed Today: X cards, Y sec" where Y reflects the time spent in the session
+- Total time should be approximately the time elapsed since starting the session (e.g., around 10+ seconds)
+- Time is updated even though the session was not completed
+
+**Status:** ☐ Pass ☐ Fail
+
+---
+
+### Test 17: End Session Button Accumulates Time Across Sessions
+**Steps:**
+1. Complete Test 16 first and note the total time
+2. Start a new session
+3. Review 1-2 cards
+4. Wait a few more seconds
+5. Click "End Session" button again
+6. Check the stats section
+
+**Expected:**
+- Total time increases from the previous value
+- Both the first and second session times are accumulated
+- Time continues to accumulate correctly
+
+**Status:** ☐ Pass ☐ Fail
+
+---
+
 ## Edge Cases
 
 ### Edge Case 1: Single Card Session
@@ -310,7 +348,7 @@ This document provides manual test cases for the new session features:
 
 ## Test Summary
 
-Total Tests: 18
+Total Tests: 20
 - Passed: ___
 - Failed: ___
 
