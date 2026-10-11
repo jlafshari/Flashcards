@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Edit Feature</title>
+</head>
+<body>
+    <h1>Edit Feature Test</h1>
+    <p>This test verifies that the edit functionality works correctly.</p>
+    
+    <div id="test-results"></div>
+    
+    <script src="app.js"></script>
+    <script>
+        // Test the edit feature
+        const results = [];
+        
+        function testAddToResults(name, passed, details = '') {
+            results.push({ name, passed, details });
+        }
+        
+        // Clear localStorage
+        localStorage.clear();
+        
+        // Create app instance
+        const app = new FlashcardApp();
+        
+        // Test 1: Add a card
+        const card1 = app.addCard('Здравей', 'Hello', 'Greetings');
+        testAddToResults('Add card', card1 && card1.id, `Card ID: ${card1?.id}`);
+        
+        // Test 2: Check editingCardId is initially null
+        testAddToResults('Initial editingCardId is null', app.editingCardId === null);
+        
+        // Test 3: Start edit
+        app.startEditCard(card1.id);
+        testAddToResults('Start edit sets editingCardId', app.editingCardId === card1.id);
+        
+        // Test 4: Cancel edit
+        app.cancelEdit();
+        testAddToResults('Cancel edit clears editingCardId', app.editingCardId === null);
+        
+        // Test 5: Edit card data
+        const originalBulgarian = card1.bulgarian;
+        app.editCard(card1.id, 'Довиждане', 'Goodbye', 'Greetings');
+        const editedCard = app.cards.find(c => c.id === card1.id);
+        testAddToResults('Edit card updates data', 
+            editedCard.bulgarian === 'Довиждане' && 
+            editedCard.english === 'Goodbye' && 
+            editedCard.category === 'Greetings',
+            `Bulgarian: ${editedCard.bulgarian}, English: ${editedCard.english}`);
+        
+        // Test 6: Edit with empty category
+        app.editCard(card1.id, 'Добър ден', 'Good day', '');
+        const editedCard2 = app.cards.find(c => c.id === card1.id);
+        testAddToResults('Edit card with empty category', 
+            editedCard2.bulgarian === 'Добър ден' && 
+            editedCard2.english === 'Good day' && 
+            editedCard2.category === '',
+            `Category: "${editedCard2.category}"`);
+        
+        // Test 7: Verify card persists in localStorage
+        const storedCards = JSON.parse(localStorage.getItem('flashcards'));
+        const storedCard = storedCards.find(c => c.id === card1.id);
+        testAddToResults('Edited card persists in localStorage',
+            storedCard.bulgarian === 'Добър ден' && storedCard.english === 'Good day');
+        
+        // Display results
+        const resultsDiv = document.getElementById('test-results');
+        let html = '<h2>Test Results</h2>';
+        let passedCount = 0;
+        
+        results.forEach((result, index) => {
+            if (result.passed) passedCount++;
+            const status = result.passed ? '✓ PASS' : '✗ FAIL';
+            const color = result.passed ? 'green' : 'red';
+            html += `<div style="margin: 10px 0; padding: 10px; border: 1px solid ${color}; background: ${result.passed ? '#e8f5e9' : '#ffebee'};">`;
+            html += `<strong style="color: ${color};">${status}</strong> Test ${index + 1}: ${result.name}`;
+            if (result.details) {
+                html += `<br><small style="color: #666;">${result.details}</small>`;
+            }
+            html += '</div>';
+        });
+        
+        html += `<h3>Summary: ${passedCount}/${results.length} tests passed</h3>`;
+        resultsDiv.innerHTML = html;
+        
+        // Print to console as well
+        console.log(`\n=== Edit Feature Test Results ===`);
+        console.log(`${passedCount}/${results.length} tests passed\n`);
+        results.forEach((result, index) => {
+            console.log(`${result.passed ? '✓' : '✗'} Test ${index + 1}: ${result.name}`);
+            if (result.details) console.log(`  ${result.details}`);
+        });
+    </script>
+</body>
+</html>
