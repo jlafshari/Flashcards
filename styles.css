@@ -555,11 +555,6 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    transition: transform 0.2s;
-}
-
-.card-item:hover {
-    transform: translateX(5px);
 }
 
 .card-item-content {

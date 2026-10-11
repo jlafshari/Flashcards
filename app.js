@@ -132,6 +132,7 @@ class FlashcardApp {
         
         this.editCard(id, bulgarian, english, category);
         this.editingCardId = null;
+        this.updateManageTab();
     }
 
     // Session management
