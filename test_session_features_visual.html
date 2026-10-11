@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Session Features Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .test-section h2 {
+            margin-top: 0;
+            color: #667eea;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+        }
+        .info {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #5568d3;
+        }
+        .result {
+            margin: 10px 0;
+            padding: 10px;
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+        }
+    </style>
+</head>
+<body>
+    <h1>Session Features Visual Test</h1>
+    <p>This page tests the new session features: timer, shuffle, and card limit</p>
+
+    <div class="test-section">
+        <h2>Test 1: Time Formatting</h2>
+        <button onclick="testTimeFormatting()">Run Test</button>
+        <div id="time-format-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Test 2: Shuffle Algorithm</h2>
+        <button onclick="testShuffle()">Run Test</button>
+        <div id="shuffle-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Test 3: Session Timer</h2>
+        <button onclick="testSessionTimer()">Start 3-Second Session</button>
+        <div id="timer-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Test 4: Card Limit</h2>
+        <button onclick="testCardLimit()">Run Test</button>
+        <div id="card-limit-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Test 5: Preferences Persistence</h2>
+        <button onclick="testPreferences()">Run Test</button>
+        <div id="preferences-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Test 6: Open Main App</h2>
+        <button onclick="window.open('index.html', '_blank')">Open Main App</button>
+        <div class="info" style="margin-top: 10px;">
+            <strong>Manual Testing Steps:</strong>
+            <ol>
+                <li>Add at least 5 cards with different categories</li>
+                <li>Check "Shuffle cards" checkbox</li>
+                <li>Set "Card limit" to 3</li>
+                <li>Click "Start Study Session (3 cards)"</li>
+                <li>Review all cards quickly</li>
+                <li>Check the completion message shows time</li>
+                <li>Check stats show "X cards, Y sec"</li>
+            </ol>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+    <script>
+        function testTimeFormatting() {
+            const result = document.getElementById('time-format-result');
+            const tests = [
+                [0, '0 sec'],
+                [30, '30 sec'],
+                [59, '59 sec'],
+                [60, '1 min'],
+                [90, '1 min 30 sec'],
+                [120, '2 min'],
+                [3600, '1 hr'],
+                [3660, '1 hr 1 min'],
+                [7200, '2 hr']
+            ];
+            
+            let html = '<div class="result">';
+            let allPassed = true;
+            
+            tests.forEach(([seconds, expected]) => {
+                const actual = app.formatTime(seconds);
+                const passed = actual === expected;
+                allPassed = allPassed && passed;
+                html += `<div style="color: ${passed ? 'green' : 'red'}">`;
+                html += `${seconds}s → "${actual}" ${passed ? '✓' : '✗ (expected: "' + expected + '")'}`;
+                html += '</div>';
+            });
+            
+            html += '</div>';
+            if (allPassed) {
+                html = '<div class="status success">All time formatting tests passed! ✓</div>' + html;
+            }
+            result.innerHTML = html;
+        }
+
+        function testShuffle() {
+            const result = document.getElementById('shuffle-result');
+            const original = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+            const shuffled = app.shuffleArray(original);
+            
+            const sameLength = shuffled.length === original.length;
+            const allPresent = original.every(n => shuffled.includes(n));
+            const isDifferent = JSON.stringify(shuffled) !== JSON.stringify(original);
+            
+            let html = '<div class="result">';
+            html += `<div>Original: [${original.join(', ')}]</div>`;
+            html += `<div>Shuffled: [${shuffled.join(', ')}]</div>`;
+            html += `<div style="color: ${sameLength ? 'green' : 'red'}">Same length: ${sameLength ? '✓' : '✗'}</div>`;
+            html += `<div style="color: ${allPresent ? 'green' : 'red'}">All elements present: ${allPresent ? '✓' : '✗'}</div>`;
+            html += `<div style="color: ${isDifferent ? 'green' : 'orange'}">Order changed: ${isDifferent ? '✓' : '~ (small chance of same order)'}</div>`;
+            html += '</div>';
+            
+            if (sameLength && allPresent) {
+                html = '<div class="status success">Shuffle test passed! ✓</div>' + html;
+            }
+            result.innerHTML = html;
+        }
+
+        function testSessionTimer() {
+            const result = document.getElementById('timer-result');
+            result.innerHTML = '<div class="status info">Session starting... wait 3 seconds</div>';
+            
+            localStorage.clear();
+            const testApp = new FlashcardApp();
+            testApp.cards = [
+                { id: 1, bulgarian: 'тест', english: 'test', category: '' }
+            ];
+            
+            testApp.startSession();
+            const startTime = testApp.sessionStartTime;
+            
+            setTimeout(() => {
+                const elapsed = Math.round((Date.now() - startTime) / 1000);
+                const expectedElapsed = 3;
+                const isClose = Math.abs(elapsed - expectedElapsed) <= 1;
+                
+                let html = '<div class="result">';
+                html += `<div>Start time: ${startTime}</div>`;
+                html += `<div>Elapsed: ${elapsed} seconds</div>`;
+                html += `<div>Expected: ~${expectedElapsed} seconds</div>`;
+                html += `<div style="color: ${isClose ? 'green' : 'red'}">Accuracy: ${isClose ? '✓' : '✗'}</div>`;
+                html += '</div>';
+                
+                if (isClose) {
+                    html = '<div class="status success">Timer test passed! ✓</div>' + html;
+                }
+                result.innerHTML = html;
+            }, 3000);
+        }
+
+        function testCardLimit() {
+            const result = document.getElementById('card-limit-result');
+            
+            localStorage.clear();
+            const testApp = new FlashcardApp();
+            testApp.cards = [
+                { id: 1, bulgarian: 'а', english: 'a', category: '' },
+                { id: 2, bulgarian: 'б', english: 'b', category: '' },
+                { id: 3, bulgarian: 'в', english: 'c', category: '' },
+                { id: 4, bulgarian: 'г', english: 'd', category: '' },
+                { id: 5, bulgarian: 'д', english: 'e', category: '' }
+            ];
+            
+            testApp.cardLimit = 3;
+            testApp.startSession();
+            
+            const limitWorked = testApp.sessionCards.length === 3;
+            
+            let html = '<div class="result">';
+            html += `<div>Total cards: 5</div>`;
+            html += `<div>Card limit: 3</div>`;
+            html += `<div>Session cards: ${testApp.sessionCards.length}</div>`;
+            html += `<div style="color: ${limitWorked ? 'green' : 'red'}">Limit applied: ${limitWorked ? '✓' : '✗'}</div>`;
+            html += '</div>';
+            
+            if (limitWorked) {
+                html = '<div class="status success">Card limit test passed! ✓</div>' + html;
+            }
+            result.innerHTML = html;
+        }
+
+        function testPreferences() {
+            const result = document.getElementById('preferences-result');
+            
+            localStorage.clear();
+            const testApp1 = new FlashcardApp();
+            testApp1.shuffleEnabled = true;
+            testApp1.cardLimit = 7;
+            testApp1.saveSessionPreferences();
+            
+            const testApp2 = new FlashcardApp();
+            
+            const shuffleLoaded = testApp2.shuffleEnabled === true;
+            const limitLoaded = testApp2.cardLimit === 7;
+            
+            let html = '<div class="result">';
+            html += `<div>Saved: shuffle=true, limit=7</div>`;
+            html += `<div>Loaded: shuffle=${testApp2.shuffleEnabled}, limit=${testApp2.cardLimit}</div>`;
+            html += `<div style="color: ${shuffleLoaded ? 'green' : 'red'}">Shuffle loaded: ${shuffleLoaded ? '✓' : '✗'}</div>`;
+            html += `<div style="color: ${limitLoaded ? 'green' : 'red'}">Limit loaded: ${limitLoaded ? '✓' : '✗'}</div>`;
+            html += '</div>';
+            
+            if (shuffleLoaded && limitLoaded) {
+                html = '<div class="status success">Preferences test passed! ✓</div>' + html;
+            }
+            result.innerHTML = html;
+        }
+    </script>
+</body>
+</html>
