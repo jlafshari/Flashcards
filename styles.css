@@ -332,6 +332,39 @@ body {
     background: #e04455;
 }
 
+.btn-edit {
+    background: #667eea;
+    color: white;
+    padding: 8px 16px;
+    font-size: 0.9em;
+}
+
+.btn-edit:hover {
+    background: #5568d3;
+}
+
+.btn-save {
+    background: #4caf50;
+    color: white;
+    padding: 8px 16px;
+    font-size: 0.9em;
+}
+
+.btn-save:hover {
+    background: #45a049;
+}
+
+.btn-cancel {
+    background: #999;
+    color: white;
+    padding: 8px 16px;
+    font-size: 0.9em;
+}
+
+.btn-cancel:hover {
+    background: #777;
+}
+
 .btn-easy {
     background: #4caf50;
     color: white;
@@ -551,6 +584,30 @@ body {
 }
 
 .card-item-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.card-item-edit-form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+}
+
+.card-item-edit-form input {
+    padding: 8px 12px;
+    border: 2px solid #e0e0e0;
+    border-radius: 6px;
+    font-size: 1em;
+}
+
+.card-item-edit-form input:focus {
+    outline: none;
+    border-color: #667eea;
+}
+
+.card-item-edit-actions {
     display: flex;
     gap: 10px;
 }
