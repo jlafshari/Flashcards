@@ -26,7 +26,8 @@ const createMockElement = () => ({
     focus: () => {},
     setAttribute: () => {},
     appendChild: () => {},
-    removeChild: () => {}
+    removeChild: () => {},
+    querySelectorAll: () => []
 });
 
 global.document = {
@@ -40,8 +41,14 @@ global.document = {
 
 // Read and execute app.js
 const fs = require('fs');
-const appJs = fs.readFileSync('./app.js', 'utf8');
+let appJs = fs.readFileSync('./app.js', 'utf8');
+// Remove the auto-initialization at the end
+appJs = appJs.replace('const app = new FlashcardApp();', '');
+// Make FlashcardApp global
+appJs = appJs.replace('class FlashcardApp {', 'global.FlashcardApp = class FlashcardApp {');
 eval(appJs);
+
+const FlashcardApp = global.FlashcardApp;
 
 // Now run the tests
 console.log('Running session feature tests...\n');

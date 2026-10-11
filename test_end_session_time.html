@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test: End Session Time Tracking</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+        }
+        h2 {
+            color: #666;
+            margin-top: 0;
+        }
+        .instruction {
+            background: #e3f2fd;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 4px;
+            border-left: 4px solid #2196F3;
+        }
+        .expected {
+            background: #f1f8e9;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 4px;
+            border-left: 4px solid #8bc34a;
+        }
+        .stats {
+            background: #fff3e0;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 18px;
+        }
+        button {
+            background: #2196F3;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+        }
+        button:hover {
+            background: #1976D2;
+        }
+        .danger {
+            background: #f44336;
+        }
+        .danger:hover {
+            background: #d32f2f;
+        }
+        .success {
+            background: #4CAF50;
+        }
+        .success:hover {
+            background: #45a049;
+        }
+        code {
+            background: #f5f5f5;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <h1>Manual Test: End Session Time Tracking</h1>
+    
+    <div class="test-section">
+        <h2>Test Purpose</h2>
+        <p>Verify that clicking the "End Session" button correctly tracks and saves the elapsed time to "Total Time Reviewed Today".</p>
+    </div>
+
+    <div class="test-section">
+        <h2>Setup</h2>
+        <div class="instruction">
+            <strong>Step 1:</strong> Click the button below to clear localStorage and prepare for testing.
+        </div>
+        <button onclick="clearStorage()" class="danger">Clear Storage & Reset</button>
+        <p id="clear-status"></p>
+    </div>
+
+    <div class="test-section">
+        <h2>Test Scenario 1: End Session Early</h2>
+        <div class="instruction">
+            <strong>Step 2:</strong> Click "Start Session" below. This will load the test app in a new window.
+        </div>
+        <button onclick="openApp()">Start Session</button>
+        
+        <div class="instruction">
+            <strong>Step 3:</strong> In the opened app:
+            <ol>
+                <li>Go to the Study tab</li>
+                <li>Click "Start Study Session"</li>
+                <li>Review 2-3 cards (flip them and click Easy or Review Again)</li>
+                <li>Wait at least 5 seconds</li>
+                <li>Click the "End Session" button (do NOT complete all cards)</li>
+            </ol>
+        </div>
+        
+        <div class="expected">
+            <strong>Expected Result:</strong>
+            <ul>
+                <li>The "Reviewed Today" stats should show the cards reviewed and time elapsed</li>
+                <li>Time should be approximately 5+ seconds</li>
+                <li>No error messages should appear</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>Test Scenario 2: Accumulate Time Across Sessions</h2>
+        <div class="instruction">
+            <strong>Step 4:</strong> In the same app window:
+            <ol>
+                <li>Note the current "Reviewed Today" time</li>
+                <li>Start another session</li>
+                <li>Review 1-2 cards</li>
+                <li>Wait another 5 seconds</li>
+                <li>Click "End Session" again</li>
+            </ol>
+        </div>
+        
+        <div class="expected">
+            <strong>Expected Result:</strong>
+            <ul>
+                <li>The total time should increase from the previous value</li>
+                <li>Both session times should be accumulated</li>
+                <li>Total should be approximately 10+ seconds</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>Test Scenario 3: Complete Session (Control Test)</h2>
+        <div class="instruction">
+            <strong>Step 5:</strong> Start a new session and complete ALL cards (don't use End Session button):
+            <ol>
+                <li>Note the current "Reviewed Today" time</li>
+                <li>Start a new session</li>
+                <li>Review ALL cards until session completes</li>
+                <li>Observe the completion alert and stats</li>
+            </ol>
+        </div>
+        
+        <div class="expected">
+            <strong>Expected Result:</strong>
+            <ul>
+                <li>Alert shows "Session complete! You reviewed X cards in Y sec/min."</li>
+                <li>Total time increases again</li>
+                <li>This scenario should work as before (unchanged behavior)</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>Verification</h2>
+        <button onclick="checkResults()" class="success">Check Current Stats</button>
+        <div id="results" class="stats" style="display: none;"></div>
+        
+        <div style="margin-top: 20px;">
+            <h3>Manual Verification Checklist:</h3>
+            <ul>
+                <li>☐ End Session button updates total time</li>
+                <li>☐ Time accumulates across multiple ended sessions</li>
+                <li>☐ Time is approximately accurate (within 1-2 seconds)</li>
+                <li>☐ Completing a session still works normally</li>
+                <li>☐ No console errors appear</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        function clearStorage() {
+            localStorage.clear();
+            document.getElementById('clear-status').textContent = '✓ Storage cleared! Ready to test.';
+            document.getElementById('clear-status').style.color = 'green';
+        }
+
+        function openApp() {
+            window.open('index.html', '_blank');
+        }
+
+        function checkResults() {
+            const reviewedToday = localStorage.getItem('reviewedToday') || '0';
+            const totalTimeToday = localStorage.getItem('totalTimeToday') || '0';
+            const reviewDate = localStorage.getItem('reviewDate');
+            
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.style.display = 'block';
+            resultsDiv.innerHTML = `
+                <strong>Current localStorage values:</strong><br>
+                Reviewed Today: ${reviewedToday} cards<br>
+                Total Time Today: ${totalTimeToday} seconds<br>
+                Review Date: ${reviewDate}<br><br>
+                <em>Note: Time is stored in seconds. Compare this with your expected time.</em>
+            `;
+        }
+    </script>
+</body>
+</html>
