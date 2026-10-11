@@ -175,6 +175,13 @@ class FlashcardApp {
     }
 
     endSession() {
+        // Calculate and save elapsed time if session was active
+        if (this.sessionStartTime !== null) {
+            const elapsedSeconds = Math.round((Date.now() - this.sessionStartTime) / 1000);
+            this.totalTimeToday += elapsedSeconds;
+            localStorage.setItem('totalTimeToday', this.totalTimeToday.toString());
+        }
+        
         this.inSession = false;
         this.sessionCards = [];
         this.sessionReviewedCards = new Set();
