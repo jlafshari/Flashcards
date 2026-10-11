@@ -17,6 +17,9 @@ class FlashcardApp {
         this.sessionCards = []; // Cards to review in this session (snapshot)
         this.sessionReviewedCards = new Set(); // IDs of cards reviewed in current session
         
+        // Edit state
+        this.editingCardId = null; // ID of card currently being edited
+        
         this.init();
     }
 
@@ -86,6 +89,49 @@ class FlashcardApp {
         }
         
         this.updateUI();
+    }
+
+    editCard(id, bulgarian, english, category = '') {
+        const card = this.cards.find(c => c.id === id);
+        if (card) {
+            card.bulgarian = bulgarian.trim();
+            card.english = english.trim();
+            card.category = category.trim();
+            this.saveToStorage();
+            this.updateUI();
+        }
+    }
+
+    startEditCard(id) {
+        const card = this.cards.find(c => c.id === id);
+        if (!card) return;
+        
+        // Store the card being edited
+        this.editingCardId = id;
+        this.updateManageTab();
+    }
+
+    cancelEdit() {
+        this.editingCardId = null;
+        this.updateManageTab();
+    }
+
+    saveEdit(id) {
+        const bulgarianInput = document.getElementById(`edit-bulgarian-${id}`);
+        const englishInput = document.getElementById(`edit-english-${id}`);
+        const categoryInput = document.getElementById(`edit-category-${id}`);
+        
+        const bulgarian = bulgarianInput.value.trim();
+        const english = englishInput.value.trim();
+        const category = categoryInput.value.trim();
+        
+        if (!bulgarian || !english) {
+            alert('Please fill in both Bulgarian and English fields');
+            return;
+        }
+        
+        this.editCard(id, bulgarian, english, category);
+        this.editingCardId = null;
     }
 
     // Session management
@@ -472,18 +518,40 @@ class FlashcardApp {
             return;
         }
 
-        cardsList.innerHTML = this.cards.map(card => `
-            <div class="card-item">
-                <div class="card-item-content">
-                    <div class="card-item-front">${this.escapeHtml(card.bulgarian)}</div>
-                    <div class="card-item-back">${this.escapeHtml(card.english)}</div>
-                    ${card.category ? `<div class="card-item-category">Category: ${this.escapeHtml(card.category)}</div>` : ''}
-                </div>
-                <div class="card-item-actions">
-                    <button class="btn btn-danger" onclick="app.deleteCard(${card.id})">Delete</button>
-                </div>
-            </div>
-        `).join('');
+        cardsList.innerHTML = this.cards.map(card => {
+            // Check if this card is being edited
+            if (this.editingCardId === card.id) {
+                // Render edit form
+                return `
+                    <div class="card-item">
+                        <div class="card-item-edit-form">
+                            <input type="text" id="edit-bulgarian-${card.id}" value="${this.escapeHtml(card.bulgarian)}" placeholder="Bulgarian">
+                            <input type="text" id="edit-english-${card.id}" value="${this.escapeHtml(card.english)}" placeholder="English">
+                            <input type="text" id="edit-category-${card.id}" value="${this.escapeHtml(card.category)}" placeholder="Category (optional)">
+                            <div class="card-item-edit-actions">
+                                <button class="btn btn-save" onclick="app.saveEdit(${card.id})">Save</button>
+                                <button class="btn btn-cancel" onclick="app.cancelEdit()">Cancel</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else {
+                // Render normal view with Edit button
+                return `
+                    <div class="card-item">
+                        <div class="card-item-content">
+                            <div class="card-item-front">${this.escapeHtml(card.bulgarian)}</div>
+                            <div class="card-item-back">${this.escapeHtml(card.english)}</div>
+                            ${card.category ? `<div class="card-item-category">Category: ${this.escapeHtml(card.category)}</div>` : ''}
+                        </div>
+                        <div class="card-item-actions">
+                            <button class="btn btn-edit" onclick="app.startEditCard(${card.id})">Edit</button>
+                            <button class="btn btn-danger" onclick="app.deleteCard(${card.id})">Delete</button>
+                        </div>
+                    </div>
+                `;
+            }
+        }).join('');
     }
 
     updateCategoryFilterDisplay() {
