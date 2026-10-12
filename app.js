@@ -699,15 +699,12 @@ class FlashcardApp {
         const filteredCards = this.sessionCards;
         const reviewedCount = filteredCards.length;
         
-        // Calculate elapsed time
+        // Calculate elapsed time for display only
         const elapsedSeconds = Math.round((Date.now() - this.sessionStartTime) / 1000);
         const timeString = this.formatTime(elapsedSeconds);
         
-        // Add session time to daily total (in seconds)
-        this.totalTimeToday += elapsedSeconds;
-        localStorage.setItem('totalTimeToday', this.totalTimeToday.toString());
-        
         alert(`Session complete! You reviewed ${reviewedCount} card${reviewedCount !== 1 ? 's' : ''} in ${timeString}.`);
+        // endSession() will handle adding time to totalTimeToday
         this.endSession();
     }
 
