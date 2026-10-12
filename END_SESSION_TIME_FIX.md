@@ -1,6 +1,19 @@
-# Fix: End Session Button Time Tracking
+# Fix: End Session Button Time Tracking (Updated)
 
-## Issue
+## Latest Update - Double Counting Fix (December 2024)
+**Issue**: After completing a session, time was being added **twice** to the total time reviewed today.
+
+**Root Cause**: Both `showSessionComplete()` and `endSession()` were adding time:
+1. `showSessionComplete()` added time (lines 707-708)
+2. Then it called `endSession()` which also added time (lines 180-182)
+
+**Solution**: Removed duplicate time tracking from `showSessionComplete()`. Now it only calculates elapsed time for the alert message display. The `endSession()` method handles all time tracking for both manual and automatic session completion.
+
+**Result**: Time is now counted exactly once, whether the session is ended manually or completed naturally.
+
+---
+
+## Original Issue (October 2024)
 When pressing the "End Session" button during an active study session, the total time reviewed today was not being updated. The time tracking only worked when completing all cards in a session.
 
 ## Root Cause
@@ -73,19 +86,61 @@ Created `test_end_session_time.html` for interactive browser testing with three 
 
 ## Behavior Changes
 
-### Before Fix
+### Original Issue (Before October 2024 Fix)
 - ✗ Clicking "End Session" did NOT update total time
 - ✓ Completing all cards updated total time
 
-### After Fix
-- ✓ Clicking "End Session" updates total time correctly
-- ✓ Completing all cards still updates total time (unchanged)
+### After October 2024 Fix (Had Double Counting Bug)
+- ✓ Clicking "End Session" updates total time
+- ✗ Completing all cards updated total time TWICE (bug)
+
+### After December 2024 Fix (Current)
+- ✓ Clicking "End Session" updates total time correctly (once)
+- ✓ Completing all cards updates total time correctly (once)
 
 ## Compatibility
 - No breaking changes
 - Backward compatible with existing functionality
-- All existing tests continue to pass
-- `showSessionComplete()` behavior unchanged (still tracks time)
+- All existing tests continue to pass (31/31 tests pass)
+- Time tracking now works correctly for both manual and automatic session completion
+
+## Code Implementation
+
+### Current `showSessionComplete()` Method
+```javascript
+showSessionComplete() {
+    const filteredCards = this.sessionCards;
+    const reviewedCount = filteredCards.length;
+    
+    // Calculate elapsed time for display only
+    const elapsedSeconds = Math.round((Date.now() - this.sessionStartTime) / 1000);
+    const timeString = this.formatTime(elapsedSeconds);
+    
+    alert(`Session complete! You reviewed ${reviewedCount} card${reviewedCount !== 1 ? 's' : ''} in ${timeString}.`);
+    // endSession() will handle adding time to totalTimeToday
+    this.endSession();
+}
+```
+
+### Current `endSession()` Method
+```javascript
+endSession() {
+    // Calculate and save elapsed time if session was active
+    if (this.sessionStartTime !== null) {
+        const elapsedSeconds = Math.round((Date.now() - this.sessionStartTime) / 1000);
+        this.totalTimeToday += elapsedSeconds;
+        localStorage.setItem('totalTimeToday', this.totalTimeToday.toString());
+    }
+    
+    this.inSession = false;
+    this.sessionCards = [];
+    this.sessionReviewedCards = new Set();
+    this.reviewQueue = []; // Clear review queue
+    this.sessionStartTime = null;
+    this.resetFlip();
+    this.updateUI();
+}
+```
 
 ## Files Modified
 1. **app.js** - Updated `endSession()` method (lines 177-192)
