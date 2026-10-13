@@ -480,8 +480,8 @@ class FlashcardApp {
         const endSessionBtn = document.getElementById('end-session-btn');
         const studyOptions = document.getElementById('study-options');
 
-        // Show filtered count (or session cards count when in session)
-        const displayCount = this.inSession ? this.sessionCards.length : this.getFilteredCards().length;
+        // Always show total filtered cards count, even during sessions
+        const displayCount = this.getFilteredCards().length;
         document.getElementById('total-cards').textContent = displayCount;
         
         // Update reviewed today with time
