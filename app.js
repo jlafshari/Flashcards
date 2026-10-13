@@ -154,14 +154,14 @@ class FlashcardApp {
             return;
         }
         
+        // Shuffle cards if enabled (before limiting to ensure random selection)
+        if (this.shuffleEnabled) {
+            filteredCards = this.shuffleArray([...filteredCards]);
+        }
+        
         // Apply card limit if set
         if (this.cardLimit !== null && this.cardLimit > 0) {
             filteredCards = filteredCards.slice(0, this.cardLimit);
-        }
-        
-        // Shuffle cards if enabled
-        if (this.shuffleEnabled) {
-            filteredCards = this.shuffleArray([...filteredCards]);
         }
         
         this.inSession = true;
