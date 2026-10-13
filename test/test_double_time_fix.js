@@ -58,7 +58,7 @@ global.URL = { createObjectURL: () => '', revokeObjectURL: () => {} };
 
 // Load the app
 const fs = require('fs');
-let appJs = fs.readFileSync('./app.js', 'utf8');
+let appJs = fs.readFileSync('../source/app.js', 'utf8');
 // Remove the auto-initialization at the end
 appJs = appJs.replace('const app = new FlashcardApp();', '');
 // Make FlashcardApp global

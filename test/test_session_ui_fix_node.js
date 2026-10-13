@@ -79,7 +79,7 @@ global.alert = function() {};
 // Load the app code
 const fs = require('fs');
 const vm = require('vm');
-const appCode = fs.readFileSync('app.js', 'utf8');
+const appCode = fs.readFileSync('../source/app.js', 'utf8');
 
 // Create a context with all necessary globals
 const context = {

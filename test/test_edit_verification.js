@@ -5,8 +5,8 @@ const fs = require('fs');
 
 console.log('\n=== Edit Feature Code Verification ===\n');
 
-const appJs = fs.readFileSync('app.js', 'utf8');
-const stylesCSS = fs.readFileSync('styles.css', 'utf8');
+const appJs = fs.readFileSync('../source/app.js', 'utf8');
+const stylesCSS = fs.readFileSync('../source/styles.css', 'utf8');
 
 let passed = 0;
 let failed = 0;

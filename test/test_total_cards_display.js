@@ -65,7 +65,7 @@ global.Blob = class {};
 global.URL = { createObjectURL: () => '' };
 
 // Load the app
-let appJs = fs.readFileSync('./app.js', 'utf8');
+let appJs = fs.readFileSync('../source/app.js', 'utf8');
 appJs = appJs.replace('const app = new FlashcardApp();', '');
 appJs = appJs.replace('class FlashcardApp {', 'global.FlashcardApp = class FlashcardApp {');
 eval(appJs);

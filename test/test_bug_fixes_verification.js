@@ -25,7 +25,7 @@ function test(name, condition, details = '') {
 }
 
 // Read app.js
-const appJs = fs.readFileSync(path.join(__dirname, 'app.js'), 'utf8');
+const appJs = fs.readFileSync(path.join(__dirname, '../source/app.js'), 'utf8');
 
 // Test 1: saveEdit method includes updateManageTab call
 const saveEditMatch = appJs.match(/saveEdit\(id\)\s*\{[\s\S]*?^\s{4}\}/m);
@@ -41,7 +41,7 @@ test('Test 3: updateManageTab is called after clearing editingCardId', callsAfte
     'Ensures proper order of operations');
 
 // Read styles.css
-const stylesCSS = fs.readFileSync(path.join(__dirname, 'styles.css'), 'utf8');
+const stylesCSS = fs.readFileSync(path.join(__dirname, '../source/styles.css'), 'utf8');
 
 // Test 4: No hover animation on card-item
 const hasCardItemHover = stylesCSS.includes('.card-item:hover');

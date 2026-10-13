@@ -4,7 +4,7 @@ const fs = require('fs');
 console.log('=== Testing Merged UI Structure ===\n');
 
 // Load the HTML
-const html = fs.readFileSync('index.html', 'utf8');
+const html = fs.readFileSync('../source/index.html', 'utf8');
 
 console.log('Test 1: Check study-options container exists');
 if (!html.includes('id="study-options"')) {
@@ -56,7 +56,7 @@ if (!html.includes('id="direction-bg-en"') || !html.includes('id="direction-en-b
 console.log('✓ Both direction buttons exist');
 
 console.log('\nTest 7: Check CSS has study-options styles');
-const css = fs.readFileSync('styles.css', 'utf8');
+const css = fs.readFileSync('../source/styles.css', 'utf8');
 if (!css.includes('.study-options')) {
     console.log('✗ .study-options CSS not found');
     process.exit(1);

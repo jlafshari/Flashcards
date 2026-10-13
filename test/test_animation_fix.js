@@ -4,7 +4,7 @@ const fs = require('fs');
 console.log('=== Testing Animation Fix ===\n');
 
 // Read the JavaScript file
-const js = fs.readFileSync('app.js', 'utf8');
+const js = fs.readFileSync('../source/app.js', 'utf8');
 
 // Test 1: Check that markEasy() has setTimeout delay
 console.log('1. Checking markEasy() implementation...');
@@ -84,7 +84,7 @@ if (markReviewCallsAnimate) {
 
 // Test 5: Verify CSS animations exist
 console.log('\n5. Checking CSS animations...');
-const css = fs.readFileSync('styles.css', 'utf8');
+const css = fs.readFileSync('../source/styles.css', 'utf8');
 
 const hasButtonPress = css.includes('@keyframes button-press');
 const hasButtonGlow = css.includes('@keyframes button-glow');

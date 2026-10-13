@@ -61,7 +61,7 @@ global.localStorage = createMockLocalStorage();
 
 // Load the app
 const fs = require('fs');
-const appCode = fs.readFileSync('app.js', 'utf8');
+const appCode = fs.readFileSync('../source/app.js', 'utf8');
 eval(appCode);
 
 // Test runner

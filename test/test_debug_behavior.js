@@ -133,7 +133,7 @@ global.confirm = () => true;
 
 // Load the app
 const fs = require('fs');
-const appCode = fs.readFileSync('app.js', 'utf8');
+const appCode = fs.readFileSync('../source/app.js', 'utf8');
 const classCode = appCode
     .replace(/\nconst app = new FlashcardApp\(\);?\s*$/, '')
     .replace('class FlashcardApp', 'global.FlashcardApp = class FlashcardApp');

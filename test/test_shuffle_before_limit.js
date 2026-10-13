@@ -57,7 +57,7 @@ global.Blob = class {};
 global.URL = { createObjectURL: () => '' };
 
 // Load the app
-let appJs = fs.readFileSync('./app.js', 'utf8');
+let appJs = fs.readFileSync('../source/app.js', 'utf8');
 // Remove the auto-initialization at the end
 appJs = appJs.replace('const app = new FlashcardApp();', '');
 // Make FlashcardApp global
