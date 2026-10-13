@@ -483,6 +483,7 @@ class FlashcardApp {
         const startSessionBtn = document.getElementById('start-session-btn');
         const endSessionBtn = document.getElementById('end-session-btn');
         const studyOptions = document.getElementById('study-options');
+        const statsSection = document.querySelector('.stats');
 
         // Always show total filtered cards count (by category), even during sessions
         const displayCount = this.getFilteredCardsByCategory().length;
@@ -499,22 +500,24 @@ class FlashcardApp {
             if (studyOptions) studyOptions.style.display = 'none';
             if (startSessionBtn) startSessionBtn.style.display = 'none';
             if (endSessionBtn) endSessionBtn.style.display = 'none';
+            if (statsSection) statsSection.style.display = 'flex';
             return;
         }
 
         noCardsMessage.style.display = 'none';
         
         if (this.inSession) {
-            // State 2: In session - show card and controls, hide options and start button
+            // State 2: In session - show card and controls, hide options, start button, and stats
             cardContainer.style.display = 'block';
             if (studyOptions) studyOptions.style.display = 'none';
             if (startSessionBtn) startSessionBtn.style.display = 'none';
             if (endSessionBtn) endSessionBtn.style.display = 'inline-block';
+            if (statsSection) statsSection.style.display = 'none';
             
             // Update the card display
             this.updateCardDisplay();
         } else {
-            // State 1: Initial/Not in session - show options and start button, hide card
+            // State 1: Initial/Not in session - show options, start button, and stats; hide card
             cardContainer.style.display = 'none';
             if (studyOptions) studyOptions.style.display = 'flex';
             if (startSessionBtn) {
@@ -528,6 +531,7 @@ class FlashcardApp {
                 startSessionBtn.textContent = `Start Study Session (${sessionCount} card${sessionCount !== 1 ? 's' : ''})`;
             }
             if (endSessionBtn) endSessionBtn.style.display = 'none';
+            if (statsSection) statsSection.style.display = 'flex';
             
             // Update category filter display when showing options
             this.updateCategoryFilterDisplay();
