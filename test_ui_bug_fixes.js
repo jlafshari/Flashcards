@@ -3,6 +3,29 @@ const fs = require('fs');
 
 // Mock DOM
 const mockElements = {};
+const statsSection = {
+    textContent: '',
+    value: '',
+    innerHTML: '',
+    style: { display: '' },
+    classList: {
+        states: {},
+        add: function(className) { this.states[className] = true; },
+        remove: function(className) { this.states[className] = false; },
+        toggle: function(className, force) {
+            if (force !== undefined) {
+                this.states[className] = force;
+            } else {
+                this.states[className] = !this.states[className];
+            }
+        }
+    },
+    disabled: false,
+    dataset: {},
+    addEventListener: () => {},
+    querySelectorAll: () => []
+};
+
 global.document = {
     getElementById: (id) => {
         if (!mockElements[id]) {
@@ -30,6 +53,12 @@ global.document = {
             };
         }
         return mockElements[id];
+    },
+    querySelector: (selector) => {
+        if (selector === '.stats') {
+            return statsSection;
+        }
+        return null;
     },
     querySelectorAll: () => [],
     addEventListener: () => {},

@@ -46,7 +46,12 @@ const createMockElement = (id) => {
 global.document = {
     getElementById: (id) => createMockElement(id),
     querySelectorAll: () => [],
-    querySelector: () => ({ id: 'study-tab' }),
+    querySelector: (selector) => {
+        if (selector === '.stats') {
+            return createMockElement('stats');
+        }
+        return { id: 'study-tab' };
+    },
     createElement: () => createMockElement(),
     body: createMockElement(),
     addEventListener: () => {}
