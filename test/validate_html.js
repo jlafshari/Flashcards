@@ -5,7 +5,7 @@ console.log('=== Validating Flashcard App Files ===\n');
 
 // Check HTML structure
 console.log('1. Checking index.html...');
-const html = fs.readFileSync('index.html', 'utf8');
+const html = fs.readFileSync('../source/index.html', 'utf8');
 
 const htmlChecks = [
     { test: /<html[^>]*lang="en"/, name: 'Has lang attribute' },
@@ -29,7 +29,7 @@ htmlChecks.forEach(check => {
 
 // Check CSS
 console.log('\n2. Checking styles.css...');
-const css = fs.readFileSync('styles.css', 'utf8');
+const css = fs.readFileSync('../source/styles.css', 'utf8');
 
 const cssChecks = [
     { test: /\.flashcard/, name: 'Has flashcard styles' },
@@ -51,7 +51,7 @@ cssChecks.forEach(check => {
 
 // Check JavaScript
 console.log('\n3. Checking app.js...');
-const js = fs.readFileSync('app.js', 'utf8');
+const js = fs.readFileSync('../source/app.js', 'utf8');
 
 const jsChecks = [
     { test: /class FlashcardApp/, name: 'Has FlashcardApp class' },
@@ -75,9 +75,9 @@ jsChecks.forEach(check => {
 
 // File size check
 console.log('\n4. Checking file sizes...');
-const htmlSize = fs.statSync('index.html').size;
-const cssSize = fs.statSync('styles.css').size;
-const jsSize = fs.statSync('app.js').size;
+const htmlSize = fs.statSync('../source/index.html').size;
+const cssSize = fs.statSync('../source/styles.css').size;
+const jsSize = fs.statSync('../source/app.js').size;
 
 console.log(`   index.html: ${htmlSize} bytes`);
 console.log(`   styles.css: ${cssSize} bytes`);

@@ -6,15 +6,15 @@ echo ""
 
 # Check files exist
 echo "Checking files..."
-if [ ! -f "index.html" ]; then
+if [ ! -f "../source/index.html" ]; then
     echo "❌ index.html not found"
     exit 1
 fi
-if [ ! -f "app.js" ]; then
+if [ ! -f "../source/app.js" ]; then
     echo "❌ app.js not found"
     exit 1
 fi
-if [ ! -f "styles.css" ]; then
+if [ ! -f "../source/styles.css" ]; then
     echo "❌ styles.css not found"
     exit 1
 fi
@@ -23,7 +23,7 @@ echo ""
 
 # Check JavaScript syntax
 echo "Checking JavaScript syntax..."
-node -c app.js
+node -c ../source/app.js
 if [ $? -ne 0 ]; then
     echo "❌ JavaScript syntax error"
     exit 1
@@ -79,7 +79,7 @@ echo ""
 echo "=== All Integration Tests Passed ==="
 echo ""
 echo "Manual testing required:"
-echo "1. Open index.html in a browser"
-echo "2. Follow CATEGORY_TESTING.md for manual tests"
+echo "1. Open ../source/index.html in a browser"
+echo "2. Follow ../documentation/CATEGORY_TESTING.md for manual tests"
 echo "3. Test import using test_import_categories.csv"
 echo ""
