@@ -148,7 +148,7 @@ class FlashcardApp {
     // Session management
     startSession() {
         // Start actual session with selected options
-        let filteredCards = this.getFilteredCards();
+        let filteredCards = this.getFilteredCardsByCategory();
         if (filteredCards.length === 0) {
             alert('No cards match the selected categories. Please select at least one category with cards.');
             return;
@@ -372,6 +372,18 @@ class FlashcardApp {
         this.updateUI();
     }
 
+    // Get cards filtered by category only (ignoring session state)
+    getFilteredCardsByCategory() {
+        if (this.activeCategories.length === 0) {
+            return this.cards;
+        } else {
+            return this.cards.filter(card => {
+                const category = card.category || '';
+                return this.activeCategories.includes(category);
+            });
+        }
+    }
+
     getFilteredCards() {
         // In session mode, return session cards with review queue ordering
         if (this.inSession) {
@@ -399,15 +411,7 @@ class FlashcardApp {
         }
         
         // Get base filtered cards by category
-        let filteredCards;
-        if (this.activeCategories.length === 0) {
-            filteredCards = this.cards;
-        } else {
-            filteredCards = this.cards.filter(card => {
-                const category = card.category || '';
-                return this.activeCategories.includes(category);
-            });
-        }
+        let filteredCards = this.getFilteredCardsByCategory();
         
         // If there are cards in the review queue, reorganize the deck
         if (this.reviewQueue.length > 0) {
@@ -480,8 +484,8 @@ class FlashcardApp {
         const endSessionBtn = document.getElementById('end-session-btn');
         const studyOptions = document.getElementById('study-options');
 
-        // Always show total filtered cards count, even during sessions
-        const displayCount = this.getFilteredCards().length;
+        // Always show total filtered cards count (by category), even during sessions
+        const displayCount = this.getFilteredCardsByCategory().length;
         document.getElementById('total-cards').textContent = displayCount;
         
         // Update reviewed today with time

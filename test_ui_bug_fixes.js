@@ -131,8 +131,8 @@ assert(totalCardsEl1.textContent == '4', `Total cards shows 4 when both categori
 
 console.log('');
 
-// Test 3: Total cards count shows session cards count when in session
-console.log('Test 3: Total cards count shows session cards count (in session)');
+// Test 3: Total cards count shows filtered count even when in session
+console.log('Test 3: Total cards count shows filtered count (in session)');
 localStorage.clear();
 const app3 = new FlashcardApp();
 app3.cards = [
@@ -146,7 +146,34 @@ app3.cards = [
 app3.activeCategories = ['Greetings'];
 app3.startSession();
 const totalCardsEl2 = document.getElementById('total-cards');
-assert(totalCardsEl2.textContent == '2', `Total cards shows session cards count (2) when in session, not total cards (actual: ${totalCardsEl2.textContent})`);
+assert(totalCardsEl2.textContent == '2', `Total cards shows filtered count (2) when in session with Greetings filter (actual: ${totalCardsEl2.textContent})`);
+
+console.log('');
+
+// Test 3b: Total cards count shows filtered count even with card limit
+console.log('Test 3b: Total cards count shows filtered count (with card limit)');
+localStorage.clear();
+const app3b = new FlashcardApp();
+app3b.cards = [
+    { id: 1, bulgarian: 'Здравей', english: 'Hello', category: '' },
+    { id: 2, bulgarian: 'Довиждане', english: 'Goodbye', category: '' },
+    { id: 3, bulgarian: 'Хляб', english: 'Bread', category: '' },
+    { id: 4, boolean: 'Вода', english: 'Water', category: '' },
+    { id: 5, bulgarian: 'Млеко', english: 'Milk', category: '' },
+    { id: 6, bulgarian: 'Сирене', english: 'Cheese', category: '' },
+    { id: 7, bulgarian: 'Масло', english: 'Butter', category: '' },
+    { id: 8, bulgarian: 'Яйце', english: 'Egg', category: '' },
+    { id: 9, bulgarian: 'Захар', english: 'Sugar', category: '' },
+    { id: 10, bulgarian: 'Сол', english: 'Salt', category: '' }
+];
+
+// Set card limit to 3 and start session
+app3b.cardLimit = 3;
+app3b.startSession();
+const totalCardsEl3 = document.getElementById('total-cards');
+// Should show 10 (total filtered cards), not 3 (session limit)
+assert(totalCardsEl3.textContent == '10', `Total cards shows filtered count (10) even when session limited to 3 cards (actual: ${totalCardsEl3.textContent})`);
+assert(app3b.sessionCards.length == 3, `Session has 3 cards as per limit (actual: ${app3b.sessionCards.length})`);
 
 console.log('');
 

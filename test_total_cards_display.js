@@ -36,7 +36,8 @@ const createMockElement = (id) => {
             focus: () => {},
             setAttribute: () => {},
             appendChild: () => {},
-            removeChild: () => {}
+            removeChild: () => {},
+            querySelectorAll: () => []
         };
     }
     return mockElements[id];
@@ -80,14 +81,16 @@ function assert(condition, message) {
     if (condition) {
         console.log('✓', message);
         testsPassed++;
+        return true;
     } else {
         console.log('✗', message);
         testsFailed++;
+        return false;
     }
 }
 
-// Test: Total cards should show actual total, not session limit
-console.log('Test: Total cards display with card limit');
+// Test 1: Total cards should always show filtered count, not session limit
+console.log('Test 1: Total cards display with card limit');
 clearStorage();
 const app = new FlashcardApp();
 app.cards = [
@@ -106,24 +109,48 @@ app.cards = [
 // Before session: should show 10 cards
 app.updateUI();
 const totalCardsEl = mockElements['total-cards'];
-console.log('Before session, total cards:', totalCardsEl.textContent);
-assert(totalCardsEl.textContent === '10', `Before session: shows 10 cards (actual: ${totalCardsEl.textContent})`);
+assert(totalCardsEl.textContent == '10', `Before session: shows 10 cards (actual: ${totalCardsEl.textContent})`);
 
 // Set a card limit of 3 and start session
 app.cardLimit = 3;
 app.startSession();
-console.log('After starting session with limit=3, total cards:', totalCardsEl.textContent);
-console.log('Session cards length:', app.sessionCards.length);
-
-// The issue: currently shows 3 (the limit), should show 10 (the actual total)
-assert(totalCardsEl.textContent === '10', `During session: should still show 10 cards (actual: ${totalCardsEl.textContent})`);
+assert(totalCardsEl.textContent == '10', `During session with limit=3: still shows 10 cards (actual: ${totalCardsEl.textContent})`);
+assert(app.sessionCards.length === 3, `Session has 3 cards as per limit (actual: ${app.sessionCards.length})`);
 
 // End session: should still show 10
 app.endSession();
-console.log('After ending session, total cards:', totalCardsEl.textContent);
-assert(totalCardsEl.textContent === '10', `After session: shows 10 cards (actual: ${totalCardsEl.textContent})`);
+assert(totalCardsEl.textContent == '10', `After session: shows 10 cards (actual: ${totalCardsEl.textContent})`);
 
-console.log('\n=== Test Summary ===');
+console.log('');
+
+// Test 2: Total cards should reflect category filtering
+console.log('Test 2: Total cards display with category filter and card limit');
+clearStorage();
+const app2 = new FlashcardApp();
+app2.cards = [
+    { id: 1, bulgarian: 'Здравей', english: 'Hello', category: 'Greetings' },
+    { id: 2, bulgarian: 'Довиждане', english: 'Goodbye', category: 'Greetings' },
+    { id: 3, bulgarian: 'Хляб', english: 'Bread', category: 'Food' },
+    { id: 4, bulgarian: 'Вода', english: 'Water', category: 'Food' },
+    { id: 5, bulgarian: 'Млеко', english: 'Milk', category: 'Food' },
+    { id: 6, bulgarian: 'Сирене', english: 'Cheese', category: 'Food' }
+];
+
+// Filter by Food category (4 cards) and set limit to 2
+app2.activeCategories = ['Food'];
+app2.cardLimit = 2;
+app2.updateUI();
+const totalCardsEl2 = mockElements['total-cards'];
+assert(totalCardsEl2.textContent == '4', `Before session with Food filter: shows 4 cards (actual: ${totalCardsEl2.textContent})`);
+
+// Start session
+app2.startSession();
+assert(totalCardsEl2.textContent == '4', `During session: still shows 4 filtered cards (actual: ${totalCardsEl2.textContent})`);
+assert(app2.sessionCards.length === 2, `Session has 2 cards as per limit (actual: ${app2.sessionCards.length})`);
+
+console.log('');
+
+console.log('=== Test Summary ===');
 console.log('Passed:', testsPassed);
 console.log('Failed:', testsFailed);
 
