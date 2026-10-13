@@ -148,20 +148,20 @@ class FlashcardApp {
     // Session management
     startSession() {
         // Start actual session with selected options
-        let filteredCards = this.getFilteredCards();
+        let filteredCards = this.getFilteredCardsByCategory();
         if (filteredCards.length === 0) {
             alert('No cards match the selected categories. Please select at least one category with cards.');
             return;
         }
         
+        // Shuffle cards if enabled (before limiting to ensure random selection)
+        if (this.shuffleEnabled) {
+            filteredCards = this.shuffleArray([...filteredCards]);
+        }
+        
         // Apply card limit if set
         if (this.cardLimit !== null && this.cardLimit > 0) {
             filteredCards = filteredCards.slice(0, this.cardLimit);
-        }
-        
-        // Shuffle cards if enabled
-        if (this.shuffleEnabled) {
-            filteredCards = this.shuffleArray([...filteredCards]);
         }
         
         this.inSession = true;
@@ -372,6 +372,18 @@ class FlashcardApp {
         this.updateUI();
     }
 
+    // Get cards filtered by category only (ignoring session state)
+    getFilteredCardsByCategory() {
+        if (this.activeCategories.length === 0) {
+            return this.cards;
+        } else {
+            return this.cards.filter(card => {
+                const category = card.category || '';
+                return this.activeCategories.includes(category);
+            });
+        }
+    }
+
     getFilteredCards() {
         // In session mode, return session cards with review queue ordering
         if (this.inSession) {
@@ -399,15 +411,7 @@ class FlashcardApp {
         }
         
         // Get base filtered cards by category
-        let filteredCards;
-        if (this.activeCategories.length === 0) {
-            filteredCards = this.cards;
-        } else {
-            filteredCards = this.cards.filter(card => {
-                const category = card.category || '';
-                return this.activeCategories.includes(category);
-            });
-        }
+        let filteredCards = this.getFilteredCardsByCategory();
         
         // If there are cards in the review queue, reorganize the deck
         if (this.reviewQueue.length > 0) {
@@ -479,9 +483,10 @@ class FlashcardApp {
         const startSessionBtn = document.getElementById('start-session-btn');
         const endSessionBtn = document.getElementById('end-session-btn');
         const studyOptions = document.getElementById('study-options');
+        const statsSection = document.querySelector('.stats');
 
-        // Show filtered count (or session cards count when in session)
-        const displayCount = this.inSession ? this.sessionCards.length : this.getFilteredCards().length;
+        // Always show total filtered cards count (by category), even during sessions
+        const displayCount = this.getFilteredCardsByCategory().length;
         document.getElementById('total-cards').textContent = displayCount;
         
         // Update reviewed today with time
@@ -495,22 +500,24 @@ class FlashcardApp {
             if (studyOptions) studyOptions.style.display = 'none';
             if (startSessionBtn) startSessionBtn.style.display = 'none';
             if (endSessionBtn) endSessionBtn.style.display = 'none';
+            if (statsSection) statsSection.style.display = 'flex';
             return;
         }
 
         noCardsMessage.style.display = 'none';
         
         if (this.inSession) {
-            // State 2: In session - show card and controls, hide options and start button
+            // State 2: In session - show card and controls, hide options, start button, and stats
             cardContainer.style.display = 'block';
             if (studyOptions) studyOptions.style.display = 'none';
             if (startSessionBtn) startSessionBtn.style.display = 'none';
             if (endSessionBtn) endSessionBtn.style.display = 'inline-block';
+            if (statsSection) statsSection.style.display = 'none';
             
             // Update the card display
             this.updateCardDisplay();
         } else {
-            // State 1: Initial/Not in session - show options and start button, hide card
+            // State 1: Initial/Not in session - show options, start button, and stats; hide card
             cardContainer.style.display = 'none';
             if (studyOptions) studyOptions.style.display = 'flex';
             if (startSessionBtn) {
@@ -524,6 +531,7 @@ class FlashcardApp {
                 startSessionBtn.textContent = `Start Study Session (${sessionCount} card${sessionCount !== 1 ? 's' : ''})`;
             }
             if (endSessionBtn) endSessionBtn.style.display = 'none';
+            if (statsSection) statsSection.style.display = 'flex';
             
             // Update category filter display when showing options
             this.updateCategoryFilterDisplay();
