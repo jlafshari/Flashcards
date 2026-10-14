@@ -42,6 +42,9 @@ class FlashcardApp {
         const stored = localStorage.getItem('flashcards');
         if (stored) {
             this.cards = JSON.parse(stored);
+        } else {
+            // First-time usage - initialize with sample cards
+            this.initializeSampleCards();
         }
         
         const reviewDate = localStorage.getItem('reviewDate');
@@ -63,6 +66,27 @@ class FlashcardApp {
         if (savedDirection) {
             this.direction = savedDirection;
         }
+    }
+    
+    initializeSampleCards() {
+        // Create 10 sample cards for first-time users
+        // These cards cover basic Bulgarian phrases across different categories
+        
+        // Greetings (3 cards)
+        this.addCard('Здравей', 'Hello', 'Greetings');
+        this.addCard('Довиждане', 'Goodbye', 'Greetings');
+        this.addCard('Добро утро', 'Good morning', 'Greetings');
+        
+        // Questions (3 cards)
+        this.addCard('Как си?', 'How are you?', 'Questions');
+        this.addCard('Как се казваш?', 'What is your name?', 'Questions');
+        this.addCard('Къде е...?', 'Where is...?', 'Questions');
+        
+        // Basic Phrases (4 cards)
+        this.addCard('Благодаря', 'Thank you', 'Basic Phrases');
+        this.addCard('Моля', 'Please', 'Basic Phrases');
+        this.addCard('Да', 'Yes', 'Basic Phrases');
+        this.addCard('Не', 'No', 'Basic Phrases');
     }
 
     saveToStorage() {

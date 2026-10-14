@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Sample Cards</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .test-result {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .pass {
+            background: #d4edda;
+            color: #155724;
+        }
+        .fail {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .info {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            margin: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>Sample Cards Test</h1>
+    
+    <div>
+        <button onclick="clearStorageAndReload()">Clear localStorage and Reload</button>
+        <button onclick="runTests()">Run Tests</button>
+    </div>
+    
+    <div id="results"></div>
+    
+    <!-- Include the full app HTML structure -->
+    <div style="display: none;">
+        <div class="stats"></div>
+        <div id="no-cards-message"></div>
+        <div id="study-options"></div>
+        <button id="start-session-btn"></button>
+        <div id="card-container"></div>
+        <div id="flashcard">
+            <div class="card-inner">
+                <div class="card-front">
+                    <div id="card-front-lang"></div>
+                    <div id="card-front-text"></div>
+                </div>
+                <div class="card-back">
+                    <div id="card-back-lang"></div>
+                    <div id="card-back-text"></div>
+                </div>
+            </div>
+        </div>
+        <button id="prev-btn"></button>
+        <button id="flip-btn"></button>
+        <span id="card-position"></span>
+        <button id="next-btn"></button>
+        <button id="easy-btn"></button>
+        <button id="review-btn"></button>
+        <button id="end-session-btn"></button>
+        <div id="category-filter"></div>
+        <div id="category-checkboxes"></div>
+        <input type="checkbox" id="shuffle-checkbox">
+        <input type="number" id="card-limit-input">
+        <button id="direction-bg-en"></button>
+        <button id="direction-en-bg"></button>
+        <input id="bulgarian-input">
+        <input id="english-input">
+        <input id="category-input">
+        <button id="add-card-btn"></button>
+        <span id="total-cards"></span>
+        <span id="reviewed-today"></span>
+        <span id="card-count"></span>
+        <div id="cards-list"></div>
+        <button id="export-btn"></button>
+        <button id="import-merge-btn"></button>
+        <button id="import-replace-btn"></button>
+        <input id="import-file-input">
+        <div class="tab-content"></div>
+    </div>
+    
+    <script src="../app.js"></script>
+    <script>
+        function addResult(text, passed) {
+            const div = document.createElement('div');
+            div.className = 'test-result ' + (passed ? 'pass' : 'fail');
+            div.textContent = (passed ? '✓ ' : '✗ ') + text;
+            document.getElementById('results').appendChild(div);
+        }
+        
+        function addInfo(text) {
+            const div = document.createElement('div');
+            div.className = 'test-result info';
+            div.textContent = 'ℹ ' + text;
+            document.getElementById('results').appendChild(div);
+        }
+        
+        function clearStorageAndReload() {
+            localStorage.clear();
+            location.reload();
+        }
+        
+        function runTests() {
+            document.getElementById('results').innerHTML = '';
+            
+            addInfo('Running tests on current app state...');
+            
+            // Test 1: Check number of cards
+            const cardCount = app.cards.length;
+            addResult(`Should have 10 cards (found ${cardCount})`, cardCount === 10);
+            
+            // Test 2: Check card structure
+            if (app.cards.length > 0) {
+                const card = app.cards[0];
+                addResult('Cards have id', !!card.id);
+                addResult('Cards have bulgarian text', !!card.bulgarian);
+                addResult('Cards have english text', !!card.english);
+                addResult('Cards have category', !!card.category);
+                addResult('Cards have createdAt', !!card.createdAt);
+            }
+            
+            // Test 3: Check categories
+            const categories = new Set(app.cards.map(c => c.category));
+            addResult('Has Greetings category', categories.has('Greetings'));
+            addResult('Has Questions category', categories.has('Questions'));
+            addResult('Has Basic Phrases category', categories.has('Basic Phrases'));
+            addResult(`Has exactly 3 categories (found ${categories.size})`, categories.size === 3);
+            
+            // Test 4: Check category counts
+            const greetings = app.cards.filter(c => c.category === 'Greetings').length;
+            const questions = app.cards.filter(c => c.category === 'Questions').length;
+            const basicPhrases = app.cards.filter(c => c.category === 'Basic Phrases').length;
+            
+            addResult(`Has 3 Greetings cards (found ${greetings})`, greetings === 3);
+            addResult(`Has 3 Questions cards (found ${questions})`, questions === 3);
+            addResult(`Has 4 Basic Phrases cards (found ${basicPhrases})`, basicPhrases === 4);
+            
+            // Test 5: Check specific cards
+            const bulgarians = app.cards.map(c => c.bulgarian);
+            addResult('Has "Здравей" (Hello)', bulgarians.includes('Здравей'));
+            addResult('Has "Благодаря" (Thank you)', bulgarians.includes('Благодаря'));
+            addResult('Has "Да" (Yes)', bulgarians.includes('Да'));
+            addResult('Has "Не" (No)', bulgarians.includes('Не'));
+            
+            // Test 6: Check unique IDs
+            const ids = app.cards.map(c => c.id);
+            const uniqueIds = new Set(ids);
+            addResult(`All IDs are unique (${ids.length} cards, ${uniqueIds.size} unique IDs)`, ids.length === uniqueIds.size);
+            
+            // Test 7: Check localStorage
+            const stored = localStorage.getItem('flashcards');
+            addResult('Cards saved to localStorage', !!stored);
+            if (stored) {
+                const parsed = JSON.parse(stored);
+                addResult(`localStorage has 10 cards (found ${parsed.length})`, parsed.length === 10);
+            }
+            
+            addInfo('Tests complete! To test first-time initialization, click "Clear localStorage and Reload"');
+        }
+        
+        // Run tests on load
+        window.addEventListener('load', () => {
+            setTimeout(runTests, 100);
+        });
+    </script>
+</body>
+</html>
