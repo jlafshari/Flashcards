@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Compact UI</title>
+    <link rel="stylesheet" href="../source/styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>🎴 Compact UI Test</h1>
+        
+        <h2>With Categories - Horizontal Layout</h2>
+        <div class="study-options">
+            <div class="category-filter-inline">
+                <h3>Categories:</h3>
+                <div class="category-checkboxes">
+                    <label class="category-checkbox">
+                        <input type="checkbox" checked>
+                        <span>Food</span>
+                    </label>
+                    <label class="category-checkbox">
+                        <input type="checkbox" checked>
+                        <span>Greetings</span>
+                    </label>
+                    <label class="category-checkbox">
+                        <input type="checkbox" checked>
+                        <span>Numbers</span>
+                    </label>
+                    <label class="category-checkbox">
+                        <input type="checkbox" checked>
+                        <span>Uncategorized</span>
+                    </label>
+                </div>
+            </div>
+            
+            <div class="direction-selector">
+                <button class="direction-btn active">Bulgarian → English</button>
+                <button class="direction-btn">English → Bulgarian</button>
+            </div>
+        </div>
+        
+        <h2>With Many Categories (wrapping test)</h2>
+        <div class="study-options">
+            <div class="category-filter-inline">
+                <h3>Categories:</h3>
+                <div class="category-checkboxes">
+                    <label class="category-checkbox">
+                        <input type="checkbox" checked>
+                        <span>Food</span>
+                    </label>
+                    <label class="category-checkbox">
+                        <input type="checkbox" checked>
+                        <span>Greetings</span>
+                    </label>
+                    <label class="category-checkbox">
+                        <input type="checkbox" checked>
+                        <span>Numbers</span>
+                    </label>
+                    <label class="category-checkbox">
+                        <input type="checkbox" checked>
+                        <span>Travel</span>
+                    </label>
+                    <label class="category-checkbox">
+                        <input type="checkbox" checked>
+                        <span>Weather</span>
+                    </label>
+                    <label class="category-checkbox">
+                        <input type="checkbox" checked>
+                        <span>Family</span>
+                    </label>
+                    <label class="category-checkbox">
+                        <input type="checkbox" checked>
+                        <span>Colors</span>
+                    </label>
+                    <label class="category-checkbox">
+                        <input type="checkbox" checked>
+                        <span>Uncategorized</span>
+                    </label>
+                </div>
+            </div>
+            
+            <div class="direction-selector">
+                <button class="direction-btn active">Bulgarian → English</button>
+                <button class="direction-btn">English → Bulgarian</button>
+            </div>
+        </div>
+        
+        <h2>Without Categories (Direction Only)</h2>
+        <div class="study-options">
+            <div class="direction-selector">
+                <button class="direction-btn active">Bulgarian → English</button>
+                <button class="direction-btn">English → Bulgarian</button>
+            </div>
+        </div>
+        
+        <h2>Mobile View</h2>
+        <p>Resize window to < 600px to see mobile layout (vertical stacking)</p>
+    </div>
+</body>
+</html>

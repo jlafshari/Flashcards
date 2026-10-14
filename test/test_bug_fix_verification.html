@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bug Fix Verification Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .test-result {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .pass {
+            background: #e8f5e9;
+            border: 1px solid green;
+            color: green;
+        }
+        .fail {
+            background: #ffebee;
+            border: 1px solid red;
+            color: red;
+        }
+    </style>
+</head>
+<body>
+    <h1>Bug Fix Verification Test</h1>
+    <p>Testing fixes for: Save button requiring two presses, and hover animation.</p>
+    
+    <div id="test-results"></div>
+    
+    <script src="../source/app.js"></script>
+    <script>
+        const results = [];
+        
+        function addResult(name, passed, details = '') {
+            results.push({ name, passed, details });
+        }
+        
+        // Clear localStorage
+        localStorage.clear();
+        
+        // Create app instance
+        const app = new FlashcardApp();
+        
+        console.log('Starting bug fix verification tests...');
+        
+        // Test 1: Verify saveEdit calls updateManageTab
+        addResult('Test 1: saveEdit method includes updateManageTab call',
+            app.saveEdit.toString().includes('updateManageTab'),
+            'Checks that saveEdit calls updateManageTab to immediately update the UI');
+        
+        // Test 2: Verify saveEdit flow works correctly
+        const card1 = app.addCard('Здравей', 'Hello', 'Greetings');
+        app.startEditCard(card1.id);
+        
+        // Create mock DOM elements for the edit form
+        const container = document.createElement('div');
+        container.innerHTML = `
+            <input id="edit-bulgarian-${card1.id}" value="Довиждане">
+            <input id="edit-english-${card1.id}" value="Goodbye">
+            <input id="edit-category-${card1.id}" value="Greetings">
+        `;
+        document.body.appendChild(container);
+        
+        const initialEditingId = app.editingCardId;
+        app.saveEdit(card1.id);
+        const finalEditingId = app.editingCardId;
+        const updatedCard = app.cards.find(c => c.id === card1.id);
+        
+        addResult('Test 2: saveEdit properly updates card and clears editing state',
+            initialEditingId === card1.id && 
+            finalEditingId === null &&
+            updatedCard.bulgarian === 'Довиждане' &&
+            updatedCard.english === 'Goodbye',
+            `Initial editingCardId: ${initialEditingId}, Final: ${finalEditingId}, Card updated: ${updatedCard.bulgarian}`);
+        
+        // Clean up DOM
+        document.body.removeChild(container);
+        
+        // Test 3: Check CSS for hover animation removal
+        fetch('styles.css')
+            .then(response => response.text())
+            .then(cssText => {
+                // Check that .card-item:hover with transform: translateX is NOT present
+                const hasHoverTransform = cssText.includes('.card-item:hover') && 
+                                         cssText.match(/\.card-item:hover[^}]*transform:\s*translateX/);
+                
+                addResult('Test 3: Hover animation removed from card-item',
+                    !hasHoverTransform,
+                    hasHoverTransform ? 'Found unwanted hover transform' : 'No hover transform found (correct)');
+                
+                displayResults();
+            })
+            .catch(err => {
+                addResult('Test 3: Check CSS for hover animation',
+                    false,
+                    `Error loading CSS: ${err.message}`);
+                displayResults();
+            });
+        
+        function displayResults() {
+            const resultsDiv = document.getElementById('test-results');
+            let html = '<h2>Test Results</h2>';
+            let passedCount = 0;
+            
+            results.forEach((result, index) => {
+                if (result.passed) passedCount++;
+                const className = result.passed ? 'pass' : 'fail';
+                const status = result.passed ? '✓ PASS' : '✗ FAIL';
+                
+                html += `<div class="test-result ${className}">`;
+                html += `<strong>${status}</strong> ${result.name}`;
+                if (result.details) {
+                    html += `<br><small>${result.details}</small>`;
+                }
+                html += '</div>';
+            });
+            
+            html += `<h3>Summary: ${passedCount}/${results.length} tests passed</h3>`;
+            resultsDiv.innerHTML = html;
+            
+            // Print to console
+            console.log(`\n=== Bug Fix Verification Results ===`);
+            console.log(`${passedCount}/${results.length} tests passed\n`);
+            results.forEach((result, index) => {
+                console.log(`${result.passed ? '✓' : '✗'} ${result.name}`);
+                if (result.details) console.log(`  ${result.details}`);
+            });
+        }
+    </script>
+</body>
+</html>

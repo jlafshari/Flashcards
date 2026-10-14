@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Category Label Removal</title>
+    <link rel="stylesheet" href="../source/styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Test: Category Label Removal</h1>
+        
+        <h2>Study Options UI (with categories)</h2>
+        <div id="test-study-options" class="study-options">
+            <div id="test-category-filter" class="category-filter-inline">
+                <div id="test-category-checkboxes" class="category-checkboxes">
+                    <label class="category-checkbox">
+                        <input type="checkbox" checked>
+                        <span>Food</span>
+                    </label>
+                    <label class="category-checkbox">
+                        <input type="checkbox" checked>
+                        <span>Greetings</span>
+                    </label>
+                    <label class="category-checkbox">
+                        <input type="checkbox" checked>
+                        <span>Travel</span>
+                    </label>
+                </div>
+            </div>
+            
+            <div class="direction-selector">
+                <button class="direction-btn active">Bulgarian → English</button>
+                <button class="direction-btn">English → Bulgarian</button>
+            </div>
+        </div>
+
+        <h2>Expected Behavior</h2>
+        <ul>
+            <li>✓ No "Categories:" label should appear</li>
+            <li>✓ Category checkboxes should be displayed inline</li>
+            <li>✓ Direction buttons should be aligned horizontally with the checkboxes</li>
+            <li>✓ Everything should wrap naturally on narrow screens</li>
+        </ul>
+
+        <div id="results" style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 10px;"></div>
+    </div>
+
+    <script>
+        // Test that the label is not present
+        const testResults = [];
+        
+        // Check that there's no h3 with "Categories:" text
+        const h3Elements = document.querySelectorAll('#test-study-options h3');
+        const hasCategoriesLabel = Array.from(h3Elements).some(h3 => 
+            h3.textContent.includes('Categories:')
+        );
+        
+        if (hasCategoriesLabel) {
+            testResults.push('❌ FAIL: Categories label found (should be removed)');
+        } else {
+            testResults.push('✅ PASS: Categories label removed');
+        }
+        
+        // Check that checkboxes are present
+        const checkboxes = document.querySelectorAll('#test-category-checkboxes .category-checkbox');
+        if (checkboxes.length === 3) {
+            testResults.push('✅ PASS: Category checkboxes are present');
+        } else {
+            testResults.push(`❌ FAIL: Expected 3 checkboxes, found ${checkboxes.length}`);
+        }
+        
+        // Check that direction buttons are present
+        const directionBtns = document.querySelectorAll('.direction-selector .direction-btn');
+        if (directionBtns.length === 2) {
+            testResults.push('✅ PASS: Direction buttons are present');
+        } else {
+            testResults.push(`❌ FAIL: Expected 2 direction buttons, found ${directionBtns.length}`);
+        }
+        
+        // Check that study-options has correct flex layout
+        const studyOptions = document.querySelector('#test-study-options');
+        const computedStyle = window.getComputedStyle(studyOptions);
+        if (computedStyle.display === 'flex') {
+            testResults.push('✅ PASS: Study options uses flex layout');
+        } else {
+            testResults.push('❌ FAIL: Study options should use flex layout');
+        }
+        
+        // Display results
+        const resultsDiv = document.getElementById('results');
+        resultsDiv.innerHTML = '<h3>Test Results</h3>' + testResults.map(r => `<p>${r}</p>`).join('');
+        
+        // Overall status
+        const allPassed = testResults.every(r => r.startsWith('✅'));
+        if (allPassed) {
+            resultsDiv.innerHTML += '<h3 style="color: green; margin-top: 15px;">✅ All tests passed!</h3>';
+        } else {
+            resultsDiv.innerHTML += '<h3 style="color: red; margin-top: 15px;">❌ Some tests failed</h3>';
+        }
+    </script>
+</body>
+</html>

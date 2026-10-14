@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Review Queue</title>
+    <link rel="stylesheet" href="../source/styles.css">
+    <style>
+        .debug-panel {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: #f0f0f0;
+            padding: 15px;
+            border: 2px solid #333;
+            border-radius: 5px;
+            max-width: 300px;
+            font-family: monospace;
+            font-size: 12px;
+            z-index: 1000;
+        }
+        .debug-panel h3 {
+            margin-top: 0;
+            font-size: 14px;
+        }
+        .debug-panel pre {
+            background: white;
+            padding: 5px;
+            border: 1px solid #ccc;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="debug-panel">
+        <h3>Debug Info</h3>
+        <div><strong>Review Queue:</strong></div>
+        <pre id="queue-debug">[]</pre>
+        <div><strong>Current Card Index:</strong></div>
+        <pre id="index-debug">0</pre>
+        <div><strong>Filtered Cards Count:</strong></div>
+        <pre id="filtered-debug">0</pre>
+        <button onclick="updateDebug()" style="margin-top: 10px;">Refresh Debug</button>
+    </div>
+
+    <div class="container">
+        <nav class="tabs">
+            <h1>🎴 Flashcards</h1>
+            <button class="tab-button active" data-tab="study">Study</button>
+            <button class="tab-button" data-tab="manage">Manage Cards</button>
+        </nav>
+
+        <!-- Study Tab -->
+        <div id="study-tab" class="tab-content active">
+            <div class="stats">
+                <div class="stat-item">
+                    <span class="stat-label">Total Cards:</span>
+                    <span id="total-cards" class="stat-value">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Reviewed Today:</span>
+                    <span id="reviewed-today" class="stat-value">0</span>
+                </div>
+            </div>
+
+            <div id="no-cards-message" class="message">
+                <p>No flashcards yet! Go to "Manage Cards" to add some.</p>
+            </div>
+
+            <div id="card-container" class="card-container" style="display: none;">
+                <div id="study-options" class="study-options">
+                    <div id="category-filter" class="category-filter-inline" style="display: none;">
+                        <div id="category-checkboxes" class="category-checkboxes">
+                        </div>
+                    </div>
+                    
+                    <div class="direction-selector">
+                        <button id="direction-bg-en" class="direction-btn active">Bulgarian → English</button>
+                        <button id="direction-en-bg" class="direction-btn">English → Bulgarian</button>
+                    </div>
+                </div>
+
+                <div class="flashcard" id="flashcard">
+                    <div class="card-inner">
+                        <div class="card-front">
+                            <div class="card-language" id="card-front-lang">Bulgarian</div>
+                            <div class="card-text" id="card-front-text"></div>
+                        </div>
+                        <div class="card-back">
+                            <div class="card-language" id="card-back-lang">English</div>
+                            <div class="card-text" id="card-back-text"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="controls">
+                    <button id="prev-btn" class="btn btn-secondary">← Previous</button>
+                    <button id="flip-btn" class="btn btn-primary">Flip Card</button>
+                    <span id="card-position" class="card-position">1 / 1</span>
+                    <button id="next-btn" class="btn btn-secondary">Next →</button>
+                    <button id="easy-btn" class="btn btn-easy" style="display: none;">Easy ✓</button>
+                    <button id="review-btn" class="btn btn-review" style="display: none;">Review Again ↻</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Manage Cards Tab -->
+        <div id="manage-tab" class="tab-content">
+            <div class="import-export-section">
+                <h2>Import/Export Cards</h2>
+                <div class="import-export-buttons">
+                    <button id="export-btn" class="btn btn-secondary">Export Cards</button>
+                    <button id="import-merge-btn" class="btn btn-secondary">Import Cards (Merge)</button>
+                    <button id="import-replace-btn" class="btn btn-secondary">Import Cards (Replace)</button>
+                </div>
+                <input type="file" id="import-file-input" accept=".csv" style="display: none;">
+            </div>
+
+            <div class="add-card-form">
+                <h2>Add New Card</h2>
+                <div class="form-group">
+                    <label for="bulgarian-input">Bulgarian:</label>
+                    <input type="text" id="bulgarian-input" placeholder="Enter Bulgarian word or phrase" autofocus>
+                </div>
+                <div class="form-group">
+                    <label for="english-input">English:</label>
+                    <input type="text" id="english-input" placeholder="Enter English translation">
+                </div>
+                <div class="form-group">
+                    <label for="category-input">Category (optional):</label>
+                    <input type="text" id="category-input" placeholder="Enter category (e.g., Food, Greetings)">
+                </div>
+                <button id="add-card-btn" class="btn btn-primary">Add Card</button>
+            </div>
+
+            <div class="card-list">
+                <h2>All Cards (<span id="card-count">0</span>)</h2>
+                <div id="cards-list"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../source/app.js"></script>
+    <script>
+        function updateDebug() {
+            if (window.app) {
+                document.getElementById('queue-debug').textContent = JSON.stringify(app.reviewQueue, null, 2);
+                document.getElementById('index-debug').textContent = app.currentCardIndex;
+                document.getElementById('filtered-debug').textContent = app.getFilteredCards().length;
+            }
+        }
+        
+        // Auto-refresh debug info every second
+        setInterval(updateDebug, 1000);
+        
+        // Also update on any button click
+        document.addEventListener('click', () => {
+            setTimeout(updateDebug, 400);
+        });
+    </script>
+</body>
+</html>

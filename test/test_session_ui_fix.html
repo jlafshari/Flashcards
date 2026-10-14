@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Session UI Fix Test</title>
+    <link rel="stylesheet" href="../source/styles.css">
+    <style>
+        .test-results {
+            font-family: monospace;
+            padding: 20px;
+            background: #f5f5f5;
+            margin: 20px;
+            border-radius: 5px;
+        }
+        .test-pass { color: green; font-weight: bold; }
+        .test-fail { color: red; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Session UI Fix Test</h1>
+        <div class="test-results" id="test-results">
+            <p>Running tests...</p>
+        </div>
+        <button id="run-test-btn" class="btn btn-primary">Run Test Again</button>
+    </div>
+
+    <script src="../source/app.js"></script>
+    <script>
+        function runTests() {
+            const results = [];
+            let allPassed = true;
+
+            // Initialize app with test data
+            const app = new FlashcardApp();
+            
+            // Clear any existing data
+            localStorage.clear();
+            
+            // Add test cards
+            app.addCard('Здравей', 'Hello', 'Greetings');
+            app.addCard('Хляб', 'Bread', 'Food');
+            app.addCard('Вода', 'Water', 'Food');
+            
+            // Switch to study tab
+            app.switchTab('study');
+            
+            // Test 1: Pre-session state - study options should be visible
+            const studyOptions = document.getElementById('study-options');
+            const startSessionBtn = document.getElementById('start-session-btn');
+            const cardContainer = document.getElementById('card-container');
+            const noCardsMessage = document.getElementById('no-cards-message');
+            
+            const test1 = studyOptions && studyOptions.style.display === 'block';
+            results.push(`Test 1: Study options visible before session: ${test1 ? 'PASS' : 'FAIL'}`);
+            if (!test1) allPassed = false;
+            
+            // Test 2: Start session button should be visible
+            const test2 = startSessionBtn && startSessionBtn.style.display === 'inline-block';
+            results.push(`Test 2: Start session button visible: ${test2 ? 'PASS' : 'FAIL'}`);
+            if (!test2) allPassed = false;
+            
+            // Test 3: Card container should be hidden
+            const test3 = cardContainer && cardContainer.style.display === 'none';
+            results.push(`Test 3: Card container hidden before session: ${test3 ? 'PASS' : 'FAIL'}`);
+            if (!test3) allPassed = false;
+            
+            // Test 4: No cards message should be hidden
+            const test4 = noCardsMessage && noCardsMessage.style.display === 'none';
+            results.push(`Test 4: No cards message hidden (cards exist): ${test4 ? 'PASS' : 'FAIL'}`);
+            if (!test4) allPassed = false;
+            
+            // Test 5: Start a session
+            app.startSession();
+            
+            const test5 = app.inSession === true;
+            results.push(`Test 5: Session started successfully: ${test5 ? 'PASS' : 'FAIL'}`);
+            if (!test5) allPassed = false;
+            
+            // Test 6: Study options should be hidden during session
+            const test6 = studyOptions.style.display === 'none';
+            results.push(`Test 6: Study options hidden during session: ${test6 ? 'PASS' : 'FAIL'}`);
+            if (!test6) allPassed = false;
+            
+            // Test 7: Card container should be visible
+            const test7 = cardContainer.style.display === 'block';
+            results.push(`Test 7: Card container visible during session: ${test7 ? 'PASS' : 'FAIL'}`);
+            if (!test7) allPassed = false;
+            
+            // Test 8: Start button should be hidden
+            const test8 = startSessionBtn.style.display === 'none';
+            results.push(`Test 8: Start button hidden during session: ${test8 ? 'PASS' : 'FAIL'}`);
+            if (!test8) allPassed = false;
+            
+            // Test 9: End session button should be visible
+            const endSessionBtn = document.getElementById('end-session-btn');
+            const test9 = endSessionBtn && endSessionBtn.style.display === 'inline-block';
+            results.push(`Test 9: End session button visible: ${test9 ? 'PASS' : 'FAIL'}`);
+            if (!test9) allPassed = false;
+            
+            // Test 10: End session
+            app.endSession();
+            
+            const test10a = app.inSession === false;
+            const test10b = studyOptions.style.display === 'block';
+            const test10c = cardContainer.style.display === 'none';
+            const test10d = startSessionBtn.style.display === 'inline-block';
+            const test10 = test10a && test10b && test10c && test10d;
+            results.push(`Test 10: End session returns to pre-session state: ${test10 ? 'PASS' : 'FAIL'}`);
+            if (!test10) allPassed = false;
+            
+            // Display results
+            const resultsDiv = document.getElementById('test-results');
+            resultsDiv.innerHTML = '<h2>Test Results</h2>';
+            results.forEach(result => {
+                const p = document.createElement('p');
+                p.textContent = result;
+                p.className = result.includes('PASS') ? 'test-pass' : 'test-fail';
+                resultsDiv.appendChild(p);
+            });
+            
+            const summary = document.createElement('p');
+            summary.textContent = `\n${allPassed ? '✓ ALL TESTS PASSED' : '✗ SOME TESTS FAILED'}`;
+            summary.className = allPassed ? 'test-pass' : 'test-fail';
+            summary.style.fontSize = '1.5em';
+            summary.style.marginTop = '20px';
+            resultsDiv.appendChild(summary);
+        }
+
+        // Run tests on load
+        window.addEventListener('DOMContentLoaded', () => {
+            // Wait a bit for DOM to settle
+            setTimeout(runTests, 100);
+        });
+
+        // Run tests on button click
+        document.getElementById('run-test-btn').addEventListener('click', () => {
+            localStorage.clear();
+            location.reload();
+        });
+    </script>
+</body>
+</html>
