@@ -46,7 +46,7 @@ context.document = {
 };
 
 // Load and evaluate app.js
-const appJs = fs.readFileSync('../source/app.js', 'utf8');
+const appJs = fs.readFileSync('../app.js', 'utf8');
 vm.createContext(context);
 vm.runInContext(appJs, context);
 

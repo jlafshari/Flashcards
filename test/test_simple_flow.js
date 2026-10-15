@@ -35,7 +35,7 @@ global.alert = (msg) => console.log('ALERT:', msg);
 
 // Read app.js and extract the FlashcardApp class
 const fs = require('fs');
-const appCode = fs.readFileSync('../source/app.js', 'utf8');
+const appCode = fs.readFileSync('../app.js', 'utf8');
 
 // Use Function constructor to make the class available
 const appFunc = new Function(appCode + '; return FlashcardApp;');

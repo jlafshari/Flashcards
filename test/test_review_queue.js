@@ -185,7 +185,7 @@ global.confirm = () => true;
 
 // Load the app
 const fs = require('fs');
-const appCode = fs.readFileSync('../source/app.js', 'utf8');
+const appCode = fs.readFileSync('../app.js', 'utf8');
 // Remove the initialization line at the end and make class global
 const classCode = appCode
     .replace(/\nconst app = new FlashcardApp\(\);?\s*$/, '')

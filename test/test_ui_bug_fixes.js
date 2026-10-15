@@ -82,7 +82,7 @@ global.localStorage = {
 global.window = { alert: () => {} };
 
 // Load the app
-const appCode = fs.readFileSync('../source/app.js', 'utf-8')
+const appCode = fs.readFileSync('../app.js', 'utf-8')
     .replace(/\nconst app = new FlashcardApp\(\);?\s*$/, '')
     .replace('class FlashcardApp', 'global.FlashcardApp = class FlashcardApp');
 
