@@ -571,7 +571,7 @@ class FlashcardApp {
     
     updateCardDisplay() {
         // Get filtered cards based on session cards
-        const filteredCards = this.sessionCards;
+        const filteredCards = this.inSession ? this.getFilteredCards() : this.sessionCards;
         
         if (filteredCards.length === 0) {
             return;
