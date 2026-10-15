@@ -1,6 +1,6 @@
 // Simple logic verification - no DOM required
 const fs = require('fs');
-const code = fs.readFileSync('../source/app.js', 'utf8');
+const code = fs.readFileSync('../app.js', 'utf8');
 
 console.log('=== Code Logic Verification ===\n');
 
@@ -65,7 +65,7 @@ if (setDirectionMatch && !code.includes('if (this.showingOptions)') ) {
 }
 
 // Check 8: Study options in HTML outside card-container
-const html = fs.readFileSync('../source/index.html', 'utf8');
+const html = fs.readFileSync('../index.html', 'utf8');
 const studyOptionsIndex = html.indexOf('id="study-options"');
 const cardContainerIndex = html.indexOf('id="card-container"');
 const studyOptionsEndIndex = html.indexOf('</div>', studyOptionsIndex);

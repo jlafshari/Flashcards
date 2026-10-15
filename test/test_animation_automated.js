@@ -9,7 +9,7 @@ console.log('=== Button Animation Test ===\n');
 
 // Read the CSS file to verify animation classes exist
 console.log('1. Checking CSS for animation styles...');
-const css = fs.readFileSync('../source/styles.css', 'utf8');
+const css = fs.readFileSync('../styles.css', 'utf8');
 
 const hasButtonPressAnimation = css.includes('@keyframes button-press');
 const hasButtonGlowAnimation = css.includes('@keyframes button-glow');
@@ -23,7 +23,7 @@ console.log(`   ✓ .btn-review.animating: ${hasReviewAnimating ? 'FOUND' : 'MIS
 
 // Read the JS file to verify animateButton method exists
 console.log('\n2. Checking JavaScript for animation logic...');
-const js = fs.readFileSync('../source/app.js', 'utf8');
+const js = fs.readFileSync('../app.js', 'utf8');
 
 const hasAnimateButtonMethod = js.includes('animateButton(buttonId)');
 const hasEasyAnimation = js.includes("this.animateButton('easy-btn')");

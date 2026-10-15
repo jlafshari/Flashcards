@@ -1,65 +1,95 @@
-# Source Symlink Explanation
+# Source Symlink - REMOVED
 
-## What is it?
+## Status: REMOVED
 
-The `source` file in the root directory is a **symbolic link** (symlink) that points to `.` (the current directory, i.e., the repository root).
+The `source` symlink has been **removed** from the repository as of this commit. All test files have been updated to use direct paths.
+
+## What was it?
+
+The `source` file in the root directory was a **symbolic link** (symlink) that pointed to `.` (the current directory, i.e., the repository root).
 
 ```
-source -> .
+source -> .   # This has been removed
 ```
 
-## Why does it exist?
+## Why was it removed?
 
-The repository's test suite (39 out of 56 test files) was written to reference application files using the path pattern `../source/` instead of `../`. For example:
+The symlink was causing issues with GitHub Pages deployment. Even though a `.nojekyll` file was added to prevent Jekyll processing, the symlink created potential deployment problems and added unnecessary complexity.
 
-- `../source/app.js` instead of `../app.js`
-- `../source/index.html` instead of `../index.html`
-- `../source/styles.css` instead of `../styles.css`
+## What changed?
 
-This is a common pattern in test suites where:
-1. Source files live in a dedicated directory (e.g., `src/`, `source/`, or `lib/`)
-2. Test files reference them using a consistent path
+All test files (40 HTML, JavaScript, and shell script files) were updated to reference application files directly:
 
-However, **this repository doesn't actually have a source directory** - the main application files (`app.js`, `index.html`, `styles.css`) are at the root level.
+**Before (with symlink):**
+```javascript
+const appJs = fs.readFileSync('../source/app.js', 'utf8');
+```
 
-## Why not just remove it?
+**After (direct paths):**
+```javascript
+const appJs = fs.readFileSync('../app.js', 'utf8');
+```
 
-To remove the symlink, we would need to:
-1. Update 39+ test files to change `../source/` to `../`
-2. Ensure no tests break during the migration
-3. Test all HTML-based tests that load files via relative paths
-4. Test all Node.js-based tests that read files with `fs.readFileSync()`
+### Files Updated
 
-The symlink is a **pragmatic solution** that allows the test suite to work without modifying dozens of files. It creates no runtime overhead and is transparent to the application itself.
+**HTML test files (13 files):**
+- quick_visual_test.html
+- test_animation.html, test_animation_timing.html
+- test_bug_fix_verification.html
+- test_compact_ui.html
+- test_debug_queue.html
+- test_e2e.html
+- test_edit_feature.html
+- test_glow_visual.html
+- test_label_removal.html
+- test_merged_ui.html
+- test_session.html, test_session_automated.html
+- test_session_features_visual.html
+- test_session_ui_fix.html, test_session_ui_visual.html
 
-## Recommendation
+**JavaScript test files (26 files):**
+- test_animation_automated.js, test_animation_fix.js
+- test_bug_fixes.js, test_bug_fixes_verification.js
+- test_compact_layout.js
+- test_debug_behavior.js
+- test_double_time_fix.js
+- test_edit_node.js, test_edit_verification.js
+- test_integration_two_step.js
+- test_merged_ui_integration.js
+- test_queue_ordering.js
+- test_review_queue.js
+- test_session_features.js, test_session_node.js, test_session_ui_fix_node.js
+- test_shuffle_before_limit.js
+- test_simple_flow.js
+- test_stats_visibility.js
+- test_total_cards_display.js
+- test_ui_bug_fixes.js
+- validate_html.js
+- verify_logic.js
 
-**Keep the symlink** unless there's a specific reason to restructure the test suite. The symlink:
-- ✅ Maintains compatibility with the existing test suite
-- ✅ Requires no changes to working tests
-- ✅ Has no performance impact
-- ✅ Is a standard Unix/Linux feature
-- ⚠️ Can be confusing to developers unfamiliar with symlinks
-- ⚠️ Doesn't work on older Windows systems (though modern Windows 10+ supports symlinks)
+**Shell scripts (1 file):**
+- test_integration.sh
 
 ## For New Tests
 
-When writing new test files, you have two options:
+When writing new test files, always use **direct paths**:
 
-1. **Follow the existing convention** (recommended for consistency):
-   ```javascript
-   const appJs = fs.readFileSync('../source/app.js', 'utf8');
-   ```
+```javascript
+// In test/*.js files
+const appJs = fs.readFileSync('../app.js', 'utf8');
+const html = fs.readFileSync('../index.html', 'utf8');
+const css = fs.readFileSync('../styles.css', 'utf8');
+```
 
-2. **Use direct paths** (simpler, but inconsistent):
-   ```javascript
-   const appJs = fs.readFileSync('../app.js', 'utf8');
-   ```
-
-Both work because of the symlink. Choose based on team preference for consistency vs. simplicity.
+```html
+<!-- In test/*.html files -->
+<link rel="stylesheet" href="../styles.css">
+<script src="../app.js"></script>
+```
 
 ## History
 
-- The `source` symlink was added in PR #15 to support the new sample cards feature testing
-- It enabled the test suite to work without modifying the existing 39 test files
-- The alternative would have been a large refactoring PR touching dozens of test files
+- **Original**: The `source` symlink was added in PR #15 to support the new sample cards feature testing
+- **Reason**: It enabled the test suite to work without modifying the existing 39 test files
+- **Removed**: The symlink was removed to fix GitHub Pages deployment issues
+- **Migration**: All 40 test files were updated to use direct paths (`../` instead of `../source/`)

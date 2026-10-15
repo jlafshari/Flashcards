@@ -21,8 +21,8 @@ function test(description, fn) {
 }
 
 // Read files
-const htmlContent = fs.readFileSync(path.join(__dirname, '../source/index.html'), 'utf8');
-const cssContent = fs.readFileSync(path.join(__dirname, '../source/styles.css'), 'utf8');
+const htmlContent = fs.readFileSync(path.join(__dirname, '../index.html'), 'utf8');
+const cssContent = fs.readFileSync(path.join(__dirname, '../styles.css'), 'utf8');
 
 // Test 1: Verify study-options still exists
 test('Check study-options container exists in HTML', () => {
