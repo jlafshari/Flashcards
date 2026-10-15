@@ -5,6 +5,7 @@ A simple, user-friendly flashcard web application for learning English from Bulg
 ## Features
 
 - ✨ **Simple Interface** - Clean, intuitive design that's easy to understand and use
+- 🎁 **Sample Cards Included** - Ships with 10 starter cards so you can try the app immediately
 - 🎴 **Card Management** - Add, view, and delete flashcards with Bulgarian and English text
 - 🏷️ **Categories** - Organize cards by category (e.g., Greetings, Food, Verbs) and filter by category when studying
 - 🔄 **Bidirectional Testing** - Study from Bulgarian to English OR English to Bulgarian
@@ -17,10 +18,12 @@ A simple, user-friendly flashcard web application for learning English from Bulg
 
 ## Getting Started
 
-### Option 1: Open Locally
+This application is **fully deployed and ready to use**! It's a static web application that runs entirely in your browser with no server required.
+
+### Option 1: Open Locally (Recommended)
 1. Download the repository
 2. Open `index.html` in any modern web browser
-3. Start adding flashcards!
+3. You'll automatically see 10 sample cards to get started!
 
 ### Option 2: Use a Web Server
 ```bash
@@ -32,6 +35,9 @@ npx http-server
 ```
 
 Then navigate to `http://localhost:8000` in your browser.
+
+### Verify Deployment
+Open `verify_deployment.html` in your browser to verify that the sample cards feature is working correctly.
 
 ## How to Use
 
