@@ -224,7 +224,7 @@ class FlashcardApp {
 
     // Navigation
     nextCard() {
-        const filteredCards = this.inSession ? this.sessionCards : this.getFilteredCards();
+        const filteredCards = this.inSession ? this.getFilteredCards() : this.sessionCards;
         if (this.currentCardIndex < filteredCards.length - 1) {
             this.currentCardIndex++;
             this.resetFlip();
