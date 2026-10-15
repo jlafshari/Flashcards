@@ -291,14 +291,15 @@ class FlashcardApp {
         setTimeout(() => {
             // Mark card as reviewed in session
             if (this.inSession) {
-                const currentCard = this.sessionCards[this.currentCardIndex];
+                const filteredCards = this.getFilteredCards();
+                const currentCard = filteredCards[this.currentCardIndex];
                 if (currentCard) {
                     this.sessionReviewedCards.add(currentCard.id);
                 }
                 
                 // If we're on the last card, end the session
                 // (User has reviewed all cards they wanted to review)
-                if (this.currentCardIndex === this.sessionCards.length - 1) {
+                if (this.currentCardIndex === filteredCards.length - 1) {
                     this.showSessionComplete();
                     return;
                 }
@@ -317,7 +318,8 @@ class FlashcardApp {
         setTimeout(() => {
             if (this.inSession) {
                 // In session mode: add to review queue within session
-                const currentCard = this.sessionCards[this.currentCardIndex];
+                const filteredCards = this.getFilteredCards();
+                const currentCard = filteredCards[this.currentCardIndex];
                 
                 if (currentCard && !this.reviewQueue.includes(currentCard.id)) {
                     this.reviewQueue.push(currentCard.id);
@@ -325,15 +327,20 @@ class FlashcardApp {
                     // Mark as reviewed (we'll see it again at the end)
                     this.sessionReviewedCards.add(currentCard.id);
                     
-                    // If we're on the last card, end the session
-                    // (User has reviewed all cards they wanted to review)
-                    if (this.currentCardIndex === this.sessionCards.length - 1) {
+                    // After adding to review queue, the deck is reordered with this card at the end.
+                    // The card that was after this one is now at the current index.
+                    // So we don't increment - just reset flip and update UI.
+                    this.resetFlip();
+                    this.incrementReviewCount();
+                    
+                    // Check if we've reviewed all cards (session complete)
+                    if (this.isSessionComplete()) {
                         this.showSessionComplete();
                         return;
                     }
                     
-                    // Move to the next card - use nextCard() to handle session completion
-                    this.nextCard();
+                    // Update UI to show the card now at current index
+                    this.updateUI();
                 } else {
                     // If card is already in queue or doesn't exist, just move to next card
                     this.nextCard();
