@@ -334,7 +334,9 @@ class FlashcardApp {
                     this.incrementReviewCount();
                     
                     // Check if we've reviewed all cards (session complete)
-                    if (this.isSessionComplete()) {
+                    // Only complete if we're not on the last card being added to review queue
+                    // If we're on the last card and adding it to queue, don't end session - let user review it
+                    if (this.isSessionComplete() && this.currentCardIndex < filteredCards.length - 1) {
                         this.showSessionComplete();
                         return;
                     }

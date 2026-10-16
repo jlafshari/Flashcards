@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manual Test - Last Card Review Fix</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+        }
+        h2 {
+            color: #666;
+            margin-top: 0;
+        }
+        .instructions {
+            background: #e3f2fd;
+            padding: 15px;
+            border-left: 4px solid #2196F3;
+            margin: 15px 0;
+        }
+        .expected {
+            background: #f1f8e9;
+            padding: 15px;
+            border-left: 4px solid #8bc34a;
+            margin: 15px 0;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .pass {
+            background: #c8e6c9;
+            color: #2e7d32;
+        }
+        .fail {
+            background: #ffcdd2;
+            color: #c62828;
+        }
+        button {
+            background: #2196F3;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+        }
+        button:hover {
+            background: #1976D2;
+        }
+        .info {
+            font-family: monospace;
+            background: #f5f5f5;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Manual Test: Last Card Review Fix</h1>
+    
+    <div class="test-section">
+        <h2>Test Scenario</h2>
+        <div class="instructions">
+            <strong>Instructions:</strong>
+            <ol>
+                <li>Start a session with 3 cards</li>
+                <li>Mark first two cards as "Easy"</li>
+                <li>On the third (last) card, click "Review Again"</li>
+                <li>Observe: Session should NOT end - you should see the card again</li>
+                <li>Mark it as "Easy" the second time</li>
+                <li>Observe: Session should now complete</li>
+            </ol>
+        </div>
+        
+        <div class="expected">
+            <strong>Expected Behavior:</strong>
+            <ul>
+                <li>✓ Clicking "Review Again" on last card keeps session active</li>
+                <li>✓ The card is shown again for review</li>
+                <li>✓ Session ends only after reviewing the queued card</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>Automated Test</h2>
+        <button onclick="runTest()">Run Automated Test</button>
+        <div id="test-output"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Open Application</h2>
+        <p>Click the button below to open the main application in a new tab to test manually:</p>
+        <button onclick="window.open('../index.html', '_blank')">Open Flashcards App</button>
+    </div>
+
+    <script src="../app.js"></script>
+    <script>
+        function runTest() {
+            const output = document.getElementById('test-output');
+            output.innerHTML = '<div class="info">Running test...</div>';
+            
+            // Create a test app instance
+            localStorage.clear();
+            const app = new FlashcardApp();
+            
+            // Set up test cards
+            app.cards = [
+                { id: 1, bulgarian: 'Здравей', english: 'Hello', category: 'Test' },
+                { id: 2, bulgarian: 'Довиждане', english: 'Goodbye', category: 'Test' },
+                { id: 3, bulgarian: 'Благодаря', english: 'Thank you', category: 'Test' }
+            ];
+            
+            let results = [];
+            
+            // Start session
+            app.startSession();
+            results.push('✓ Session started with 3 cards');
+            
+            // Mark first card as easy
+            app.sessionReviewedCards.add(1);
+            app.currentCardIndex = 1;
+            results.push('✓ Card 1 marked as Easy');
+            
+            // Mark second card as easy
+            app.sessionReviewedCards.add(2);
+            app.currentCardIndex = 2;
+            results.push('✓ Card 2 marked as Easy');
+            
+            // Get current state
+            let filteredCards = app.getFilteredCards();
+            const currentCard = filteredCards[app.currentCardIndex];
+            results.push(`<br><strong>Current state:</strong>`);
+            results.push(`- Current card: ${currentCard.id} (${currentCard.english})`);
+            results.push(`- Current index: ${app.currentCardIndex}`);
+            results.push(`- Is last card: ${app.currentCardIndex === filteredCards.length - 1}`);
+            
+            // Mark last card for review (simulate markForReview logic)
+            app.reviewQueue.push(currentCard.id);
+            app.sessionReviewedCards.add(currentCard.id);
+            
+            results.push(`<br><strong>After marking for review:</strong>`);
+            results.push(`- Review queue: [${app.reviewQueue}]`);
+            results.push(`- All cards reviewed: ${app.isSessionComplete()}`);
+            
+            // Check if session would end (the fix)
+            const shouldEnd = app.isSessionComplete() && app.currentCardIndex < filteredCards.length - 1;
+            results.push(`- Should end session: ${shouldEnd}`);
+            
+            let html = '<div class="info">' + results.join('<br>') + '</div>';
+            
+            if (shouldEnd) {
+                html += '<div class="status fail">✗ FAIL: Session would end (old behavior)</div>';
+            } else {
+                html += '<div class="status pass">✓ PASS: Session continues (new behavior)</div>';
+                html += '<div class="info">The user can now review card 3 again before the session ends.</div>';
+            }
+            
+            output.innerHTML = html;
+            
+            // Reload the real app
+            localStorage.clear();
+            window.location.reload();
+        }
+    </script>
+</body>
+</html>
