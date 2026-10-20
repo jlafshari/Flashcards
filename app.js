@@ -321,22 +321,34 @@ class FlashcardApp {
                 const filteredCards = this.getFilteredCards();
                 const currentCard = filteredCards[this.currentCardIndex];
                 
-                if (currentCard && !this.reviewQueue.includes(currentCard.id)) {
+                if (currentCard) {
+                    // Check if card is already in the queue before adding it
+                    const wasAlreadyQueued = this.reviewQueue.includes(currentCard.id);
+                    
+                    // Allow cards to be added to review queue multiple times
+                    // Each press of "Review Again" adds another instance
                     this.reviewQueue.push(currentCard.id);
                     
                     // Mark as reviewed (we'll see it again at the end)
                     this.sessionReviewedCards.add(currentCard.id);
                     
-                    // After adding to review queue, the deck is reordered with this card at the end.
-                    // The card that was after this one is now at the current index.
-                    // So we don't increment - just reset flip and update UI.
+                    // Reset flip state and increment review count
                     this.resetFlip();
                     this.incrementReviewCount();
                     
-                    // Check if we've reviewed all cards (session complete)
-                    // Only complete if we're not on the last card being added to review queue
-                    // If we're on the last card and adding it to queue, don't end session - let user review it
-                    if (this.isSessionComplete() && this.currentCardIndex < filteredCards.length - 1) {
+                    // Handle index based on whether card was already queued:
+                    // - If card was NOT in queue: it moves from non-queued to end, next card slides into current position
+                    // - If card WAS in queue: it gets duplicated at end, first occurrence stays, so we need to move forward
+                    if (wasAlreadyQueued) {
+                        this.currentCardIndex++;
+                    }
+                    // else: keep currentIndex the same (next card slides into current position)
+                    
+                    // Check if session should end
+                    // Session ends only if we've reviewed all original cards AND there are no more cards ahead
+                    const updatedFilteredCards = this.getFilteredCards();
+                    const remainingCards = updatedFilteredCards.slice(this.currentCardIndex);
+                    if (this.isSessionComplete() && remainingCards.length === 0) {
                         this.showSessionComplete();
                         return;
                     }
@@ -344,7 +356,7 @@ class FlashcardApp {
                     // Update UI to show the card now at current index
                     this.updateUI();
                 } else {
-                    // If card is already in queue or doesn't exist, just move to next card
+                    // If card doesn't exist, just move to next card
                     this.nextCard();
                 }
             } else {
@@ -352,13 +364,14 @@ class FlashcardApp {
                 const filteredCards = this.getFilteredCards();
                 const currentCard = filteredCards[this.currentCardIndex];
                 
-                if (currentCard && !this.reviewQueue.includes(currentCard.id)) {
+                if (currentCard) {
+                    // Allow cards to be added to review queue multiple times
                     this.reviewQueue.push(currentCard.id);
                     
                     // Move to the next card
                     this.nextCard();
                 } else {
-                    // If card is already in queue or doesn't exist, just move to next card
+                    // If card doesn't exist, just move to next card
                     this.nextCard();
                 }
             }
@@ -426,13 +439,20 @@ class FlashcardApp {
                 
                 // Split into non-queued and queued groups
                 const nonQueuedCards = [];
-                const queuedCards = [];
                 
                 for (const card of this.sessionCards) {
-                    if (queuedCardIds.has(card.id)) {
-                        queuedCards.push(card);
-                    } else {
+                    if (!queuedCardIds.has(card.id)) {
                         nonQueuedCards.push(card);
+                    }
+                }
+                
+                // Build queued cards by iterating through reviewQueue to preserve duplicates
+                // Each entry in reviewQueue should result in one card in the final array
+                const queuedCards = [];
+                for (const cardId of this.reviewQueue) {
+                    const card = this.sessionCards.find(c => c.id === cardId);
+                    if (card) {
+                        queuedCards.push(card);
                     }
                 }
                 
