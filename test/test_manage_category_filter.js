@@ -90,11 +90,11 @@ test(
 
 const filterIndex = indexHtml.indexOf('id="manage-category-filter"');
 const formIndex = indexHtml.indexOf('class="add-card-form"');
-const importIndex = indexHtml.indexOf('class="import-export-section"');
+const cardListIndex = indexHtml.indexOf('class="card-list"');
 test(
     'Category filter positioned correctly',
-    filterIndex > importIndex && filterIndex < formIndex,
-    'Filter should be between import/export and add card form'
+    filterIndex > formIndex && filterIndex < cardListIndex,
+    'Filter should be between add card form and card list'
 );
 
 test(
@@ -215,7 +215,7 @@ if (passedTests === totalTests) {
     console.log('\n📝 Manual testing steps:');
     console.log('1. Open index.html in a browser');
     console.log('2. Navigate to "Manage Cards" tab');
-    console.log('3. Verify category filter appears between Import/Export and Add Card');
+    console.log('3. Verify category filter appears between Add Card form and card list');
     console.log('4. Select/deselect categories and verify cards filter correctly');
     console.log('5. Verify card count shows "X of Y" when filtered');
     console.log('6. Add a card with a new category and verify filter updates');
