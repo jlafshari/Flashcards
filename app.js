@@ -643,16 +643,33 @@ class FlashcardApp {
     }
 
     updateManageTab() {
-        document.getElementById('card-count').textContent = this.cards.length;
+        // Update category filter display
+        this.updateManageCategoryFilter();
+        
+        // Get filtered cards by category
+        const filteredCards = this.getFilteredCardsByCategory();
+        const totalCards = this.cards.length;
+        
+        // Update card count display
+        const cardCountElement = document.getElementById('card-count');
+        if (this.activeCategories.length > 0 && filteredCards.length !== totalCards) {
+            cardCountElement.textContent = `${filteredCards.length} of ${totalCards}`;
+        } else {
+            cardCountElement.textContent = totalCards;
+        }
         
         const cardsList = document.getElementById('cards-list');
         
-        if (this.cards.length === 0) {
-            cardsList.innerHTML = '<p style="color: #666; text-align: center; padding: 40px;">No cards yet. Add your first card above!</p>';
+        if (filteredCards.length === 0) {
+            if (totalCards === 0) {
+                cardsList.innerHTML = '<p style="color: #666; text-align: center; padding: 40px;">No cards yet. Add your first card above!</p>';
+            } else {
+                cardsList.innerHTML = '<p style="color: #666; text-align: center; padding: 40px;">No cards match the selected categories.</p>';
+            }
             return;
         }
 
-        cardsList.innerHTML = this.cards.map(card => {
+        cardsList.innerHTML = filteredCards.map(card => {
             // Check if this card is being edited
             if (this.editingCardId === card.id) {
                 // Render edit form
@@ -724,6 +741,55 @@ class FlashcardApp {
 
     handleCategoryFilterChange() {
         const checkboxes = document.querySelectorAll('#category-checkboxes input[type="checkbox"]');
+        const selectedCategories = Array.from(checkboxes)
+            .filter(cb => cb.checked)
+            .map(cb => cb.value);
+        
+        // If all are checked or none are checked, show all
+        const allCategories = this.getCategories();
+        if (selectedCategories.length === 0 || selectedCategories.length === allCategories.length) {
+            this.setActiveCategories([]);
+        } else {
+            this.setActiveCategories(selectedCategories);
+        }
+    }
+
+    updateManageCategoryFilter() {
+        const filterContainer = document.getElementById('manage-category-filter');
+        if (!filterContainer) return;
+
+        const categories = this.getCategories();
+        
+        if (categories.length === 0 || (categories.length === 1 && categories[0] === '')) {
+            // No categories or only empty category - hide filter
+            filterContainer.style.display = 'none';
+            return;
+        }
+
+        filterContainer.style.display = 'block';
+        
+        const checkboxesContainer = document.getElementById('manage-category-checkboxes');
+        checkboxesContainer.innerHTML = categories.map(category => {
+            const displayName = category || 'Uncategorized';
+            const isChecked = this.activeCategories.length === 0 || this.activeCategories.includes(category);
+            return `
+                <label class="category-checkbox">
+                    <input type="checkbox" class="manage-category-cb" value="${this.escapeHtml(category)}" ${isChecked ? 'checked' : ''}>
+                    <span>${this.escapeHtml(displayName)}</span>
+                </label>
+            `;
+        }).join('');
+
+        // Add event listeners to checkboxes
+        checkboxesContainer.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+            checkbox.addEventListener('change', () => {
+                this.handleManageCategoryFilterChange();
+            });
+        });
+    }
+
+    handleManageCategoryFilterChange() {
+        const checkboxes = document.querySelectorAll('#manage-category-checkboxes input[type="checkbox"]');
         const selectedCategories = Array.from(checkboxes)
             .filter(cb => cb.checked)
             .map(cb => cb.value);
