@@ -545,13 +545,13 @@ body {
 /* Import/Export Section */
 .import-export-section {
     background: #f8f9fa;
-    padding: 30px;
+    padding: 15px;
     border-radius: 10px;
-    margin-bottom: 40px;
+    margin-bottom: 20px;
 }
 
 .import-export-section h2 {
-    margin-bottom: 20px;
+    margin-bottom: 15px;
     color: #667eea;
 }
 
@@ -569,31 +569,31 @@ body {
 /* Manage Category Filter */
 .manage-category-filter {
     background: #f8f9fa;
-    padding: 30px;
+    padding: 15px;
     border-radius: 10px;
-    margin-bottom: 40px;
+    margin-bottom: 20px;
 }
 
 .manage-category-filter h2 {
-    margin-bottom: 20px;
+    margin-bottom: 15px;
     color: #667eea;
 }
 
 /* Form */
 .add-card-form {
     background: #f8f9fa;
-    padding: 30px;
+    padding: 15px;
     border-radius: 10px;
-    margin-bottom: 40px;
+    margin-bottom: 20px;
 }
 
 .add-card-form h2 {
-    margin-bottom: 20px;
+    margin-bottom: 15px;
     color: #667eea;
 }
 
 .form-group {
-    margin-bottom: 20px;
+    margin-bottom: 15px;
 }
 
 .form-group label {
@@ -619,7 +619,7 @@ body {
 
 /* Card List */
 .card-list h2 {
-    margin-bottom: 20px;
+    margin-bottom: 15px;
     color: #667eea;
 }
 
