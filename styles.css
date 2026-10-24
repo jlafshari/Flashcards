@@ -566,6 +566,19 @@ body {
     min-width: 150px;
 }
 
+/* Manage Category Filter */
+.manage-category-filter {
+    background: #f8f9fa;
+    padding: 30px;
+    border-radius: 10px;
+    margin-bottom: 40px;
+}
+
+.manage-category-filter h2 {
+    margin-bottom: 20px;
+    color: #667eea;
+}
+
 /* Form */
 .add-card-form {
     background: #f8f9fa;
