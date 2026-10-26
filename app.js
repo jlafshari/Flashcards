@@ -42,6 +42,12 @@ class FlashcardApp {
         const stored = localStorage.getItem('flashcards');
         if (stored) {
             this.cards = JSON.parse(stored);
+            // Ensure existing cards have buried property
+            this.cards.forEach(card => {
+                if (card.buried === undefined) {
+                    card.buried = false;
+                }
+            });
         } else {
             // First-time usage - initialize with sample cards
             this.initializeSampleCards();
@@ -103,7 +109,8 @@ class FlashcardApp {
             bulgarian: bulgarian.trim(),
             english: english.trim(),
             category: category.trim(),
-            createdAt: new Date().toISOString()
+            createdAt: new Date().toISOString(),
+            buried: false
         };
         
         this.cards.push(card);
@@ -131,6 +138,15 @@ class FlashcardApp {
             card.bulgarian = bulgarian.trim();
             card.english = english.trim();
             card.category = category.trim();
+            this.saveToStorage();
+            this.updateUI();
+        }
+    }
+
+    buryCard(id) {
+        const card = this.cards.find(c => c.id === id);
+        if (card) {
+            card.buried = !card.buried;
             this.saveToStorage();
             this.updateUI();
         }
@@ -310,6 +326,49 @@ class FlashcardApp {
         }, 300);
     }
 
+    markBuried() {
+        // Show animation first, then navigate after animation completes
+        this.animateButton('bury-btn');
+        
+        // Delay navigation to allow animation to complete
+        setTimeout(() => {
+            if (this.inSession) {
+                const filteredCards = this.getFilteredCards();
+                const currentCard = filteredCards[this.currentCardIndex];
+                
+                if (currentCard) {
+                    // Mark card as buried
+                    currentCard.buried = true;
+                    this.saveToStorage();
+                    
+                    // Mark as reviewed
+                    this.sessionReviewedCards.add(currentCard.id);
+                    
+                    // Remove from session cards
+                    this.sessionCards = this.sessionCards.filter(c => c.id !== currentCard.id);
+                    
+                    // Remove from review queue if present
+                    this.reviewQueue = this.reviewQueue.filter(id => id !== currentCard.id);
+                    
+                    // Reset flip state and increment review count
+                    this.resetFlip();
+                    this.incrementReviewCount();
+                    
+                    // Check if there are any cards left
+                    const updatedFilteredCards = this.getFilteredCards();
+                    if (updatedFilteredCards.length === 0 || this.currentCardIndex >= updatedFilteredCards.length) {
+                        // No more cards - end session
+                        this.showSessionComplete();
+                        return;
+                    }
+                    
+                    // Update UI to show the card now at current index
+                    this.updateUI();
+                }
+            }
+        }, 300);
+    }
+
     markForReview() {
         // Show animation first, then navigate after animation completes
         this.animateButton('review-btn');
@@ -420,10 +479,13 @@ class FlashcardApp {
 
     // Get cards filtered by category only (ignoring session state)
     getFilteredCardsByCategory() {
+        // Filter out buried cards
+        const activeCards = this.cards.filter(card => !card.buried);
+        
         if (this.activeCategories.length === 0) {
-            return this.cards;
+            return activeCards;
         } else {
-            return this.cards.filter(card => {
+            return activeCards.filter(card => {
                 const category = card.category || '';
                 return this.activeCategories.includes(category);
             });
