@@ -465,6 +465,22 @@ body {
     cursor: not-allowed;
 }
 
+.btn-bury {
+    background: #757575;
+    color: white;
+}
+
+.btn-bury:hover {
+    background: #616161;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(117, 117, 117, 0.4);
+}
+
+.btn-bury:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
 /* Button press animation */
 @keyframes button-press {
     0% {
@@ -502,12 +518,28 @@ body {
     }
 }
 
+@keyframes button-glow-bury {
+    0% {
+        box-shadow: 0 0 0 0 rgba(117, 117, 117, 0);
+    }
+    50% {
+        box-shadow: 0 0 30px 10px rgba(117, 117, 117, 0.8);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(117, 117, 117, 0);
+    }
+}
+
 .btn-easy.animating {
     animation: button-press 0.3s ease-out, button-glow-easy 0.3s ease-out;
 }
 
 .btn-review.animating {
     animation: button-press 0.3s ease-out, button-glow-review 0.3s ease-out;
+}
+
+.btn-bury.animating {
+    animation: button-press 0.3s ease-out, button-glow-bury 0.3s ease-out;
 }
 
 /* Session Buttons */

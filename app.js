@@ -291,12 +291,14 @@ class FlashcardApp {
         document.getElementById('next-btn').style.display = 'none';
         document.getElementById('easy-btn').style.display = 'inline-block';
         document.getElementById('review-btn').style.display = 'inline-block';
+        document.getElementById('bury-btn').style.display = 'inline-block';
     }
 
     hideFeedbackButtons() {
         document.getElementById('next-btn').style.display = 'inline-block';
         document.getElementById('easy-btn').style.display = 'none';
         document.getElementById('review-btn').style.display = 'none';
+        document.getElementById('bury-btn').style.display = 'none';
     }
 
     markEasy() {
