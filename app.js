@@ -1191,6 +1191,10 @@ class FlashcardApp {
             this.markForReview();
         });
 
+        document.getElementById('bury-btn').addEventListener('click', () => {
+            this.markBuried();
+        });
+
         // Click on card to flip
         document.getElementById('flashcard').addEventListener('click', () => {
             this.flipCard();
