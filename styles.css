@@ -481,6 +481,17 @@ body {
     cursor: not-allowed;
 }
 
+.btn-unbury {
+    background: #2196f3;
+    color: white;
+    padding: 8px 16px;
+    font-size: 0.9em;
+}
+
+.btn-unbury:hover {
+    background: #1976d2;
+}
+
 /* Button press animation */
 @keyframes button-press {
     0% {
@@ -694,6 +705,16 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
+}
+
+.card-item-buried {
+    opacity: 0.5;
+    background: #e8e8e8;
+}
+
+.card-item-buried .card-item-content {
+    text-decoration: line-through;
+    color: #888;
 }
 
 .card-item-content {

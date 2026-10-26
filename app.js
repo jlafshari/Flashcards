@@ -710,21 +710,28 @@ class FlashcardApp {
         // Update category filter display
         this.updateManageCategoryFilter();
         
-        // Get filtered cards by category
-        const filteredCards = this.getFilteredCardsByCategory();
+        // Get all cards (including buried) filtered by category
+        let allFilteredCards = this.cards;
+        if (this.activeCategories.length > 0) {
+            allFilteredCards = this.cards.filter(card => {
+                const category = card.category || '';
+                return this.activeCategories.includes(category);
+            });
+        }
+        
         const totalCards = this.cards.length;
         
         // Update card count display
         const cardCountElement = document.getElementById('card-count');
-        if (this.activeCategories.length > 0 && filteredCards.length !== totalCards) {
-            cardCountElement.textContent = `${filteredCards.length} of ${totalCards}`;
+        if (this.activeCategories.length > 0 && allFilteredCards.length !== totalCards) {
+            cardCountElement.textContent = `${allFilteredCards.length} of ${totalCards}`;
         } else {
             cardCountElement.textContent = totalCards;
         }
         
         const cardsList = document.getElementById('cards-list');
         
-        if (filteredCards.length === 0) {
+        if (allFilteredCards.length === 0) {
             if (totalCards === 0) {
                 cardsList.innerHTML = '<p style="color: #666; text-align: center; padding: 40px;">No cards yet. Add your first card above!</p>';
             } else {
@@ -733,7 +740,7 @@ class FlashcardApp {
             return;
         }
 
-        cardsList.innerHTML = filteredCards.map(card => {
+        cardsList.innerHTML = allFilteredCards.map(card => {
             // Check if this card is being edited
             if (this.editingCardId === card.id) {
                 // Render edit form
@@ -752,14 +759,19 @@ class FlashcardApp {
                 `;
             } else {
                 // Render normal view with Edit button
+                const buriedClass = card.buried ? ' card-item-buried' : '';
+                const buryButtonText = card.buried ? 'Unbury' : 'Bury';
+                const buryButtonClass = card.buried ? 'btn-unbury' : 'btn-bury';
+                
                 return `
-                    <div class="card-item">
+                    <div class="card-item${buriedClass}">
                         <div class="card-item-content">
                             <div class="card-item-front">${this.escapeHtml(card.bulgarian)}</div>
                             <div class="card-item-back">${this.escapeHtml(card.english)}</div>
                             ${card.category ? `<div class="card-item-category">Category: ${this.escapeHtml(card.category)}</div>` : ''}
                         </div>
                         <div class="card-item-actions">
+                            <button class="btn ${buryButtonClass}" onclick="app.buryCard(${card.id})">${buryButtonText}</button>
                             <button class="btn btn-edit" onclick="app.startEditCard(${card.id})">Edit</button>
                             <button class="btn btn-danger" onclick="app.deleteCard(${card.id})">Delete</button>
                         </div>
