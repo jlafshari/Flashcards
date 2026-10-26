@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test: Reduced Vertical Spacing</title>
+    <link rel="stylesheet" href="../styles.css">
+    <style>
+        .test-info {
+            background: #fff3cd;
+            padding: 15px;
+            margin: 20px;
+            border-radius: 8px;
+            border: 2px solid #ffc107;
+        }
+        .test-info h2 {
+            margin-top: 0;
+            color: #856404;
+        }
+        .test-info ul {
+            margin-left: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="test-info">
+            <h2>✓ Vertical Spacing Reduction Test</h2>
+            <p><strong>Changes Made:</strong></p>
+            <ul>
+                <li>Removed "Import/Export Cards" h2 label (buttons are self-explanatory)</li>
+                <li>Reduced padding in all manage tab sections from 30px to 15px</li>
+                <li>Reduced margin-bottom in sections from 40px to 20px</li>
+                <li>Reduced h2 margin-bottom from 20px to 15px</li>
+                <li>Reduced form-group margin-bottom from 20px to 15px</li>
+            </ul>
+            <p><strong>Expected Result:</strong></p>
+            <ul>
+                <li>More compact layout in Manage Cards tab</li>
+                <li>Card list visible sooner without excessive scrolling</li>
+                <li>Still maintains good visual hierarchy and readability</li>
+            </ul>
+        </div>
+
+        <nav class="tabs">
+            <h1>🎴 Flashcards</h1>
+            <button class="tab-button" data-tab="study">Study</button>
+            <button class="tab-button active" data-tab="manage">Manage Cards</button>
+        </nav>
+
+        <!-- Manage Cards Tab -->
+        <div id="manage-tab" class="tab-content active">
+            <div class="import-export-section">
+                <div class="import-export-buttons">
+                    <button class="btn btn-secondary">Export Cards</button>
+                    <button class="btn btn-secondary">Import Cards (Merge)</button>
+                    <button class="btn btn-secondary">Import Cards (Replace)</button>
+                </div>
+            </div>
+
+            <div class="add-card-form">
+                <h2>Add New Card</h2>
+                <div class="form-group">
+                    <label for="bulgarian-input">Bulgarian:</label>
+                    <input type="text" id="bulgarian-input" placeholder="Enter Bulgarian word or phrase">
+                </div>
+                <div class="form-group">
+                    <label for="english-input">English:</label>
+                    <input type="text" id="english-input" placeholder="Enter English translation">
+                </div>
+                <div class="form-group">
+                    <label for="category-input">Category (optional):</label>
+                    <input type="text" id="category-input" placeholder="Enter category (e.g., Food, Greetings)">
+                </div>
+                <button class="btn btn-primary">Add Card</button>
+            </div>
+
+            <div class="manage-category-filter">
+                <h2>Filter by Category</h2>
+                <div class="category-checkboxes">
+                    <label class="category-checkbox">
+                        <input type="checkbox" checked>
+                        <span>Food</span>
+                    </label>
+                    <label class="category-checkbox">
+                        <input type="checkbox" checked>
+                        <span>Greetings</span>
+                    </label>
+                    <label class="category-checkbox">
+                        <input type="checkbox" checked>
+                        <span>Numbers</span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="card-list">
+                <h2>All Cards (<span>6</span>)</h2>
+                <div id="cards-list">
+                    <div class="card-item">
+                        <div class="card-item-content">
+                            <div class="card-item-front">Здравей</div>
+                            <div class="card-item-back">Hello</div>
+                            <div class="card-item-category">Category: Greetings</div>
+                        </div>
+                        <div class="card-item-actions">
+                            <button class="btn btn-edit">Edit</button>
+                            <button class="btn btn-danger">Delete</button>
+                        </div>
+                    </div>
+                    <div class="card-item">
+                        <div class="card-item-content">
+                            <div class="card-item-front">Довиждане</div>
+                            <div class="card-item-back">Goodbye</div>
+                            <div class="card-item-category">Category: Greetings</div>
+                        </div>
+                        <div class="card-item-actions">
+                            <button class="btn btn-edit">Edit</button>
+                            <button class="btn btn-danger">Delete</button>
+                        </div>
+                    </div>
+                    <div class="card-item">
+                        <div class="card-item-content">
+                            <div class="card-item-front">Хляб</div>
+                            <div class="card-item-back">Bread</div>
+                            <div class="card-item-category">Category: Food</div>
+                        </div>
+                        <div class="card-item-actions">
+                            <button class="btn btn-edit">Edit</button>
+                            <button class="btn btn-danger">Delete</button>
+                        </div>
+                    </div>
+                    <div class="card-item">
+                        <div class="card-item-content">
+                            <div class="card-item-front">Вода</div>
+                            <div class="card-item-back">Water</div>
+                            <div class="card-item-category">Category: Food</div>
+                        </div>
+                        <div class="card-item-actions">
+                            <button class="btn btn-edit">Edit</button>
+                            <button class="btn btn-danger">Delete</button>
+                        </div>
+                    </div>
+                    <div class="card-item">
+                        <div class="card-item-content">
+                            <div class="card-item-front">Едно</div>
+                            <div class="card-item-back">One</div>
+                            <div class="card-item-category">Category: Numbers</div>
+                        </div>
+                        <div class="card-item-actions">
+                            <button class="btn btn-edit">Edit</button>
+                            <button class="btn btn-danger">Delete</button>
+                        </div>
+                    </div>
+                    <div class="card-item">
+                        <div class="card-item-content">
+                            <div class="card-item-front">Две</div>
+                            <div class="card-item-back">Two</div>
+                            <div class="card-item-category">Category: Numbers</div>
+                        </div>
+                        <div class="card-item-actions">
+                            <button class="btn btn-edit">Edit</button>
+                            <button class="btn btn-danger">Delete</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

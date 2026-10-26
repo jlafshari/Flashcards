@@ -1,0 +1,227 @@
+// Manual Test for Manage Cards Category Filter
+// Run with: node test/test_manage_category_filter.js
+
+const fs = require('fs');
+
+console.log('=== Manage Cards Category Filter - Code Structure Test ===\n');
+
+// Read the files
+const appJs = fs.readFileSync('app.js', 'utf8');
+const indexHtml = fs.readFileSync('index.html', 'utf8');
+const stylesCss = fs.readFileSync('styles.css', 'utf8');
+
+let passedTests = 0;
+let totalTests = 0;
+
+function test(name, condition, details = '') {
+    totalTests++;
+    if (condition) {
+        console.log(`✓ PASS: ${name}`);
+        passedTests++;
+        return true;
+    } else {
+        console.log(`✗ FAIL: ${name}`);
+        if (details) console.log(`  Details: ${details}`);
+        return false;
+    }
+}
+
+console.log('Group 1: Method Existence\n');
+
+test(
+    'updateManageCategoryFilter method exists',
+    appJs.includes('updateManageCategoryFilter()'),
+    'Method should be defined in app.js'
+);
+
+test(
+    'handleManageCategoryFilterChange method exists',
+    appJs.includes('handleManageCategoryFilterChange()'),
+    'Method should be defined in app.js'
+);
+
+console.log('\nGroup 2: updateManageTab Integration\n');
+
+// Extract updateManageTab method
+const updateManageTabMatch = appJs.match(/updateManageTab\(\)\s*\{[\s\S]*?\n    \}/);
+if (updateManageTabMatch) {
+    const updateManageTabBody = updateManageTabMatch[0];
+    
+    test(
+        'updateManageTab calls updateManageCategoryFilter',
+        updateManageTabBody.includes('updateManageCategoryFilter'),
+        'Should call updateManageCategoryFilter to render the filter'
+    );
+    
+    test(
+        'updateManageTab uses getFilteredCardsByCategory',
+        updateManageTabBody.includes('getFilteredCardsByCategory'),
+        'Should filter cards by category'
+    );
+    
+    test(
+        'updateManageTab shows filtered count',
+        updateManageTabBody.includes('of') && updateManageTabBody.includes('filteredCards.length'),
+        'Should show "X of Y" when filtered'
+    );
+    
+    test(
+        'updateManageTab handles empty state for filtered cards',
+        updateManageTabBody.includes('No cards match the selected categories'),
+        'Should show appropriate message when filter results are empty'
+    );
+} else {
+    test('updateManageTab method found', false, 'Could not parse updateManageTab');
+}
+
+console.log('\nGroup 3: HTML Structure\n');
+
+test(
+    'HTML has manage-category-filter div',
+    indexHtml.includes('id="manage-category-filter"'),
+    'index.html should contain the filter container'
+);
+
+test(
+    'HTML has manage-category-checkboxes div',
+    indexHtml.includes('id="manage-category-checkboxes"'),
+    'index.html should contain the checkboxes container'
+);
+
+const filterIndex = indexHtml.indexOf('id="manage-category-filter"');
+const formIndex = indexHtml.indexOf('class="add-card-form"');
+const cardListIndex = indexHtml.indexOf('class="card-list"');
+test(
+    'Category filter positioned correctly',
+    filterIndex > formIndex && filterIndex < cardListIndex,
+    'Filter should be between add card form and card list'
+);
+
+test(
+    'Filter uses category-checkboxes class',
+    indexHtml.includes('class="category-checkboxes"') && 
+    indexHtml.indexOf('manage-category-checkboxes') > 0,
+    'Should reuse existing category-checkboxes styling'
+);
+
+console.log('\nGroup 4: CSS Styling\n');
+
+test(
+    'CSS has .manage-category-filter styles',
+    stylesCss.includes('.manage-category-filter'),
+    'styles.css should contain filter styles'
+);
+
+const manageCategoryFilterMatch = stylesCss.match(/\.manage-category-filter\s*\{[^}]+\}/);
+if (manageCategoryFilterMatch) {
+    const styles = manageCategoryFilterMatch[0];
+    
+    test(
+        'manage-category-filter has background style',
+        styles.includes('background'),
+        'Filter section should have background styling'
+    );
+    
+    test(
+        'manage-category-filter has padding',
+        styles.includes('padding'),
+        'Filter section should have padding'
+    );
+    
+    test(
+        'manage-category-filter has border-radius',
+        styles.includes('border-radius'),
+        'Filter section should have rounded corners'
+    );
+} else {
+    test('manage-category-filter CSS structure', false, 'Could not parse CSS block');
+}
+
+console.log('\nGroup 5: Event Handling\n');
+
+const updateManageCategoryFilterMatch = appJs.match(/updateManageCategoryFilter\(\)\s*\{[\s\S]*?\n    \}/);
+if (updateManageCategoryFilterMatch) {
+    const methodBody = updateManageCategoryFilterMatch[0];
+    
+    test(
+        'updateManageCategoryFilter checks categories',
+        methodBody.includes('getCategories()'),
+        'Should get categories to render'
+    );
+    
+    test(
+        'updateManageCategoryFilter hides when no categories',
+        methodBody.includes("style.display = 'none'") || methodBody.includes('style.display = "none"'),
+        'Should hide filter when no categories exist'
+    );
+    
+    test(
+        'updateManageCategoryFilter adds event listeners',
+        methodBody.includes('addEventListener'),
+        'Should attach event listeners to checkboxes'
+    );
+    
+    test(
+        'updateManageCategoryFilter calls handleManageCategoryFilterChange',
+        methodBody.includes('handleManageCategoryFilterChange'),
+        'Should call handler when checkboxes change'
+    );
+}
+
+const handleManageCategoryFilterChangeMatch = appJs.match(/handleManageCategoryFilterChange\(\)\s*\{[\s\S]*?\n    \}/);
+if (handleManageCategoryFilterChangeMatch) {
+    const methodBody = handleManageCategoryFilterChangeMatch[0];
+    
+    test(
+        'handleManageCategoryFilterChange reads manage checkboxes',
+        methodBody.includes('manage-category-checkboxes'),
+        'Should read from the correct checkbox container'
+    );
+    
+    test(
+        'handleManageCategoryFilterChange calls setActiveCategories',
+        methodBody.includes('setActiveCategories'),
+        'Should update active categories when checkboxes change'
+    );
+}
+
+console.log('\nGroup 6: Integration with Existing Features\n');
+
+test(
+    'Uses shared activeCategories state',
+    appJs.includes('this.activeCategories') && 
+    appJs.match(/activeCategories/g).length > 5,
+    'Should use existing activeCategories state'
+);
+
+test(
+    'Uses existing getFilteredCardsByCategory method',
+    appJs.includes('getFilteredCardsByCategory()') &&
+    appJs.match(/getFilteredCardsByCategory/g).length > 3,
+    'Should leverage existing filtering logic'
+);
+
+test(
+    'Reuses category-checkbox CSS class',
+    appJs.includes('class="category-checkbox"') &&
+    indexHtml.includes('class="category-checkboxes"'),
+    'Should reuse existing category checkbox styles'
+);
+
+console.log(`\n=== Summary: ${passedTests}/${totalTests} tests passed ===`);
+
+if (passedTests === totalTests) {
+    console.log('\n✅ All code structure tests passed!');
+    console.log('\n📝 Manual testing steps:');
+    console.log('1. Open index.html in a browser');
+    console.log('2. Navigate to "Manage Cards" tab');
+    console.log('3. Verify category filter appears between Add Card form and card list');
+    console.log('4. Select/deselect categories and verify cards filter correctly');
+    console.log('5. Verify card count shows "X of Y" when filtered');
+    console.log('6. Add a card with a new category and verify filter updates');
+    console.log('7. Switch to Study tab and verify same categories are selected');
+    process.exit(0);
+} else {
+    console.log(`\n❌ ${totalTests - passedTests} test(s) failed`);
+    process.exit(1);
+}
