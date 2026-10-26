@@ -1239,6 +1239,12 @@ class FlashcardApp {
                         if (!reviewBtn.disabled) {
                             this.markForReview();
                         }
+                    } else if (e.key === '3') {
+                        e.preventDefault();
+                        const buryBtn = document.getElementById('bury-btn');
+                        if (!buryBtn.disabled) {
+                            this.markBuried();
+                        }
                     }
                 }
             }
