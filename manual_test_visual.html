@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visual Test - Unbury Button Opacity</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Visual Test: Unbury Button Opacity Fix</h1>
+        
+        <h2>Normal (Non-buried) Card</h2>
+        <div class="card-item">
+            <div class="card-item-content">
+                <div class="card-item-front">здравей</div>
+                <div class="card-item-back">hello</div>
+                <div class="card-item-category">Category: Greetings</div>
+            </div>
+            <div class="card-item-actions">
+                <button class="btn btn-bury">Bury</button>
+                <button class="btn btn-edit">Edit</button>
+                <button class="btn btn-danger">Delete</button>
+            </div>
+        </div>
+        
+        <h2>Buried Card (Content should be dimmed, buttons should NOT be dimmed)</h2>
+        <div class="card-item card-item-buried">
+            <div class="card-item-content">
+                <div class="card-item-front">благодаря</div>
+                <div class="card-item-back">thank you</div>
+                <div class="card-item-category">Category: Greetings</div>
+            </div>
+            <div class="card-item-actions">
+                <button class="btn btn-unbury">Unbury</button>
+                <button class="btn btn-edit">Edit</button>
+                <button class="btn btn-danger">Delete</button>
+            </div>
+        </div>
+        
+        <div style="margin-top: 30px; padding: 20px; background: #fff3cd; border-radius: 8px;">
+            <h3>Expected Result:</h3>
+            <ul>
+                <li>✓ Normal card: All text and buttons at full opacity</li>
+                <li>✓ Buried card content: Text appears dimmed (50% opacity) with strikethrough</li>
+                <li>✓ Buried card buttons: All buttons (Unbury, Edit, Delete) appear at FULL vibrancy</li>
+                <li>✓ Unbury button: Bright blue (#2196f3) - clearly interactive</li>
+                <li>✓ Hover effects: Unbury button transforms and shows shadow on hover</li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>
