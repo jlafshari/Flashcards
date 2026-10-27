@@ -488,6 +488,7 @@ body {
     color: white;
     padding: 8px 16px;
     font-size: 0.9em;
+    opacity: 1; /* Ensure button is fully opaque even inside buried card */
 }
 
 .btn-unbury:hover {
