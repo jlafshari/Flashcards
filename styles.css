@@ -468,6 +468,8 @@ body {
 .btn-bury {
     background: #757575;
     color: white;
+    padding: 8px 16px;
+    font-size: 0.9em;
 }
 
 .btn-bury:hover {
