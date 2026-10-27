@@ -468,8 +468,7 @@ body {
 .btn-bury {
     background: #757575;
     color: white;
-    padding: 8px 16px;
-    font-size: 0.9em;
+    /* Inherit padding: 15px 30px and font-size: 1em from .btn for study session consistency */
 }
 
 .btn-bury:hover {
@@ -745,6 +744,12 @@ body {
 .card-item-actions {
     display: flex;
     gap: 10px;
+}
+
+/* Buttons in manage cards section should be smaller */
+.card-item-actions .btn {
+    padding: 8px 16px;
+    font-size: 0.9em;
 }
 
 .card-item-edit-form {
