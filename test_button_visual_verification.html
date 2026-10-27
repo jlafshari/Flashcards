@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Study Session Button Test</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .test-container {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+        }
+        .test-section {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+        .test-title {
+            font-size: 1.5em;
+            color: #667eea;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+        .measurement {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            font-family: monospace;
+            font-size: 0.9em;
+        }
+        .measurement div {
+            margin: 5px 0;
+        }
+        .pass {
+            color: #4caf50;
+            font-weight: bold;
+        }
+        .fail {
+            color: #f5576c;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <div class="test-section">
+            <div class="test-title">Study Session - Flipped Card Controls</div>
+            <p style="color: #666; margin-bottom: 20px;">These buttons appear when you flip a card during study. They should all have the same height.</p>
+            
+            <div class="controls">
+                <button id="easy-test" class="btn btn-easy">Easy ✓</button>
+                <button id="review-test" class="btn btn-review">Review Again ↻</button>
+                <button id="bury-test" class="btn btn-bury">Bury ⏸</button>
+            </div>
+            
+            <div class="measurement">
+                <strong>Button Measurements:</strong>
+                <div id="easy-size"></div>
+                <div id="review-size"></div>
+                <div id="bury-size"></div>
+                <div id="height-check" style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #ddd;"></div>
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <div class="test-title">Manage Cards - Buried Card Actions</div>
+            <p style="color: #666; margin-bottom: 20px;">These buttons appear in the Manage Cards section. They should be smaller and consistent.</p>
+            
+            <div class="card-item card-item-buried">
+                <div class="card-item-content">
+                    <div class="card-item-front">Здравей</div>
+                    <div class="card-item-back">Hello</div>
+                    <div class="card-item-category">Category: Greetings</div>
+                </div>
+                <div class="card-item-actions">
+                    <button id="unbury-test" class="btn btn-unbury">Unbury</button>
+                    <button id="edit-test" class="btn btn-edit">Edit</button>
+                    <button id="delete-test" class="btn btn-danger">Delete</button>
+                </div>
+            </div>
+            
+            <div class="measurement">
+                <strong>Button Measurements:</strong>
+                <div id="unbury-size"></div>
+                <div id="edit-size"></div>
+                <div id="delete-size"></div>
+                <div id="manage-height-check" style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #ddd;"></div>
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <div class="test-title">Manage Cards - Regular Card Actions</div>
+            <p style="color: #666; margin-bottom: 20px;">Regular card actions including Bury button.</p>
+            
+            <div class="card-item">
+                <div class="card-item-content">
+                    <div class="card-item-front">Довиждане</div>
+                    <div class="card-item-back">Goodbye</div>
+                    <div class="card-item-category">Category: Greetings</div>
+                </div>
+                <div class="card-item-actions">
+                    <button id="bury-manage-test" class="btn btn-bury">Bury</button>
+                    <button id="edit-manage-test" class="btn btn-edit">Edit</button>
+                    <button id="delete-manage-test" class="btn btn-danger">Delete</button>
+                </div>
+            </div>
+            
+            <div class="measurement">
+                <strong>Button Measurements:</strong>
+                <div id="bury-manage-size"></div>
+                <div id="edit-manage-size"></div>
+                <div id="delete-manage-size"></div>
+                <div id="regular-height-check" style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #ddd;"></div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        function measureButton(id) {
+            const btn = document.getElementById(id);
+            const rect = btn.getBoundingClientRect();
+            const computedStyle = window.getComputedStyle(btn);
+            return {
+                width: Math.round(rect.width),
+                height: Math.round(rect.height),
+                padding: computedStyle.padding,
+                fontSize: computedStyle.fontSize
+            };
+        }
+        
+        function displayMeasurement(id, label, measurement) {
+            document.getElementById(id).innerHTML = 
+                `${label}: ${measurement.width}px × ${measurement.height}px (padding: ${measurement.padding}, font-size: ${measurement.fontSize})`;
+        }
+        
+        function checkHeights(buttons, checkId, expectedHeight) {
+            const heights = buttons.map(b => measureButton(b).height);
+            const allSame = heights.every(h => h === heights[0]);
+            const isExpected = heights[0] === expectedHeight;
+            
+            let status = allSame ? '<span class="pass">✓ All buttons same height</span>' : '<span class="fail">✗ Heights differ</span>';
+            if (allSame && isExpected) {
+                status += ` <span class="pass">(${heights[0]}px matches expected)</span>`;
+            } else if (allSame) {
+                status += ` (${heights[0]}px actual)`;
+            }
+            
+            document.getElementById(checkId).innerHTML = status + ' - Heights: ' + heights.join('px, ') + 'px';
+        }
+        
+        // Wait for page to fully render
+        window.addEventListener('load', function() {
+            // Study session buttons
+            const easySize = measureButton('easy-test');
+            const reviewSize = measureButton('review-test');
+            const burySize = measureButton('bury-test');
+            
+            displayMeasurement('easy-size', 'Easy', easySize);
+            displayMeasurement('review-size', 'Review', reviewSize);
+            displayMeasurement('bury-size', 'Bury', burySize);
+            checkHeights(['easy-test', 'review-test', 'bury-test'], 'height-check', 51);
+            
+            // Manage cards buried buttons
+            const unburySize = measureButton('unbury-test');
+            const editSize = measureButton('edit-test');
+            const deleteSize = measureButton('delete-test');
+            
+            displayMeasurement('unbury-size', 'Unbury', unburySize);
+            displayMeasurement('edit-size', 'Edit', editSize);
+            displayMeasurement('delete-size', 'Delete', deleteSize);
+            checkHeights(['unbury-test', 'edit-test', 'delete-test'], 'manage-height-check', 37);
+            
+            // Manage cards regular buttons
+            const buryManageSize = measureButton('bury-manage-test');
+            const editManageSize = measureButton('edit-manage-test');
+            const deleteManageSize = measureButton('delete-manage-test');
+            
+            displayMeasurement('bury-manage-size', 'Bury', buryManageSize);
+            displayMeasurement('edit-manage-size', 'Edit', editManageSize);
+            displayMeasurement('delete-manage-size', 'Delete', deleteManageSize);
+            checkHeights(['bury-manage-test', 'edit-manage-test', 'delete-manage-test'], 'regular-height-check', 37);
+        });
+    </script>
+</body>
+</html>
