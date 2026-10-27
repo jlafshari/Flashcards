@@ -492,6 +492,8 @@ body {
 
 .btn-unbury:hover {
     background: #1976d2;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(33, 150, 243, 0.4);
 }
 
 /* Button press animation */
