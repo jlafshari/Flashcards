@@ -42,6 +42,12 @@ class FlashcardApp {
         const stored = localStorage.getItem('flashcards');
         if (stored) {
             this.cards = JSON.parse(stored);
+            // Ensure existing cards have buried property
+            this.cards.forEach(card => {
+                if (card.buried === undefined) {
+                    card.buried = false;
+                }
+            });
         } else {
             // First-time usage - initialize with sample cards
             this.initializeSampleCards();
@@ -103,7 +109,8 @@ class FlashcardApp {
             bulgarian: bulgarian.trim(),
             english: english.trim(),
             category: category.trim(),
-            createdAt: new Date().toISOString()
+            createdAt: new Date().toISOString(),
+            buried: false
         };
         
         this.cards.push(card);
@@ -131,6 +138,15 @@ class FlashcardApp {
             card.bulgarian = bulgarian.trim();
             card.english = english.trim();
             card.category = category.trim();
+            this.saveToStorage();
+            this.updateUI();
+        }
+    }
+
+    buryCard(id) {
+        const card = this.cards.find(c => c.id === id);
+        if (card) {
+            card.buried = !card.buried;
             this.saveToStorage();
             this.updateUI();
         }
@@ -275,12 +291,14 @@ class FlashcardApp {
         document.getElementById('next-btn').style.display = 'none';
         document.getElementById('easy-btn').style.display = 'inline-block';
         document.getElementById('review-btn').style.display = 'inline-block';
+        document.getElementById('bury-btn').style.display = 'inline-block';
     }
 
     hideFeedbackButtons() {
         document.getElementById('next-btn').style.display = 'inline-block';
         document.getElementById('easy-btn').style.display = 'none';
         document.getElementById('review-btn').style.display = 'none';
+        document.getElementById('bury-btn').style.display = 'none';
     }
 
     markEasy() {
@@ -307,6 +325,49 @@ class FlashcardApp {
             
             // Card was easy - increment review count and move to next
             this.nextCard();
+        }, 300);
+    }
+
+    markBuried() {
+        // Show animation first, then navigate after animation completes
+        this.animateButton('bury-btn');
+        
+        // Delay navigation to allow animation to complete
+        setTimeout(() => {
+            if (this.inSession) {
+                const filteredCards = this.getFilteredCards();
+                const currentCard = filteredCards[this.currentCardIndex];
+                
+                if (currentCard) {
+                    // Mark card as buried
+                    currentCard.buried = true;
+                    this.saveToStorage();
+                    
+                    // Mark as reviewed
+                    this.sessionReviewedCards.add(currentCard.id);
+                    
+                    // Remove from session cards
+                    this.sessionCards = this.sessionCards.filter(c => c.id !== currentCard.id);
+                    
+                    // Remove from review queue if present
+                    this.reviewQueue = this.reviewQueue.filter(id => id !== currentCard.id);
+                    
+                    // Reset flip state and increment review count
+                    this.resetFlip();
+                    this.incrementReviewCount();
+                    
+                    // Check if there are any cards left
+                    const updatedFilteredCards = this.getFilteredCards();
+                    if (updatedFilteredCards.length === 0 || this.currentCardIndex >= updatedFilteredCards.length) {
+                        // No more cards - end session
+                        this.showSessionComplete();
+                        return;
+                    }
+                    
+                    // Update UI to show the card now at current index
+                    this.updateUI();
+                }
+            }
         }, 300);
     }
 
@@ -420,10 +481,13 @@ class FlashcardApp {
 
     // Get cards filtered by category only (ignoring session state)
     getFilteredCardsByCategory() {
+        // Filter out buried cards
+        const activeCards = this.cards.filter(card => !card.buried);
+        
         if (this.activeCategories.length === 0) {
-            return this.cards;
+            return activeCards;
         } else {
-            return this.cards.filter(card => {
+            return activeCards.filter(card => {
                 const category = card.category || '';
                 return this.activeCategories.includes(category);
             });
@@ -646,21 +710,28 @@ class FlashcardApp {
         // Update category filter display
         this.updateManageCategoryFilter();
         
-        // Get filtered cards by category
-        const filteredCards = this.getFilteredCardsByCategory();
+        // Get all cards (including buried) filtered by category
+        let allFilteredCards = this.cards;
+        if (this.activeCategories.length > 0) {
+            allFilteredCards = this.cards.filter(card => {
+                const category = card.category || '';
+                return this.activeCategories.includes(category);
+            });
+        }
+        
         const totalCards = this.cards.length;
         
         // Update card count display
         const cardCountElement = document.getElementById('card-count');
-        if (this.activeCategories.length > 0 && filteredCards.length !== totalCards) {
-            cardCountElement.textContent = `${filteredCards.length} of ${totalCards}`;
+        if (this.activeCategories.length > 0 && allFilteredCards.length !== totalCards) {
+            cardCountElement.textContent = `${allFilteredCards.length} of ${totalCards}`;
         } else {
             cardCountElement.textContent = totalCards;
         }
         
         const cardsList = document.getElementById('cards-list');
         
-        if (filteredCards.length === 0) {
+        if (allFilteredCards.length === 0) {
             if (totalCards === 0) {
                 cardsList.innerHTML = '<p style="color: #666; text-align: center; padding: 40px;">No cards yet. Add your first card above!</p>';
             } else {
@@ -669,7 +740,7 @@ class FlashcardApp {
             return;
         }
 
-        cardsList.innerHTML = filteredCards.map(card => {
+        cardsList.innerHTML = allFilteredCards.map(card => {
             // Check if this card is being edited
             if (this.editingCardId === card.id) {
                 // Render edit form
@@ -688,14 +759,19 @@ class FlashcardApp {
                 `;
             } else {
                 // Render normal view with Edit button
+                const buriedClass = card.buried ? ' card-item-buried' : '';
+                const buryButtonText = card.buried ? 'Unbury' : 'Bury';
+                const buryButtonClass = card.buried ? 'btn-unbury' : 'btn-bury';
+                
                 return `
-                    <div class="card-item">
+                    <div class="card-item${buriedClass}">
                         <div class="card-item-content">
                             <div class="card-item-front">${this.escapeHtml(card.bulgarian)}</div>
                             <div class="card-item-back">${this.escapeHtml(card.english)}</div>
                             ${card.category ? `<div class="card-item-category">Category: ${this.escapeHtml(card.category)}</div>` : ''}
                         </div>
                         <div class="card-item-actions">
+                            <button class="btn ${buryButtonClass}" onclick="app.buryCard(${card.id})">${buryButtonText}</button>
                             <button class="btn btn-edit" onclick="app.startEditCard(${card.id})">Edit</button>
                             <button class="btn btn-danger" onclick="app.deleteCard(${card.id})">Delete</button>
                         </div>
@@ -1127,6 +1203,10 @@ class FlashcardApp {
             this.markForReview();
         });
 
+        document.getElementById('bury-btn').addEventListener('click', () => {
+            this.markBuried();
+        });
+
         // Click on card to flip
         document.getElementById('flashcard').addEventListener('click', () => {
             this.flipCard();
@@ -1158,6 +1238,12 @@ class FlashcardApp {
                         const reviewBtn = document.getElementById('review-btn');
                         if (!reviewBtn.disabled) {
                             this.markForReview();
+                        }
+                    } else if (e.key === '3') {
+                        e.preventDefault();
+                        const buryBtn = document.getElementById('bury-btn');
+                        if (!buryBtn.disabled) {
+                            this.markBuried();
                         }
                     }
                 }

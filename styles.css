@@ -465,6 +465,36 @@ body {
     cursor: not-allowed;
 }
 
+.btn-bury {
+    background: #757575;
+    color: white;
+    /* Inherit padding: 15px 30px and font-size: 1em from .btn for study session consistency */
+}
+
+.btn-bury:hover {
+    background: #616161;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(117, 117, 117, 0.4);
+}
+
+.btn-bury:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.btn-unbury {
+    background: #2196f3;
+    color: white;
+    padding: 8px 16px;
+    font-size: 0.9em;
+}
+
+.btn-unbury:hover {
+    background: #1976d2;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(33, 150, 243, 0.4);
+}
+
 /* Button press animation */
 @keyframes button-press {
     0% {
@@ -502,12 +532,28 @@ body {
     }
 }
 
+@keyframes button-glow-bury {
+    0% {
+        box-shadow: 0 0 0 0 rgba(117, 117, 117, 0);
+    }
+    50% {
+        box-shadow: 0 0 30px 10px rgba(117, 117, 117, 0.8);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(117, 117, 117, 0);
+    }
+}
+
 .btn-easy.animating {
     animation: button-press 0.3s ease-out, button-glow-easy 0.3s ease-out;
 }
 
 .btn-review.animating {
     animation: button-press 0.3s ease-out, button-glow-review 0.3s ease-out;
+}
+
+.btn-bury.animating {
+    animation: button-press 0.3s ease-out, button-glow-bury 0.3s ease-out;
 }
 
 /* Session Buttons */
@@ -664,6 +710,16 @@ body {
     align-items: center;
 }
 
+.card-item-buried {
+    background: #e8e8e8;
+}
+
+.card-item-buried .card-item-content {
+    opacity: 0.5; /* Apply opacity to content only, not buttons */
+    text-decoration: line-through;
+    color: #888;
+}
+
 .card-item-content {
     flex: 1;
 }
@@ -688,6 +744,12 @@ body {
 .card-item-actions {
     display: flex;
     gap: 10px;
+}
+
+/* Buttons in manage cards section should be smaller */
+.card-item-actions .btn {
+    padding: 8px 16px;
+    font-size: 0.9em;
 }
 
 .card-item-edit-form {
