@@ -18,6 +18,8 @@ class FlashcardApp {
         this.sessionReviewedCards = new Set(); // IDs of cards reviewed in current session
         this.sessionStartTime = null; // Timestamp when session starts
         this.totalTimeToday = 0; // Total minutes reviewed today
+        this.sessionPausedTime = 0; // Total seconds paused in current session
+        this.sessionPauseStart = null; // Timestamp when pause started
         
         // Session preferences
         this.shuffleEnabled = false; // Whether to shuffle cards before session
