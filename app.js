@@ -908,8 +908,8 @@ class FlashcardApp {
         const filteredCards = this.sessionCards;
         const reviewedCount = filteredCards.length;
         
-        // Calculate elapsed time for display only
-        const elapsedSeconds = Math.round((Date.now() - this.sessionStartTime) / 1000);
+        // Calculate elapsed time for display only (excluding paused time)
+        const elapsedSeconds = Math.round((Date.now() - this.sessionStartTime) / 1000) - this.sessionPausedTime;
         const timeString = this.formatTime(elapsedSeconds);
         
         alert(`Session complete! You reviewed ${reviewedCount} card${reviewedCount !== 1 ? 's' : ''} in ${timeString}.`);
