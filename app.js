@@ -1312,6 +1312,21 @@ class FlashcardApp {
                 e.target.value = '';
             }
         });
+
+        // Page visibility change - pause timer when app is inactive
+        document.addEventListener('visibilitychange', () => {
+            if (this.inSession) {
+                if (document.hidden) {
+                    // Page hidden - start pause timer
+                    this.sessionPauseStart = Date.now();
+                } else if (this.sessionPauseStart !== null) {
+                    // Page visible - accumulate pause time
+                    const pauseDuration = Math.round((Date.now() - this.sessionPauseStart) / 1000);
+                    this.sessionPausedTime += pauseDuration;
+                    this.sessionPauseStart = null;
+                }
+            }
+        });
     }
 
     setDirection(direction) {
