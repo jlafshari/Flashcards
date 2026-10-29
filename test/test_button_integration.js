@@ -9,7 +9,7 @@ const path = require('path');
 console.log('=== Button Sizing Integration Test ===\n');
 
 // Read the CSS file
-const cssPath = path.join(__dirname, 'styles.css');
+const cssPath = path.join(__dirname, '../styles.css');
 const cssContent = fs.readFileSync(cssPath, 'utf8');
 
 // Test 1: Verify .btn base class has correct sizing
