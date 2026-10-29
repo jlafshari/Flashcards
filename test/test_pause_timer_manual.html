@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pause Timer Manual Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .instructions {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 20px 0;
+        }
+        .instructions ol {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+        .instructions li {
+            margin: 10px 0;
+        }
+        .status {
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        .status.info {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+        }
+        .status.success {
+            background: #d4edda;
+            border: 1px solid #28a745;
+        }
+        .expected {
+            background: #f8f9fa;
+            padding: 15px;
+            border-left: 4px solid #007bff;
+            margin: 20px 0;
+        }
+        .note {
+            color: #666;
+            font-style: italic;
+            margin-top: 20px;
+        }
+        code {
+            background: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🔍 Pause Timer Manual Test</h1>
+        <p>This test verifies that the session timer pauses when you switch tabs or minimize the browser window.</p>
+        
+        <div class="instructions">
+            <h3>Test Instructions:</h3>
+            <ol>
+                <li>Open the main app in another tab: <strong>index.html</strong></li>
+                <li>Navigate to the <strong>Study</strong> tab</li>
+                <li>Click <strong>"Start Study Session"</strong> to begin a session</li>
+                <li>Note the time when you start (check your watch/phone)</li>
+                <li><strong>Switch to a different tab or minimize the browser for exactly 10 seconds</strong></li>
+                <li>Return to the app tab</li>
+                <li>Complete the session (mark all cards as Easy/Review/Bury)</li>
+                <li>Check the session complete message</li>
+            </ol>
+        </div>
+
+        <div class="expected">
+            <h3>Expected Result:</h3>
+            <p>The elapsed time shown in the session complete message should <strong>NOT include</strong> the 10 seconds you spent in another tab.</p>
+            <p><strong>Example:</strong> If you were actively studying for 20 seconds and paused (in another tab) for 10 seconds, the message should show approximately 20 seconds, not 30 seconds.</p>
+        </div>
+
+        <div class="status info">
+            <p>💡 <strong>How it works:</strong></p>
+            <ul style="margin: 10px 0 0 20px;">
+                <li>The app uses the <code>visibilitychange</code> event to detect when you switch tabs</li>
+                <li>When the tab becomes hidden, it records the pause start time</li>
+                <li>When you return, it calculates the pause duration and subtracts it from the total time</li>
+                <li>Multiple pause/resume cycles are supported</li>
+            </ul>
+        </div>
+
+        <div class="status success">
+            <h3>✅ Success Criteria:</h3>
+            <ul style="margin: 10px 0 0 20px;">
+                <li>Time counter pauses when app tab is hidden</li>
+                <li>Time counter resumes when you return to the app tab</li>
+                <li>Final session time excludes all pause durations</li>
+                <li>Works correctly with multiple pause/resume cycles</li>
+            </ul>
+        </div>
+
+        <div class="note">
+            <p><strong>Note:</strong> The pause feature only works during an active study session. It does not affect time when you're just browsing the app without an active session.</p>
+        </div>
+
+        <h3 style="margin-top: 30px;">Additional Test Scenarios:</h3>
+        <ul>
+            <li><strong>Multiple Pauses:</strong> Switch away multiple times during a session (e.g., 5s, 10s, 3s) and verify all pause times are excluded</li>
+            <li><strong>Quick Switches:</strong> Rapidly switch tabs to ensure the timer handles quick transitions</li>
+            <li><strong>End While Paused:</strong> Switch to another tab and click "End Session" from the notification/alert to ensure it handles this edge case</li>
+        </ul>
+    </div>
+</body>
+</html>
