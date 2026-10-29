@@ -18,6 +18,8 @@ class FlashcardApp {
         this.sessionReviewedCards = new Set(); // IDs of cards reviewed in current session
         this.sessionStartTime = null; // Timestamp when session starts
         this.totalTimeToday = 0; // Total minutes reviewed today
+        this.sessionPausedTime = 0; // Total seconds paused in current session
+        this.sessionPauseStart = null; // Timestamp when pause started
         
         // Session preferences
         this.shuffleEnabled = false; // Whether to shuffle cards before session
@@ -210,6 +212,8 @@ class FlashcardApp {
         this.currentCardIndex = 0;
         this.reviewQueue = []; // Clear review queue for new session
         this.sessionStartTime = Date.now(); // Record start time
+        this.sessionPausedTime = 0; // Reset pause tracking
+        this.sessionPauseStart = null; // Reset pause tracking
         this.resetFlip();
         this.updateUI();
     }
@@ -217,7 +221,7 @@ class FlashcardApp {
     endSession() {
         // Calculate and save elapsed time if session was active
         if (this.sessionStartTime !== null) {
-            const elapsedSeconds = Math.round((Date.now() - this.sessionStartTime) / 1000);
+            const elapsedSeconds = Math.round((Date.now() - this.sessionStartTime) / 1000) - this.sessionPausedTime;
             this.totalTimeToday += elapsedSeconds;
             localStorage.setItem('totalTimeToday', this.totalTimeToday.toString());
         }
@@ -227,6 +231,8 @@ class FlashcardApp {
         this.sessionReviewedCards = new Set();
         this.reviewQueue = []; // Clear review queue
         this.sessionStartTime = null;
+        this.sessionPausedTime = 0; // Reset pause tracking
+        this.sessionPauseStart = null; // Reset pause tracking
         this.resetFlip();
         this.updateUI();
     }
@@ -902,8 +908,8 @@ class FlashcardApp {
         const filteredCards = this.sessionCards;
         const reviewedCount = filteredCards.length;
         
-        // Calculate elapsed time for display only
-        const elapsedSeconds = Math.round((Date.now() - this.sessionStartTime) / 1000);
+        // Calculate elapsed time for display only (excluding paused time)
+        const elapsedSeconds = Math.round((Date.now() - this.sessionStartTime) / 1000) - this.sessionPausedTime;
         const timeString = this.formatTime(elapsedSeconds);
         
         alert(`Session complete! You reviewed ${reviewedCount} card${reviewedCount !== 1 ? 's' : ''} in ${timeString}.`);
@@ -1304,6 +1310,21 @@ class FlashcardApp {
                 this.importCards(file, mode === 'replace');
                 // Reset file input so same file can be selected again
                 e.target.value = '';
+            }
+        });
+
+        // Page visibility change - pause timer when app is inactive
+        document.addEventListener('visibilitychange', () => {
+            if (this.inSession) {
+                if (document.hidden) {
+                    // Page hidden - start pause timer
+                    this.sessionPauseStart = Date.now();
+                } else if (this.sessionPauseStart !== null) {
+                    // Page visible - accumulate pause time
+                    const pauseDuration = Math.round((Date.now() - this.sessionPauseStart) / 1000);
+                    this.sessionPausedTime += pauseDuration;
+                    this.sessionPauseStart = null;
+                }
             }
         });
     }
