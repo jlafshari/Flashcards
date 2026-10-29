@@ -212,6 +212,8 @@ class FlashcardApp {
         this.currentCardIndex = 0;
         this.reviewQueue = []; // Clear review queue for new session
         this.sessionStartTime = Date.now(); // Record start time
+        this.sessionPausedTime = 0; // Reset pause tracking
+        this.sessionPauseStart = null; // Reset pause tracking
         this.resetFlip();
         this.updateUI();
     }
