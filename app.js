@@ -221,7 +221,7 @@ class FlashcardApp {
     endSession() {
         // Calculate and save elapsed time if session was active
         if (this.sessionStartTime !== null) {
-            const elapsedSeconds = Math.round((Date.now() - this.sessionStartTime) / 1000);
+            const elapsedSeconds = Math.round((Date.now() - this.sessionStartTime) / 1000) - this.sessionPausedTime;
             this.totalTimeToday += elapsedSeconds;
             localStorage.setItem('totalTimeToday', this.totalTimeToday.toString());
         }
@@ -231,6 +231,8 @@ class FlashcardApp {
         this.sessionReviewedCards = new Set();
         this.reviewQueue = []; // Clear review queue
         this.sessionStartTime = null;
+        this.sessionPausedTime = 0; // Reset pause tracking
+        this.sessionPauseStart = null; // Reset pause tracking
         this.resetFlip();
         this.updateUI();
     }
