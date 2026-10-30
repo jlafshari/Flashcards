@@ -43,13 +43,15 @@ class FlashcardApp {
     loadFromStorage() {
         const stored = localStorage.getItem('flashcards');
         if (stored) {
-            this.cards = JSON.parse(stored);
+            this.cards = this.parseStoredCards(stored);
             // Ensure existing cards have buried property
             this.cards.forEach(card => {
                 if (card.buried === undefined) {
                     card.buried = false;
                 }
             });
+            // Keep newly generated ids above every saved id (imports can leave ids ahead of the clock)
+            this.lastCardId = this.cards.reduce((max, card) => Math.max(max, Number(card.id) || 0), 0);
         } else {
             // First-time usage - initialize with sample cards
             this.initializeSampleCards();
@@ -76,6 +78,22 @@ class FlashcardApp {
         }
     }
     
+    parseStoredCards(stored) {
+        try {
+            const cards = JSON.parse(stored);
+            if (Array.isArray(cards)) {
+                return cards;
+            }
+        } catch (e) {
+            // Fall through to the unreadable-data handling below
+        }
+        // Keep the unreadable data so it can be recovered, and start with an empty deck
+        // instead of failing to load the app
+        localStorage.setItem('flashcardsCorruptBackup', stored);
+        console.error('Saved flashcards were unreadable; starting with an empty deck.');
+        return [];
+    }
+
     initializeSampleCards() {
         // Create 10 sample cards for first-time users
         // These cards cover basic Bulgarian phrases across different categories
@@ -101,13 +119,15 @@ class FlashcardApp {
         localStorage.setItem('flashcards', JSON.stringify(this.cards));
     }
 
+    nextCardId() {
+        // Unique ID: the timestamp, or one past the last ID if cards are created within the same ms
+        this.lastCardId = Math.max(Date.now(), this.lastCardId + 1);
+        return this.lastCardId;
+    }
+
     addCard(bulgarian, english, category = '') {
-        // Generate a unique ID using timestamp + counter to avoid collisions
-        const timestamp = Date.now();
-        this.lastCardId = Math.max(timestamp, this.lastCardId + 1);
-        
         const card = {
-            id: this.lastCardId,
+            id: this.nextCardId(),
             bulgarian: bulgarian.trim(),
             english: english.trim(),
             category: category.trim(),
@@ -1092,7 +1112,7 @@ class FlashcardApp {
                     }
 
                     newCards.push({
-                        id: Date.now() + importedCount,
+                        id: this.nextCardId(),
                         english: english.trim(),
                         bulgarian: bulgarian.trim(),
                         category: category.trim(),

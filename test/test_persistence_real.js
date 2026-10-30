@@ -54,6 +54,37 @@ test('cards saved without a buried flag load as not buried', () => {
     assertEquals(app.cards[0].buried, false);
 });
 
+test('a corrupt saved deck loads as empty instead of crashing, and is backed up', () => {
+    createApp();
+    localStorage.setItem('flashcards', '{oops');
+    const app = reload();
+    assertEquals(app.cards, []);
+    assertEquals(localStorage.getItem('flashcardsCorruptBackup'), '{oops');
+});
+
+test('a saved deck that is valid JSON but not a list is treated as corrupt', () => {
+    for (const bad of ['null', '5', '{"a":1}']) {
+        createApp();
+        localStorage.setItem('flashcards', bad);
+        assertEquals(reload().cards, [], `deck ${bad} should load as empty`);
+    }
+});
+
+test('a corrupt deck does not break adding cards afterward', () => {
+    createApp();
+    localStorage.setItem('flashcards', '{oops');
+    const app = reload();
+    app.addCard('а', 'a');
+    assertEquals(reload().cards.length, 1);
+});
+
+test('new card ids stay above saved ids after reload', () => {
+    const future = Date.now() + 100000;
+    const app = createApp([{ id: future, bulgarian: 'а', english: 'a', category: '', buried: false }]);
+    const card = app.addCard('б', 'b');
+    assert(card.id > future, 'new id should be above the highest saved id');
+});
+
 // --- preferences ---
 
 test('study direction is restored', () => {

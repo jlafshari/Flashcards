@@ -152,6 +152,23 @@ test('importCards: imported cards are saved to storage and get unique ids', () =
     assertEquals(new Set(app.cards.map(c => c.id)).size, 3, 'ids should be unique');
 });
 
+test('importCards: cards added right after an import never reuse an imported id', () => {
+    const app = createApp();
+    app.addCard('а', 'a');
+    importCsv(app, Array.from({ length: 50 }, (_, i) => `E${i},Б${i}`).join('\n'));
+    app.addCard('г', 'd');
+    app.addCard('д', 'e');
+    assertEquals(new Set(app.cards.map(c => c.id)).size, app.cards.length, 'ids should be unique');
+});
+
+test('importCards: ids stay unique when importing into a deck that already has later ids', () => {
+    const app = createApp();
+    app.addCard('а', 'a');
+    importCsv(app, 'B,б\nC,в');
+    importCsv(app, 'D,г\nE,д');
+    assertEquals(new Set(app.cards.map(c => c.id)).size, app.cards.length, 'ids should be unique');
+});
+
 // --- round trip ---
 
 test('export then import round-trips tricky text', () => {
