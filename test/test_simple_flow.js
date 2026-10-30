@@ -28,8 +28,10 @@ const mockElement = {
 global.document = {
     getElementById: () => mockElement,
     querySelectorAll: () => [],
+    querySelector: () => mockElement,
     addEventListener: () => {},
-    createElement: () => mockElement
+    // fresh element per call; innerHTML mirrors textContent so escapeHtml works
+    createElement: () => ({ ...mockElement, _text: '', set textContent(v) { this._text = v; }, get textContent() { return this._text; }, set innerHTML(v) {}, get innerHTML() { return this._text; } })
 };
 
 global.window = { alert: (msg) => console.log('ALERT:', msg) };
@@ -48,6 +50,7 @@ console.log('=== Simple One-Step Flow Tests ===\n');
 // Test 1: Initial state
 console.log('Test 1: Initial state');
 localStorage.clear();
+localStorage.setItem('flashcards', '[]'); // empty deck, not the sample cards
 const app1 = new FlashcardApp();
 app1.addCard('Здравей', 'Hello', 'Greetings');
 app1.addCard('Довиждане', 'Goodbye', 'Greetings');
@@ -63,6 +66,7 @@ console.log('✅ PASSED\n');
 // Test 2: Start session immediately
 console.log('Test 2: Start session immediately');
 localStorage.clear();
+localStorage.setItem('flashcards', '[]'); // empty deck, not the sample cards
 const app2 = new FlashcardApp();
 app2.addCard('Здравей', 'Hello', 'Greetings');
 app2.addCard('Довиждане', 'Goodbye', 'Greetings');
@@ -94,6 +98,7 @@ console.log('✅ PASSED\n');
 // Test 4: No cards matching filter
 console.log('Test 4: Alert when no cards match');
 localStorage.clear();
+localStorage.setItem('flashcards', '[]'); // empty deck, not the sample cards
 const app4 = new FlashcardApp();
 app4.addCard('Здравей', 'Hello', 'Greetings');
 app4.setActiveCategories(['NonExistent']);
@@ -107,6 +112,7 @@ console.log('✅ PASSED\n');
 // Test 5: Category filtering
 console.log('Test 5: Category filtering');
 localStorage.clear();
+localStorage.setItem('flashcards', '[]'); // empty deck, not the sample cards
 const app5 = new FlashcardApp();
 app5.addCard('Здравей', 'Hello', 'Greetings');
 app5.addCard('Хляб', 'Bread', 'Food');

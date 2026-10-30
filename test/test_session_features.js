@@ -30,7 +30,9 @@ const createMockElement = () => ({
     focus: () => {},
     setAttribute: () => {},
     appendChild: () => {},
-    removeChild: () => {}
+    removeChild: () => {},
+    querySelectorAll: () => [],
+    querySelector: () => null
 });
 
 global.document = {

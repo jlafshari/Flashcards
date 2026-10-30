@@ -4,9 +4,15 @@
 // Helper to create a fresh app instance
 require('./dom-mock.js');
 
+// Load the FlashcardApp class (app.js declares it but does not export it)
+const fs = require('fs');
+const path = require('path');
+eval(fs.readFileSync(path.join(__dirname, '../app.js'), 'utf8') + '; global.FlashcardApp = FlashcardApp;');
+
 function createTestApp() {
     // Clear localStorage
     localStorage.clear();
+    localStorage.setItem('flashcards', '[]'); // empty deck, not the sample cards
     
     // Create a new app instance
     const app = new FlashcardApp();
@@ -124,13 +130,13 @@ console.log('\nTest 11: Alert when no cards match selected categories...');
 const app11 = createTestApp();
 app11.setActiveCategories(['NonExistentCategory']);
 // Mock alert to prevent actual alert dialog
-const originalAlert = window.alert;
+const originalAlert = global.alert;
 let alertCalled = false;
-window.alert = function(msg) { alertCalled = true; };
+global.alert = function(msg) { alertCalled = true; };
 app11.startSession(); // Should show alert
 console.assert(alertCalled === true, 'Should show alert when no cards match');
 console.assert(app11.inSession === false, 'Should not start session when no cards match');
-window.alert = originalAlert; // Restore original alert
+global.alert = originalAlert; // Restore original alert
 console.log('✓ Test 11 passed');
 
 console.log('\n========================================');

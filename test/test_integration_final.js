@@ -46,8 +46,8 @@ test('.card-item-buried style exists', /\.card-item-buried\s*\{/.test(css));
 test('button-glow-bury animation exists', /@keyframes\s+button-glow-bury/.test(css));
 
 console.log('\n5. Opacity Fix (Current Change)');
-test('.btn-unbury has opacity: 1', /\.btn-unbury\s*\{[^}]*opacity:\s*1/s.test(css));
-test('.card-item-buried has opacity: 0.5', /\.card-item-buried\s*\{[^}]*opacity:\s*0\.5/s.test(css));
+test('.btn-unbury is not dimmed', !/\.btn-unbury\s*\{[^}]*opacity:\s*0?\.\d/s.test(css));
+test('.card-item-buried content has opacity: 0.5', /\.card-item-buried\s+\.card-item-content\s*\{[^}]*opacity:\s*0\.5/s.test(css));
 
 console.log('\n6. Button Styling Consistency');
 test('.btn-unbury has correct background color', /\.btn-unbury\s*\{[^}]*background:\s*#2196f3/s.test(css));

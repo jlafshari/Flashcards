@@ -70,6 +70,7 @@ const mockElements = {
 const document = {
     getElementById(id) { return mockElements[id] || new MockElement(id); },
     querySelectorAll() { return []; },
+    querySelector() { return new MockElement('div'); },
     addEventListener() {},
     createElement() { return new MockElement('div'); }
 };
@@ -101,7 +102,7 @@ const context = {
 };
 
 vm.createContext(context);
-vm.runInContext(appCode, context);
+vm.runInContext(appCode + '\nthis.FlashcardApp = FlashcardApp;', context);
 
 // Get FlashcardApp from the context
 const FlashcardApp = context.FlashcardApp;

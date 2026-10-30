@@ -14,7 +14,7 @@ if (!html.includes('id="study-options"')) {
 console.log('✓ study-options container exists in HTML');
 
 console.log('\nTest 2: Check category-filter is inside study-options');
-const studyOptionsMatch = html.match(/<div id="study-options"[^>]*>([\s\S]*?)<\/div>\s*<div class="flashcard"/);
+const studyOptionsMatch = html.match(/<div id="study-options"[^>]*>([\s\S]*?)<\/div>\s*<button id="start-session-btn"/);
 if (!studyOptionsMatch) {
     console.log('✗ Could not find study-options block');
     process.exit(1);

@@ -67,6 +67,8 @@ class MockElement {
     }
     
     focus() {}
+    querySelectorAll() { return []; }
+    querySelector() { return null; }
 }
 
 // Create mock DOM
@@ -114,7 +116,7 @@ mockDOM['category-checkboxes'].innerHTML = '';
 mockDOM['cards-list'].innerHTML = '';
 
 global.document = {
-    getElementById: (id) => mockDOM[id],
+    getElementById: (id) => mockDOM[id] || (mockDOM[id] = new MockElement(id)),
     querySelectorAll: (selector) => {
         if (selector === '.tab-button') {
             return [{
@@ -182,6 +184,7 @@ localStorage.clear();
 let app;
 
 test('Card marked for review moves to end of deck', () => {
+    localStorage.setItem('flashcards', '[]'); // start from an empty deck, not the sample cards
     app = new FlashcardApp();
     
     // Add 5 cards

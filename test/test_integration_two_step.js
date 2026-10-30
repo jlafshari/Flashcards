@@ -29,6 +29,7 @@ const createMockDocument = () => {
             return elements.get(id);
         },
         querySelectorAll: () => [],
+        querySelector: function() { return this.getElementById('__query__'); },
         addEventListener: () => {},
         createElement: () => ({ 
             textContent: '', 
@@ -64,7 +65,7 @@ global.localStorage = createMockLocalStorage();
 // Load the app
 const fs = require('fs');
 const appCode = fs.readFileSync('../app.js', 'utf8');
-eval(appCode);
+eval(appCode + '; global.FlashcardApp = FlashcardApp;');
 
 // Test runner
 function assert(condition, message) {
@@ -77,6 +78,7 @@ console.log('=== One-Step Session Flow Integration Tests ===\n');
 
 // Test 1: Initial state
 console.log('Test 1: Initial state');
+localStorage.clear(); localStorage.setItem('flashcards', '[]'); // clean state, empty deck (not the sample cards)
 const app1 = new FlashcardApp();
 app1.addCard('Здравей', 'Hello', 'Greetings');
 app1.addCard('Довиждане', 'Goodbye', 'Greetings');
@@ -86,6 +88,7 @@ console.log('✅ PASSED\n');
 
 // Test 2: Start session immediately
 console.log('Test 2: Start session immediately');
+localStorage.clear(); localStorage.setItem('flashcards', '[]'); // clean state, empty deck (not the sample cards)
 const app2 = new FlashcardApp();
 app2.addCard('Здравей', 'Hello', 'Greetings');
 app2.addCard('Довиждане', 'Goodbye', 'Greetings');
@@ -99,6 +102,7 @@ console.log('✅ PASSED\n');
 
 // Test 4: End session returns to initial state
 console.log('Test 3: End session returns to initial state');
+localStorage.clear(); localStorage.setItem('flashcards', '[]'); // clean state, empty deck (not the sample cards)
 const app3 = new FlashcardApp();
 app3.addCard('Здравей', 'Hello', 'Greetings');
 app3.startSession();
@@ -111,6 +115,8 @@ console.log('✅ PASSED\n');
 console.log('Test 4: Alert when no cards match selected categories');
 const mockWindow4 = createMockWindow();
 global.window = mockWindow4;
+global.alert = mockWindow4.alert; // app calls bare alert()
+localStorage.clear(); localStorage.setItem('flashcards', '[]'); // clean state, empty deck (not the sample cards)
 const app4 = new FlashcardApp();
 app4.addCard('Здравей', 'Hello', 'Greetings');
 app4.setActiveCategories(['NonExistent']); // Filter to non-existent category
@@ -123,6 +129,7 @@ console.log('✅ PASSED\n');
 
 // Test 6: Category filtering works in session
 console.log('Test 5: Category filtering in session');
+localStorage.clear(); localStorage.setItem('flashcards', '[]'); // clean state, empty deck (not the sample cards)
 const app5 = new FlashcardApp();
 app5.addCard('Здравей', 'Hello', 'Greetings');
 app5.addCard('Довиждане', 'Goodbye', 'Greetings');
@@ -136,6 +143,7 @@ console.log('✅ PASSED\n');
 
 // Test 7: Direction locked during session
 console.log('Test 6: Direction changes blocked during session');
+localStorage.clear(); localStorage.setItem('flashcards', '[]'); // clean state, empty deck (not the sample cards)
 const app6 = new FlashcardApp();
 app6.addCard('Здравей', 'Hello', 'Greetings');
 app6.direction = 'bg-en';
@@ -149,6 +157,7 @@ console.log('✅ PASSED\n');
 
 // Test 8: Direction can change before session
 console.log('Test 7: Direction can change before session');
+localStorage.clear(); localStorage.setItem('flashcards', '[]'); // clean state, empty deck (not the sample cards)
 const app7 = new FlashcardApp();
 app7.addCard('Здравей', 'Hello', 'Greetings');
 app7.direction = 'bg-en';
@@ -158,6 +167,7 @@ console.log('✅ PASSED\n');
 
 // Test 9: State values are correct throughout lifecycle
 console.log('Test 8: Complete lifecycle state verification');
+localStorage.clear(); localStorage.setItem('flashcards', '[]'); // clean state, empty deck (not the sample cards)
 const app8 = new FlashcardApp();
 app8.addCard('Здравей', 'Hello', 'Greetings');
 

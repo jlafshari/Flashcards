@@ -55,6 +55,8 @@ class MockElement {
     
     addEventListener(event, handler) {}
     focus() {}
+    querySelectorAll() { return []; }
+    querySelector() { return null; }
 }
 
 // Create mock DOM
@@ -106,7 +108,7 @@ mockDOM['category-checkboxes'].innerHTML = '';
 mockDOM['cards-list'].innerHTML = '';
 
 global.document = {
-    getElementById: (id) => mockDOM[id],
+    getElementById: (id) => mockDOM[id] || (mockDOM[id] = new MockElement(id)),
     querySelectorAll: (selector) => {
         if (selector === '.tab-button') {
             return [{

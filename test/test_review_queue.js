@@ -61,6 +61,7 @@ localStorage.clear();
 let app;
 
 test('App initializes with empty review queue', () => {
+    localStorage.setItem('flashcards', '[]'); // start from an empty deck, not the sample cards
     app = new FlashcardApp();
     assert(Array.isArray(app.reviewQueue), 'reviewQueue should be an array');
     assertEquals(app.reviewQueue.length, 0, 'reviewQueue should start empty');

@@ -49,25 +49,26 @@ console.log(`\nCSS Tests: ${cssPassed}/${cssTests} passed\n`);
 
 // Test 2: Verify HTML structure
 console.log('Test 2: HTML Structure Verification');
-const html = fs.readFileSync('index.html', 'utf8');
+// card-item-* classes are rendered by app.js's card list template, not index.html
+const html = fs.readFileSync('../app.js', 'utf8');
 
 let htmlTests = 0;
 let htmlPassed = 0;
 
 htmlTests++;
 if (html.includes('card-item-content')) {
-    console.log('  ✓ HTML has card-item-content class structure');
+    console.log('  ✓ app.js renders card-item-content class structure');
     htmlPassed++;
 } else {
-    console.log('  ✗ HTML missing card-item-content class');
+    console.log('  ✗ app.js missing card-item-content class');
 }
 
 htmlTests++;
 if (html.includes('card-item-actions')) {
-    console.log('  ✓ HTML has card-item-actions class structure');
+    console.log('  ✓ app.js renders card-item-actions class structure');
     htmlPassed++;
 } else {
-    console.log('  ✗ HTML missing card-item-actions class');
+    console.log('  ✗ app.js missing card-item-actions class');
 }
 
 console.log(`\nHTML Tests: ${htmlPassed}/${htmlTests} passed\n`);

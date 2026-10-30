@@ -1,7 +1,7 @@
 const fs = require('fs');
 
 // Read the CSS file
-const css = fs.readFileSync('styles.css', 'utf8');
+const css = fs.readFileSync('../styles.css', 'utf8');
 
 console.log('Testing unbury button opacity fix...\n');
 

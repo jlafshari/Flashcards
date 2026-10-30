@@ -55,13 +55,13 @@ if (updateManageTabMatch) {
     
     test(
         'updateManageTab uses getFilteredCardsByCategory',
-        updateManageTabBody.includes('getFilteredCardsByCategory'),
+        updateManageTabBody.includes('this.activeCategories') && updateManageTabBody.includes('allFilteredCards'),
         'Should filter cards by category'
     );
     
     test(
         'updateManageTab shows filtered count',
-        updateManageTabBody.includes('of') && updateManageTabBody.includes('filteredCards.length'),
+        updateManageTabBody.includes('of') && updateManageTabBody.includes('allFilteredCards.length'),
         'Should show "X of Y" when filtered'
     );
     

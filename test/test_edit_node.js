@@ -37,6 +37,7 @@ context.document = {
         };
     },
     querySelectorAll: function() { return []; },
+    querySelector: function() { return this.getElementById('__query__'); },
     createElement: function(tag) {
         return {
             textContent: '',
@@ -50,7 +51,7 @@ context.document = {
 // Load and evaluate app.js
 const appJs = fs.readFileSync('../app.js', 'utf8');
 vm.createContext(context);
-vm.runInContext(appJs, context);
+vm.runInContext(appJs + '\nthis.FlashcardApp = FlashcardApp;', context);
 
 // Get FlashcardApp from context
 console.log('Available in context:', Object.keys(context));

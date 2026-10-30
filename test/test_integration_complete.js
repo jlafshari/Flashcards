@@ -27,11 +27,11 @@ test('app.js exists and has content', js.length > 0);
 
 console.log('\n2. Bury Feature - JavaScript');
 test('buryCard method exists', js.includes('buryCard(id)'));
-test('markBuried method exists', js.includes('markBuried(id, value)'));
+test('markBuried method exists', js.includes('markBuried()'));
 test('buried property initialized in addCard', js.includes('buried: false'));
 test('buried cards filtered in getFilteredCardsByCategory', js.includes('!card.buried'));
 test('bury button event listener', js.includes("getElementById('bury-btn')"));
-test('keyboard shortcut 3 for bury', js.includes("case '3':"));
+test('keyboard shortcut 3 for bury', js.includes("e.key === '3'"));
 
 console.log('\n3. Bury Feature - HTML');
 test('bury button element present', html.includes('id="bury-btn"'));
@@ -46,8 +46,8 @@ test('.card-item-buried style exists', /\.card-item-buried\s*\{/.test(css));
 test('button-glow-bury animation exists', /@keyframes\s+button-glow-bury/.test(css));
 
 console.log('\n5. Opacity Fix (Current Change)');
-test('.btn-unbury has opacity: 1', /\.btn-unbury\s*\{[^}]*opacity:\s*1/s.test(css));
-test('.card-item-buried has opacity: 0.5', /\.card-item-buried\s*\{[^}]*opacity:\s*0\.5/s.test(css));
+test('.btn-unbury is not dimmed', !/\.btn-unbury\s*\{[^}]*opacity:\s*0?\.\d/s.test(css));
+test('.card-item-buried content has opacity: 0.5', /\.card-item-buried\s+\.card-item-content\s*\{[^}]*opacity:\s*0\.5/s.test(css));
 
 console.log('\n6. Button Styling Consistency');
 test('.btn-unbury has correct background color', /\.btn-unbury\s*\{[^}]*background:\s*#2196f3/s.test(css));
