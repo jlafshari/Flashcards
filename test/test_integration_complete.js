@@ -16,9 +16,9 @@ function test(name, condition) {
 }
 
 // Load files
-const html = fs.readFileSync('index.html', 'utf8');
-const css = fs.readFileSync('styles.css', 'utf8');
-const js = fs.readFileSync('app.js', 'utf8');
+const html = fs.readFileSync('../index.html', 'utf8');
+const css = fs.readFileSync('../styles.css', 'utf8');
+const js = fs.readFileSync('../app.js', 'utf8');
 
 console.log('1. Core Files');
 test('index.html exists and has content', html.length > 0);

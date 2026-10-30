@@ -1,5 +1,7 @@
 // Simple test to verify the one-step flow works
 // Mock minimal browser APIs
+require('./dom-mock.js');
+
 global.localStorage = {
     data: {},
     getItem(key) { return this.data[key] || null; },

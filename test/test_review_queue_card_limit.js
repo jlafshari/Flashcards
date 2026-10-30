@@ -1,4 +1,6 @@
 // Test for review queue behavior with card limit
+require('./dom-mock.js');
+
 console.log('Testing Review Queue with Card Limit\n');
 console.log('====================================\n');
 

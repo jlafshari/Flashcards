@@ -1,4 +1,6 @@
 // Test for review queue navigation consistency fix
+require('./dom-mock.js');
+
 console.log('Testing Review Queue Navigation Consistency Fix\n');
 console.log('===============================================\n');
 

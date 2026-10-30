@@ -1,4 +1,6 @@
 // Test for updateCardDisplay using getFilteredCards during sessions
+require('./dom-mock.js');
+
 console.log('Testing updateCardDisplay Review Queue Fix\n');
 console.log('===========================================\n');
 

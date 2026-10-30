@@ -2,6 +2,8 @@
 // This test verifies the basic session functionality
 
 // Helper to create a fresh app instance
+require('./dom-mock.js');
+
 function createTestApp() {
     // Clear localStorage
     localStorage.clear();

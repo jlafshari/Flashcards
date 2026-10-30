@@ -1,4 +1,6 @@
 // Debug test with unique IDs
+require('./dom-mock.js');
+
 console.log('Debug Review Queue Behavior (with unique IDs)\n');
 console.log('=================================\n');
 

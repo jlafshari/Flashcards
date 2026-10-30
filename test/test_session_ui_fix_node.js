@@ -2,6 +2,8 @@
 // This simulates the DOM and tests the logic
 
 // Mock DOM elements
+require('./dom-mock.js');
+
 class MockElement {
     constructor(id) {
         this.id = id;

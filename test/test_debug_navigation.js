@@ -1,4 +1,6 @@
 // Debug test for review queue
+require('./dom-mock.js');
+
 console.log('Debug Review Queue Navigation\n');
 
 // Mock DOM elements

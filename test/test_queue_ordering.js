@@ -1,4 +1,6 @@
 // Test to verify that queued cards appear at the end in correct order
+require('./dom-mock.js');
+
 console.log('Testing Review Queue Ordering\n');
 console.log('=================================\n');
 

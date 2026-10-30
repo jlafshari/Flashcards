@@ -1,4 +1,6 @@
 // Test for navigation inconsistency between nextCard and updateCardDisplay
+require('./dom-mock.js');
+
 console.log('Testing Navigation Inconsistency\n');
 console.log('=================================\n');
 

@@ -2,6 +2,8 @@
 // Run with: node test_integration_two_step.js
 
 // Mock DOM and browser APIs
+require('./dom-mock.js');
+
 const createMockDocument = () => {
     const elements = new Map();
     

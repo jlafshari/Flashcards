@@ -2,6 +2,8 @@
 // 1. When flipping a card and pressing review again, user should see next card
 // 2. When reviewing the last card, easy and review again buttons should be enabled
 
+require('./dom-mock.js');
+
 console.log('Testing Session Bug Fixes\n');
 console.log('=================================\n');
 

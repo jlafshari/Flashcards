@@ -8,7 +8,7 @@ console.log('Testing pause timer functionality...\n');
 
 // Test 1: Verify pause properties exist in constructor
 console.log('Test 1: Verify pause properties in constructor');
-const appCode = fs.readFileSync('app.js', 'utf8');
+const appCode = fs.readFileSync('../app.js', 'utf8');
 assert(appCode.includes('this.sessionPausedTime = 0'), 'Constructor should initialize sessionPausedTime');
 assert(appCode.includes('this.sessionPauseStart = null'), 'Constructor should initialize sessionPauseStart');
 console.log('✓ Pause tracking properties defined in constructor\n');

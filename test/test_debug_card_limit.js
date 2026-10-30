@@ -1,4 +1,6 @@
 // Debug test for card limit
+require('./dom-mock.js');
+
 console.log('Debug Card Limit with Review Queue\n');
 
 // Mock DOM elements

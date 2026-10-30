@@ -1,3 +1,5 @@
+require('./dom-mock.js');
+
 const fs = require('fs');
 const vm = require('vm');
 

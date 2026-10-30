@@ -6,9 +6,9 @@ const fs = require('fs');
 console.log('=== Manage Cards Category Filter - Code Structure Test ===\n');
 
 // Read the files
-const appJs = fs.readFileSync('app.js', 'utf8');
-const indexHtml = fs.readFileSync('index.html', 'utf8');
-const stylesCss = fs.readFileSync('styles.css', 'utf8');
+const appJs = fs.readFileSync('../app.js', 'utf8');
+const indexHtml = fs.readFileSync('../index.html', 'utf8');
+const stylesCss = fs.readFileSync('../styles.css', 'utf8');
 
 let passedTests = 0;
 let totalTests = 0;

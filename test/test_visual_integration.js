@@ -4,7 +4,7 @@ console.log('=== Visual Integration Test: Unbury Button Opacity Fix ===\n');
 
 // Test 1: Verify CSS changes
 console.log('Test 1: CSS Structure Verification');
-const css = fs.readFileSync('styles.css', 'utf8');
+const css = fs.readFileSync('../styles.css', 'utf8');
 
 const buriedContainer = css.match(/\.card-item-buried\s*\{[^}]+\}/s);
 const buriedContent = css.match(/\.card-item-buried\s+\.card-item-content\s*\{[^}]+\}/s);
@@ -74,7 +74,7 @@ console.log(`\nHTML Tests: ${htmlPassed}/${htmlTests} passed\n`);
 
 // Test 3: Verify app.js rendering
 console.log('Test 3: JavaScript Rendering Verification');
-const appJs = fs.readFileSync('app.js', 'utf8');
+const appJs = fs.readFileSync('../app.js', 'utf8');
 
 let jsTests = 0;
 let jsPassed = 0;

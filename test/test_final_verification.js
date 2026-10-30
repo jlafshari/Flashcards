@@ -3,8 +3,8 @@ const fs = require('fs');
 console.log('=== Final Verification: Unbury Button Opacity Fix ===\n');
 
 // Read files
-const css = fs.readFileSync('styles.css', 'utf8');
-const appJs = fs.readFileSync('app.js', 'utf8');
+const css = fs.readFileSync('../styles.css', 'utf8');
+const appJs = fs.readFileSync('../app.js', 'utf8');
 
 console.log('✅ Critical CSS Changes Verified:');
 console.log('');
