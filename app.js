@@ -15,6 +15,7 @@ class FlashcardApp {
         // Study session state
         this.inSession = false; // Whether a study session is active
         this.sessionCards = []; // Cards to review in this session (snapshot)
+        this.sessionTotalCards = 0; // Number of cards the session started with
         this.sessionReviewedCards = new Set(); // IDs of cards reviewed in current session
         this.sessionStartTime = null; // Timestamp when session starts
         this.totalTimeToday = 0; // Total minutes reviewed today
@@ -228,6 +229,7 @@ class FlashcardApp {
         
         this.inSession = true;
         this.sessionCards = filteredCards; // Snapshot of filtered cards
+        this.sessionTotalCards = filteredCards.length;
         this.sessionReviewedCards = new Set();
         this.currentCardIndex = 0;
         this.reviewQueue = []; // Clear review queue for new session
@@ -248,6 +250,7 @@ class FlashcardApp {
         
         this.inSession = false;
         this.sessionCards = [];
+        this.sessionTotalCards = 0;
         this.sessionReviewedCards = new Set();
         this.reviewQueue = []; // Clear review queue
         this.sessionStartTime = null;
@@ -720,9 +723,12 @@ class FlashcardApp {
             document.getElementById('card-back-text').textContent = currentCard.bulgarian;
         }
         
-        // Update position
-        document.getElementById('card-position').textContent = 
-            `${this.currentCardIndex + 1} / ${filteredCards.length}`;
+        // Update position against the fixed session size. The deck grows when a queued card is
+        // reviewed again and shrinks when a card is buried, so count from the end of the deck.
+        const total = this.inSession ? this.sessionTotalCards : filteredCards.length;
+        const remaining = filteredCards.length - this.currentCardIndex;
+        const position = Math.min(Math.max(total - remaining + 1, 1), total);
+        document.getElementById('card-position').textContent = `${position} / ${total}`;
 
         // Update navigation buttons
         const isLastCard = this.currentCardIndex === filteredCards.length - 1;

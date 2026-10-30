@@ -226,6 +226,7 @@ test('updateCardDisplay uses getFilteredCards when in session with review queue'
         { id: 2, bulgarian: 'Card2', english: 'Two', category: '' },
         { id: 3, bulgarian: 'Card3', english: 'Three', category: '' }
     ];
+    app.sessionTotalCards = app.sessionCards.length;
     app.currentCardIndex = 0;
     app.reviewQueue = [];
     
@@ -261,6 +262,7 @@ test('updateCardDisplay handles multiple queued cards in order', () => {
         { id: 3, bulgarian: 'Card3', english: 'Three', category: '' },
         { id: 4, bulgarian: 'Card4', english: 'Four', category: '' }
     ];
+    app.sessionTotalCards = app.sessionCards.length;
     app.currentCardIndex = 0;
     app.reviewQueue = [1, 3]; // Queue cards 1 and 3
     
