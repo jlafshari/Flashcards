@@ -307,7 +307,12 @@ class FlashcardApp {
     resetFlip() {
         this.isFlipped = false;
         const flashcard = document.getElementById('flashcard');
+        // Skip the flip-back animation: the card's text changes right after this, and the
+        // back would show the next card's answer while it rotated to the front
+        flashcard.classList.add('no-transition');
         flashcard.classList.remove('flipped');
+        void flashcard.offsetWidth; // Apply the unflipped state before re-enabling the transition
+        flashcard.classList.remove('no-transition');
         this.hideFeedbackButtons();
     }
 

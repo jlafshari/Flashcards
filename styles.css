@@ -296,6 +296,11 @@ body {
     transform: rotateY(180deg);
 }
 
+/* Turns the card back to its front instantly, so the next card's answer is never shown */
+.flashcard.no-transition .card-inner {
+    transition: none;
+}
+
 .card-front,
 .card-back {
     position: absolute;
