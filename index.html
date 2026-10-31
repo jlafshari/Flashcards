@@ -12,10 +12,21 @@
             <h1>🎴 Flashcards</h1>
             <button class="tab-button active" data-tab="study">Study</button>
             <button class="tab-button" data-tab="manage">Manage Cards</button>
+            <button class="tab-button" data-tab="stats">Stats</button>
         </nav>
 
         <!-- Study Tab -->
         <div id="study-tab" class="tab-content active">
+            <div class="study-user-bar">
+                <label for="user-select">Studying as:</label>
+                <select id="user-select"></select>
+                <span id="new-user-form" class="new-user-form" style="display: none;">
+                    <input type="text" id="new-user-input" placeholder="Name" maxlength="40">
+                    <button id="new-user-save" class="new-user-btn primary">Add</button>
+                    <button id="new-user-cancel" class="new-user-btn">Cancel</button>
+                </span>
+            </div>
+
             <div class="stats">
                 <div class="stat-item">
                     <span class="stat-label">Total Cards:</span>
@@ -83,6 +94,36 @@
                 </div>
 
                 <button id="end-session-btn" class="btn btn-end-session" style="display: none;">End Session</button>
+            </div>
+        </div>
+
+        <!-- Stats Tab -->
+        <div id="stats-tab" class="tab-content">
+            <div class="stats-controls">
+                <div class="stats-range">
+                    <button id="stats-range-7" class="range-btn active">Last 7 days</button>
+                    <button id="stats-range-30" class="range-btn">Last 30 days</button>
+                </div>
+                <label class="stats-user-filter">
+                    <span>Show:</span>
+                    <select id="stats-user-select"></select>
+                </label>
+            </div>
+
+            <div id="stats-summary" class="stats-summary"></div>
+
+            <div id="stats-empty" class="message" style="display: none;">
+                <p>No study time recorded yet. Finish a session on the Study tab and it will show up here.</p>
+            </div>
+
+            <div class="stats-section">
+                <h2 id="stats-chart-title">Time per day</h2>
+                <div id="stats-chart" class="stats-chart"></div>
+            </div>
+
+            <div class="stats-section">
+                <h2>Time by user</h2>
+                <div id="stats-user-table" class="stats-user-table"></div>
             </div>
         </div>
 
