@@ -786,8 +786,21 @@ body {
         padding: 20px;
     }
 
+    .tabs {
+        flex-wrap: wrap;
+    }
+
     .tabs h1 {
         font-size: 1.5em;
+        margin-right: 0;
+        flex-basis: 100%;
+        padding-right: 0;
+        margin-bottom: 5px;
+    }
+
+    .tab-button {
+        flex: 1;
+        padding: 10px 8px;
     }
 
     .card-text {
@@ -843,5 +856,329 @@ body {
         flex-basis: 100%;
         order: -1;
         margin-bottom: 5px;
+    }
+}
+
+/* Study Profile Picker */
+.study-user-bar {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-bottom: 15px;
+    color: #666;
+    font-size: 0.9em;
+}
+
+.study-user-bar select {
+    padding: 6px 10px;
+    border: 2px solid #e0e0e0;
+    border-radius: 6px;
+    background: white;
+    color: #333;
+    font-size: 0.95em;
+    font-family: inherit;
+    cursor: pointer;
+}
+
+.study-user-bar select:focus {
+    outline: none;
+    border-color: #667eea;
+}
+
+.study-user-bar select:disabled {
+    background: #f1f1f1;
+    color: #666;
+    cursor: not-allowed;
+}
+
+.new-user-form {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.new-user-form input[type="text"] {
+    padding: 6px 10px;
+    border: 2px solid #667eea;
+    border-radius: 6px;
+    font-size: 0.95em;
+    font-family: inherit;
+    width: 140px;
+}
+
+.new-user-form input[type="text"]:focus {
+    outline: none;
+}
+
+.new-user-btn {
+    padding: 6px 12px;
+    border: 2px solid #e0e0e0;
+    background: white;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.85em;
+    font-family: inherit;
+    font-weight: 500;
+    color: #333;
+    transition: all 0.3s;
+}
+
+.new-user-btn:hover {
+    border-color: #667eea;
+    color: #667eea;
+}
+
+.new-user-btn.primary {
+    background: #667eea;
+    border-color: #667eea;
+    color: white;
+}
+
+.new-user-btn.primary:hover {
+    background: #5568d3;
+    color: white;
+}
+
+/* Stats Tab */
+.stats-controls {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 15px;
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+}
+
+.stats-range {
+    display: flex;
+    gap: 8px;
+}
+
+.range-btn {
+    padding: 6px 14px;
+    border: 2px solid #e0e0e0;
+    background: white;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-weight: 500;
+    color: #333;
+    font-size: 0.85em;
+    font-family: inherit;
+}
+
+.range-btn:hover {
+    border-color: #667eea;
+    color: #667eea;
+}
+
+.range-btn.active {
+    background: #667eea;
+    border-color: #667eea;
+    color: white;
+}
+
+.stats-user-filter {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #666;
+    font-size: 0.9em;
+}
+
+.stats-user-filter select {
+    padding: 6px 10px;
+    border: 2px solid #e0e0e0;
+    border-radius: 6px;
+    background: white;
+    color: #333;
+    font-size: 0.95em;
+    font-family: inherit;
+    cursor: pointer;
+}
+
+.stats-user-filter select:focus {
+    outline: none;
+    border-color: #667eea;
+}
+
+.stats-summary {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 15px;
+    margin-bottom: 25px;
+}
+
+.stat-tile {
+    background: #f8f9fa;
+    border-radius: 10px;
+    padding: 15px;
+    text-align: center;
+}
+
+.stat-tile-value {
+    display: block;
+    font-size: 1.4em;
+    font-weight: bold;
+    color: #667eea;
+}
+
+.stat-tile-label {
+    display: block;
+    color: #666;
+    font-size: 0.85em;
+    margin-top: 4px;
+}
+
+.stats-section {
+    margin-bottom: 25px;
+}
+
+.stats-section h2 {
+    font-size: 1.1em;
+    color: #333;
+    margin-bottom: 12px;
+}
+
+.stats-chart {
+    display: flex;
+    align-items: flex-end;
+    gap: 4px;
+    height: 180px;
+    padding: 10px;
+    background: #f8f9fa;
+    border-radius: 10px;
+}
+
+.chart-day {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: 100%;
+    min-width: 0;
+}
+
+.chart-bar-track {
+    flex: 1;
+    width: 100%;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+}
+
+.chart-bar {
+    width: 70%;
+    min-height: 2px;
+    background: #667eea;
+    border-radius: 4px 4px 0 0;
+    transition: height 0.3s;
+}
+
+.chart-bar.empty {
+    background: #e0e0e0;
+}
+
+.chart-label {
+    margin-top: 6px;
+    font-size: 0.7em;
+    color: #666;
+    white-space: nowrap;
+    /* Only every fifth day is labelled on a long range, so a label may spill over its
+       empty neighbours rather than being cut off */
+    overflow: visible;
+}
+
+.stats-user-table {
+    background: #f8f9fa;
+    border-radius: 10px;
+    padding: 5px 15px;
+}
+
+.user-row {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid #e8e8e8;
+}
+
+.user-row:last-child {
+    border-bottom: none;
+}
+
+.user-row.selected .user-name {
+    color: #667eea;
+}
+
+.user-name {
+    flex: 1;
+    font-weight: 600;
+    color: #333;
+    overflow-wrap: anywhere;
+}
+
+.user-time {
+    font-weight: bold;
+    color: #667eea;
+}
+
+.user-meta {
+    color: #666;
+    font-size: 0.85em;
+    min-width: 150px;
+    text-align: right;
+}
+
+.stats-no-data {
+    color: #666;
+    padding: 10px 0;
+}
+
+@media (max-width: 600px) {
+    .study-user-bar {
+        flex-wrap: wrap;
+        justify-content: flex-start;
+    }
+
+    .new-user-form {
+        flex-basis: 100%;
+    }
+
+    .new-user-form input[type="text"] {
+        flex: 1;
+        width: auto;
+        min-width: 0;
+    }
+
+    .stats-summary {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .stats-controls {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .stats-range {
+        justify-content: center;
+    }
+
+    .range-btn {
+        flex: 1;
+    }
+
+    .user-row {
+        flex-wrap: wrap;
+    }
+
+    .user-meta {
+        min-width: 0;
+        text-align: left;
+        flex-basis: 100%;
     }
 }

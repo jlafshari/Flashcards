@@ -87,7 +87,10 @@ const elementIds = [
     'category-checkboxes', 'bulgarian-input', 'english-input', 'category-input',
     'add-card-btn', 'export-btn', 'import-merge-btn', 'import-replace-btn',
     'import-file-input', 'study-options', 'session-timer', 'pause-btn', 'end-session-btn',
-    'timer-display', 'stats', 'study-content'
+    'timer-display', 'stats', 'study-content', 'user-select', 'stats-tab', 'stats-summary',
+    'stats-empty', 'stats-chart', 'stats-chart-title', 'stats-user-table', 'stats-user-select',
+    'stats-range-7', 'stats-range-30', 'new-user-form', 'new-user-input',
+    'new-user-save', 'new-user-cancel'
 ];
 
 elementIds.forEach(id => {
@@ -177,8 +180,15 @@ global.URL = {
     revokeObjectURL: () => {}
 };
 
-// Global alert/confirm mocks
+// Global window mock (the app registers a pagehide handler on it)
+global.window = {
+    addEventListener: () => {},
+    removeEventListener: () => {}
+};
+
+// Global alert/confirm/prompt mocks
 global.alert = () => {};
 global.confirm = () => true;
+global.prompt = () => null;
 
 module.exports = { mockDOM, MockElement };

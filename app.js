@@ -1,6 +1,11 @@
 // Flashcard Application
 // Data model and state management
 
+const DEFAULT_USER = 'Guest';       // Profile used until someone adds their own name
+const NEW_USER_OPTION = '__new__';  // Sentinel value of the "add a user" option in the picker
+const ALL_USERS_OPTION = '__all__'; // Sentinel value of the "all users" option in the stats filter
+const STUDY_HISTORY_DAYS = 365;     // How long finished sessions are kept
+
 class FlashcardApp {
     constructor() {
         this.cards = [];
@@ -21,6 +26,15 @@ class FlashcardApp {
         this.totalTimeToday = 0; // Total minutes reviewed today
         this.sessionPausedTime = 0; // Total seconds paused in current session
         this.sessionPauseStart = null; // Timestamp when pause started
+        this.sessionUser = null; // Who the active session is being counted for
+        this.sessionStartReviewed = 0; // reviewedToday when the session started
+        
+        // Study profiles and history
+        this.users = []; // Names of everyone studying on this computer
+        this.currentUser = DEFAULT_USER; // Whose time the next session counts towards
+        this.studySessions = []; // Finished sessions: { id, user, date, startedAt, seconds, cards }
+        this.statsRangeDays = 7; // Range shown on the Stats tab
+        this.statsUser = ALL_USERS_OPTION; // User the Stats tab is filtered to
         
         // Session preferences
         this.shuffleEnabled = false; // Whether to shuffle cards before session
@@ -33,9 +47,13 @@ class FlashcardApp {
     }
 
     init() {
+        this.loadUsers();
+        this.loadStudySessions();
         this.loadFromStorage();
+        this.migrateLegacyTodayTime();
         this.loadCategoryPreference();
         this.loadSessionPreferences();
+        this.loadStatsPreferences();
         this.setupEventListeners();
         this.updateUI();
     }
@@ -118,6 +136,212 @@ class FlashcardApp {
 
     saveToStorage() {
         localStorage.setItem('flashcards', JSON.stringify(this.cards));
+    }
+
+    // Study profiles: several people can share one copy of the app, each with their own study time
+    loadUsers() {
+        let users = [];
+        const stored = localStorage.getItem('studyUsers');
+        if (stored) {
+            try {
+                const parsed = JSON.parse(stored);
+                if (Array.isArray(parsed)) {
+                    users = parsed
+                        .filter(name => typeof name === 'string' && name.trim())
+                        .map(name => name.trim());
+                }
+            } catch (e) {
+                // Unreadable list: fall back to the default profile below
+            }
+        }
+        if (users.length === 0) {
+            users = [DEFAULT_USER];
+        }
+        this.users = users;
+
+        const saved = localStorage.getItem('currentUser');
+        this.currentUser = this.users.includes(saved) ? saved : this.users[0];
+        this.saveUsers();
+    }
+
+    saveUsers() {
+        localStorage.setItem('studyUsers', JSON.stringify(this.users));
+        localStorage.setItem('currentUser', this.currentUser);
+    }
+
+    addUser(name) {
+        const trimmed = (name || '').trim();
+        if (!trimmed) return null;
+
+        // Names are matched case-insensitively so "Maria" and "maria" stay one person
+        const existing = this.users.find(user => user.toLowerCase() === trimmed.toLowerCase());
+        const user = existing || trimmed;
+        if (!existing) {
+            this.users.push(user);
+        }
+        this.setCurrentUser(user);
+        return user;
+    }
+
+    setCurrentUser(name) {
+        if (!this.users.includes(name)) return;
+        if (name === this.currentUser) {
+            this.saveUsers();
+            return;
+        }
+        // The time so far belongs to whoever started the session
+        if (this.inSession) {
+            this.endSession();
+        }
+        this.currentUser = name;
+        this.saveUsers();
+        this.loadTodayTotals();
+        this.updateUI();
+    }
+
+    // Today's stats belong to one person, so they are recounted from that person's sessions
+    loadTodayTotals() {
+        const today = this.dateKey(Date.now());
+        const todaysSessions = this.studySessions.filter(
+            session => session.user === this.currentUser && session.date === today
+        );
+        this.totalTimeToday = todaysSessions.reduce((total, session) => total + session.seconds, 0);
+        this.reviewedToday = todaysSessions.reduce((total, session) => total + session.cards, 0);
+        localStorage.setItem('reviewDate', new Date().toDateString());
+        localStorage.setItem('reviewedToday', this.reviewedToday.toString());
+        localStorage.setItem('totalTimeToday', this.totalTimeToday.toString());
+    }
+
+    // Study history
+    loadStudySessions() {
+        let sessions = [];
+        const stored = localStorage.getItem('studySessions');
+        if (stored) {
+            try {
+                const parsed = JSON.parse(stored);
+                if (Array.isArray(parsed)) {
+                    sessions = parsed.filter(session => session && typeof session.date === 'string');
+                }
+            } catch (e) {
+                // Unreadable history: start a fresh log rather than failing to load the app
+                console.error('Saved study history was unreadable; starting a new one.');
+            }
+        }
+        this.studySessions = sessions.map(session => ({
+            id: session.id,
+            user: typeof session.user === 'string' && session.user.trim() ? session.user.trim() : DEFAULT_USER,
+            date: session.date,
+            startedAt: session.startedAt || null,
+            seconds: Number(session.seconds) || 0,
+            cards: Number(session.cards) || 0
+        }));
+
+        const loaded = this.studySessions.length;
+        this.pruneStudySessions();
+        if (this.studySessions.length !== loaded) {
+            this.saveStudySessions();
+        }
+    }
+
+    saveStudySessions() {
+        localStorage.setItem('studySessions', JSON.stringify(this.studySessions));
+    }
+
+    recordStudySession(user, seconds, cards, startedAt) {
+        if (!(seconds > 0)) return null; // Nothing to show for a session that took no time
+
+        const record = {
+            id: `${startedAt}-${this.studySessions.length}`,
+            user: user || DEFAULT_USER,
+            date: this.dateKey(startedAt),
+            startedAt: new Date(startedAt).toISOString(),
+            seconds,
+            cards: Math.max(0, cards)
+        };
+        this.studySessions.push(record);
+        this.pruneStudySessions();
+        this.saveStudySessions();
+        return record;
+    }
+
+    pruneStudySessions() {
+        const cutoff = this.shiftDateKey(-STUDY_HISTORY_DAYS);
+        this.studySessions = this.studySessions.filter(session => session.date >= cutoff);
+    }
+
+    // Time tracked before study history existed would otherwise disappear from today's stats
+    migrateLegacyTodayTime() {
+        if (localStorage.getItem('studyHistoryMigrated') === 'true') return;
+        localStorage.setItem('studyHistoryMigrated', 'true');
+
+        if (this.studySessions.length === 0 && (this.totalTimeToday > 0 || this.reviewedToday > 0)) {
+            const startedAt = Date.now() - this.totalTimeToday * 1000;
+            this.studySessions.push({
+                id: `legacy-${startedAt}`,
+                user: this.currentUser,
+                date: this.dateKey(Date.now()),
+                startedAt: new Date(startedAt).toISOString(),
+                seconds: this.totalTimeToday,
+                cards: this.reviewedToday
+            });
+            this.saveStudySessions();
+        }
+    }
+
+    // Local calendar day as YYYY-MM-DD, so days sort and compare as plain strings
+    dateKey(timestamp) {
+        const date = new Date(timestamp);
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${date.getFullYear()}-${month}-${day}`;
+    }
+
+    shiftDateKey(dayOffset) {
+        const date = new Date();
+        date.setHours(12, 0, 0, 0); // Midday, so a daylight-saving shift cannot change the date
+        date.setDate(date.getDate() + dayOffset);
+        return this.dateKey(date.getTime());
+    }
+
+    // Aggregates the last `days` calendar days, ending today
+    getStudyStats(days, user = ALL_USERS_OPTION) {
+        const dayKeys = [];
+        for (let offset = days - 1; offset >= 0; offset--) {
+            dayKeys.push(this.shiftDateKey(-offset));
+        }
+
+        const inRange = this.studySessions.filter(session => session.date >= dayKeys[0]);
+        const matching = user === ALL_USERS_OPTION ? inRange : inRange.filter(session => session.user === user);
+
+        const byDay = new Map(dayKeys.map(date => [date, { date, seconds: 0, cards: 0, sessions: 0 }]));
+        matching.forEach(session => {
+            const day = byDay.get(session.date);
+            if (!day) return;
+            day.seconds += session.seconds;
+            day.cards += session.cards;
+            day.sessions++;
+        });
+
+        const byUser = new Map();
+        inRange.forEach(session => {
+            if (!byUser.has(session.user)) {
+                byUser.set(session.user, { user: session.user, seconds: 0, cards: 0, sessions: 0 });
+            }
+            const totals = byUser.get(session.user);
+            totals.seconds += session.seconds;
+            totals.cards += session.cards;
+            totals.sessions++;
+        });
+
+        const totalSeconds = matching.reduce((total, session) => total + session.seconds, 0);
+        return {
+            days: dayKeys.map(date => byDay.get(date)),
+            totalSeconds,
+            totalCards: matching.reduce((total, session) => total + session.cards, 0),
+            totalSessions: matching.length,
+            averageSeconds: Math.round(totalSeconds / days),
+            byUser: Array.from(byUser.values()).sort((a, b) => b.seconds - a.seconds)
+        };
     }
 
     nextCardId() {
@@ -236,6 +460,8 @@ class FlashcardApp {
         this.sessionStartTime = Date.now(); // Record start time
         this.sessionPausedTime = 0; // Reset pause tracking
         this.sessionPauseStart = null; // Reset pause tracking
+        this.sessionUser = this.currentUser; // This session's time is counted for whoever is selected now
+        this.sessionStartReviewed = this.reviewedToday;
         this.resetFlip();
         this.updateUI();
     }
@@ -243,9 +469,15 @@ class FlashcardApp {
     endSession() {
         // Calculate and save elapsed time if session was active
         if (this.sessionStartTime !== null) {
-            const elapsedSeconds = Math.round((Date.now() - this.sessionStartTime) / 1000) - this.sessionPausedTime;
+            const elapsedSeconds = Math.max(0, Math.round((Date.now() - this.sessionStartTime) / 1000) - this.sessionPausedTime);
             this.totalTimeToday += elapsedSeconds;
             localStorage.setItem('totalTimeToday', this.totalTimeToday.toString());
+            this.recordStudySession(
+                this.sessionUser || this.currentUser,
+                elapsedSeconds,
+                this.reviewedToday - this.sessionStartReviewed,
+                this.sessionStartTime
+            );
         }
         
         this.inSession = false;
@@ -256,6 +488,8 @@ class FlashcardApp {
         this.sessionStartTime = null;
         this.sessionPausedTime = 0; // Reset pause tracking
         this.sessionPauseStart = null; // Reset pause tracking
+        this.sessionUser = null;
+        this.sessionStartReviewed = 0;
         this.resetFlip();
         this.updateUI();
     }
@@ -626,6 +860,33 @@ class FlashcardApp {
     updateUI() {
         this.updateStudyTab();
         this.updateManageTab();
+        this.updateStatsTab();
+    }
+
+    updateUserSelect() {
+        const select = document.getElementById('user-select');
+        if (!select) return;
+
+        const options = this.users.map(user => this.optionHtml(user, user, user === this.currentUser));
+        options.push(this.optionHtml(NEW_USER_OPTION, '+ New user...'));
+        select.innerHTML = options.join('');
+        select.value = this.currentUser;
+        // Switching mid-session would split the time between two people
+        select.disabled = this.inSession;
+        select.title = this.inSession ? 'This session is being counted for ' + this.currentUser : '';
+    }
+
+    optionHtml(value, label, selected = false) {
+        return `<option value="${this.escapeText(value)}"${selected ? ' selected' : ''}>${this.escapeText(label)}</option>`;
+    }
+
+    // escapeHtml() leaves quotes alone, so it cannot be used for attribute values
+    escapeText(text) {
+        return String(text)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;');
     }
 
     updateStudyTab() {
@@ -643,6 +904,8 @@ class FlashcardApp {
         // Update reviewed today with time
         const timeString = this.formatTime(this.totalTimeToday);
         document.getElementById('reviewed-today').textContent = `${this.reviewedToday} cards, ${timeString}`;
+
+        this.updateUserSelect();
 
         // Check if we have any cards at all
         if (this.cards.length === 0) {
@@ -935,6 +1198,148 @@ class FlashcardApp {
         }
     }
 
+    // Stats tab
+    updateStatsTab() {
+        const summary = document.getElementById('stats-summary');
+        if (!summary) return;
+
+        this.updateStatsControls();
+
+        const stats = this.getStudyStats(this.statsRangeDays, this.statsUser);
+        const scope = this.statsUser === ALL_USERS_OPTION ? 'everyone' : this.statsUser;
+
+        summary.innerHTML = [
+            this.statTile('Total time', this.formatTime(stats.totalSeconds)),
+            this.statTile('Daily average', this.formatTime(this.roundToMinute(stats.averageSeconds))),
+            this.statTile('Sessions', `${stats.totalSessions}`),
+            this.statTile('Cards reviewed', `${stats.totalCards}`)
+        ].join('');
+
+        const empty = document.getElementById('stats-empty');
+        if (empty) {
+            empty.style.display = stats.totalSeconds === 0 ? 'block' : 'none';
+        }
+
+        const chartTitle = document.getElementById('stats-chart-title');
+        if (chartTitle) {
+            chartTitle.textContent = `Time per day - last ${this.statsRangeDays} days, ${scope}`;
+        }
+
+        this.renderStatsChart(stats);
+        this.renderStatsUserTable(stats);
+    }
+
+    updateStatsControls() {
+        const rangeButtons = [
+            [document.getElementById('stats-range-7'), 7],
+            [document.getElementById('stats-range-30'), 30]
+        ];
+        rangeButtons.forEach(([button, days]) => {
+            if (button && button.classList) {
+                button.classList.toggle('active', this.statsRangeDays === days);
+            }
+        });
+
+        const select = document.getElementById('stats-user-select');
+        if (!select) return;
+
+        // Everyone set up on this computer, plus anyone who only appears in the history
+        const names = Array.from(new Set(this.users.concat(this.studySessions.map(session => session.user))));
+        if (this.statsUser !== ALL_USERS_OPTION && !names.includes(this.statsUser)) {
+            this.statsUser = ALL_USERS_OPTION;
+        }
+
+        select.innerHTML = [this.optionHtml(ALL_USERS_OPTION, 'All users', this.statsUser === ALL_USERS_OPTION)]
+            .concat(names.map(name => this.optionHtml(name, name, name === this.statsUser)))
+            .join('');
+        select.value = this.statsUser;
+    }
+
+    // An average to the second is more precision than it deserves
+    roundToMinute(seconds) {
+        return seconds < 60 ? seconds : Math.round(seconds / 60) * 60;
+    }
+
+    statTile(label, value) {
+        return `<div class="stat-tile">
+                    <span class="stat-tile-value">${this.escapeText(value)}</span>
+                    <span class="stat-tile-label">${this.escapeText(label)}</span>
+                </div>`;
+    }
+
+    renderStatsChart(stats) {
+        const chart = document.getElementById('stats-chart');
+        if (!chart) return;
+
+        const maxSeconds = stats.days.reduce((max, day) => Math.max(max, day.seconds), 0);
+        // A long range has no room for a label under every bar
+        const labelEvery = stats.days.length > 10 ? 5 : 1;
+
+        chart.innerHTML = stats.days.map((day, index) => {
+            const height = maxSeconds > 0 ? Math.round((day.seconds / maxSeconds) * 100) : 0;
+            // Counted from today, so the last bar is always labelled and the rest stay evenly spaced
+            const showLabel = (stats.days.length - 1 - index) % labelEvery === 0;
+            const label = showLabel ? this.escapeText(this.formatDayLabel(day.date)) : '';
+            const tooltip = `${this.formatDayLabel(day.date, true)}: ${this.formatTime(day.seconds)}`;
+            return `<div class="chart-day" title="${this.escapeText(tooltip)}">
+                        <div class="chart-bar-track">
+                            <div class="chart-bar${day.seconds > 0 ? '' : ' empty'}" style="height: ${height}%"></div>
+                        </div>
+                        <div class="chart-label">${label}</div>
+                    </div>`;
+        }).join('');
+    }
+
+    renderStatsUserTable(stats) {
+        const table = document.getElementById('stats-user-table');
+        if (!table) return;
+
+        if (stats.byUser.length === 0) {
+            table.innerHTML = '<p class="stats-no-data">No study time in this range yet.</p>';
+            return;
+        }
+
+        table.innerHTML = stats.byUser.map(entry => `
+                <div class="user-row${entry.user === this.statsUser ? ' selected' : ''}">
+                    <span class="user-name">${this.escapeText(entry.user)}</span>
+                    <span class="user-time">${this.escapeText(this.formatTime(entry.seconds))}</span>
+                    <span class="user-meta">${entry.sessions} session${entry.sessions !== 1 ? 's' : ''}, ${entry.cards} card${entry.cards !== 1 ? 's' : ''}</span>
+                </div>`).join('');
+    }
+
+    formatDayLabel(dateKey, long = false) {
+        const [year, month, day] = dateKey.split('-').map(Number);
+        const date = new Date(year, month - 1, day);
+        if (long) {
+            return date.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+        }
+        return this.statsRangeDays > 10
+            ? date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
+            : date.toLocaleDateString(undefined, { weekday: 'short' });
+    }
+
+    setStatsRange(days) {
+        this.statsRangeDays = days;
+        localStorage.setItem('statsRangeDays', days.toString());
+        this.updateStatsTab();
+    }
+
+    setStatsUser(name) {
+        this.statsUser = name;
+        localStorage.setItem('statsUser', name);
+        this.updateStatsTab();
+    }
+
+    loadStatsPreferences() {
+        const savedRange = parseInt(localStorage.getItem('statsRangeDays') || '7');
+        this.statsRangeDays = savedRange === 30 ? 30 : 7;
+
+        const savedUser = localStorage.getItem('statsUser');
+        if (savedUser) {
+            this.statsUser = savedUser;
+        }
+    }
+
     showSessionComplete() {
         const filteredCards = this.sessionCards;
         const reviewedCount = filteredCards.length;
@@ -943,7 +1348,8 @@ class FlashcardApp {
         const elapsedSeconds = Math.round((Date.now() - this.sessionStartTime) / 1000) - this.sessionPausedTime;
         const timeString = this.formatTime(elapsedSeconds);
         
-        alert(`Session complete! You reviewed ${reviewedCount} card${reviewedCount !== 1 ? 's' : ''} in ${timeString}.`);
+        const user = this.sessionUser || this.currentUser;
+        alert(`Session complete! ${user} reviewed ${reviewedCount} card${reviewedCount !== 1 ? 's' : ''} in ${timeString}.`);
         // endSession() will handle adding time to totalTimeToday
         this.endSession();
     }
@@ -1195,6 +1601,53 @@ class FlashcardApp {
             });
         }
 
+        // Study profile
+        const userSelect = document.getElementById('user-select');
+        if (userSelect) {
+            userSelect.addEventListener('change', (e) => {
+                this.handleUserSelect(e.target.value);
+            });
+        }
+
+        const newUserSave = document.getElementById('new-user-save');
+        if (newUserSave) {
+            newUserSave.addEventListener('click', () => this.confirmNewUser());
+        }
+
+        const newUserCancel = document.getElementById('new-user-cancel');
+        if (newUserCancel) {
+            newUserCancel.addEventListener('click', () => this.hideNewUserForm());
+        }
+
+        const newUserInput = document.getElementById('new-user-input');
+        if (newUserInput) {
+            newUserInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    this.confirmNewUser();
+                } else if (e.key === 'Escape') {
+                    this.hideNewUserForm();
+                }
+            });
+        }
+
+        // Stats tab controls
+        const range7Btn = document.getElementById('stats-range-7');
+        if (range7Btn) {
+            range7Btn.addEventListener('click', () => this.setStatsRange(7));
+        }
+
+        const range30Btn = document.getElementById('stats-range-30');
+        if (range30Btn) {
+            range30Btn.addEventListener('click', () => this.setStatsRange(30));
+        }
+
+        const statsUserSelect = document.getElementById('stats-user-select');
+        if (statsUserSelect) {
+            statsUserSelect.addEventListener('change', (e) => {
+                this.setStatsUser(e.target.value);
+            });
+        }
+
         // Session options
         const shuffleCheckbox = document.getElementById('shuffle-checkbox');
         if (shuffleCheckbox) {
@@ -1344,6 +1797,15 @@ class FlashcardApp {
             }
         });
 
+        // Closing the tab mid-session would otherwise lose the time spent in it
+        if (typeof window !== 'undefined' && window.addEventListener) {
+            window.addEventListener('pagehide', () => {
+                if (this.inSession) {
+                    this.endSession();
+                }
+            });
+        }
+
         // Page visibility change - pause timer when app is inactive
         document.addEventListener('visibilitychange', () => {
             if (this.inSession) {
@@ -1358,6 +1820,46 @@ class FlashcardApp {
                 }
             }
         });
+    }
+
+    handleUserSelect(value) {
+        if (value === NEW_USER_OPTION) {
+            this.showNewUserForm();
+            return;
+        }
+        this.setCurrentUser(value);
+    }
+
+    showNewUserForm() {
+        const form = document.getElementById('new-user-form');
+        const input = document.getElementById('new-user-input');
+        if (!form || !input) return;
+
+        // The picker goes back to the current user until the new name is confirmed
+        this.updateUserSelect();
+        form.style.display = 'inline-flex';
+        input.value = '';
+        input.focus();
+    }
+
+    hideNewUserForm() {
+        const form = document.getElementById('new-user-form');
+        if (form) form.style.display = 'none';
+        this.updateUserSelect();
+    }
+
+    confirmNewUser() {
+        const input = document.getElementById('new-user-input');
+        const name = input ? input.value : '';
+        if (!name.trim()) {
+            // Nothing typed: treat it as a cancel rather than leaving an empty field open
+            this.hideNewUserForm();
+            return null;
+        }
+
+        const user = this.addUser(name);
+        this.hideNewUserForm();
+        return user;
     }
 
     setDirection(direction) {
@@ -1438,6 +1940,11 @@ class FlashcardApp {
         // Reset flip state when switching to study tab
         if (tabName === 'study') {
             this.resetFlip();
+        }
+
+        // Show the time from the session that just ended
+        if (tabName === 'stats') {
+            this.updateStatsTab();
         }
     }
 }
