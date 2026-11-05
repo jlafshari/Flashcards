@@ -117,11 +117,27 @@ Works in all modern browsers:
 
 ## Data Storage
 
-All flashcards are stored in your browser's local storage. This means:
+Out of the box, all flashcards are stored in your browser's local storage. This means:
 - ✅ Your data stays private on your device
 - ✅ No account or internet connection needed
 - ⚠️ Clearing browser data will delete your cards
 - ⚠️ Cards are not synced across devices
+
+### Optional: accounts and sync
+
+The app can also sign users in and keep each person's cards, study history and
+preferences in a database, so they follow you between devices. This uses three free
+services: Auth0 for sign-in, a Cloudflare Worker (`api/`) for the API, and a MongoDB Atlas
+free cluster for storage. The one-time setup, and how to fill in the root `config.js`, is
+in [api/README.md](../api/README.md). With `config.js` left empty the app behaves exactly
+as described above.
+
+When signed in:
+- The "Studying as" picker is replaced by your account; the first sign-in uploads whatever
+  this browser already had.
+- Changes are saved to the account as you make them. If the server cannot be reached they
+  wait in this browser and are sent when the connection returns.
+- Signing out keeps the account data on the server and leaves the browser-only (Guest) deck as it was.
 
 ## Future Enhancements
 

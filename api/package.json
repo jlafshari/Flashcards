@@ -1,0 +1,25 @@
+{
+  "name": "flashcards-api",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Cloudflare Worker API for the Flashcards app, backed by MongoDB Atlas and Auth0",
+  "type": "module",
+  "main": "src/index.js",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "test": "node test/run_all.js",
+    "test:mongo": "FLASHCARDS_TEST_MONGODB_URI='mongodb://localhost:27017/?replicaSet=rs0&directConnection=true' node test/run_all.js",
+    "mongo:start": "docker run -d --name flashcards-mongo -p 27017:27017 mongo:7 --replSet rs0 --bind_ip_all && sleep 4 && docker exec flashcards-mongo mongosh --quiet --eval \"rs.initiate({_id:'rs0', members:[{_id:0, host:'localhost:27017'}]})\"",
+    "mongo:stop": "docker rm -f flashcards-mongo",
+    "smoke": "wrangler dev --config test/smoke/wrangler.toml --port 8788 --var 'MONGODB_URI:mongodb://localhost:27017/?replicaSet=rs0&directConnection=true'"
+  },
+  "dependencies": {
+    "hono": "^4.6.0",
+    "jose": "^6.0.0",
+    "mongodb": "^6.12.0"
+  },
+  "devDependencies": {
+    "wrangler": "^4.0.0"
+  }
+}

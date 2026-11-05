@@ -4,7 +4,9 @@ const fs = require('fs');
 const path = require('path');
 const { mockDOM, MockElement } = require('./dom-mock.js');
 
-eval(fs.readFileSync(path.join(__dirname, '../app.js'), 'utf8') + '; global.FlashcardApp = FlashcardApp;');
+eval(fs.readFileSync(path.join(__dirname, '../app.js'), 'utf8') + '; global.FlashcardApp = FlashcardApp;'
+    + ' global.LocalStorageAdapter = LocalStorageAdapter; global.ApiStorageAdapter = ApiStorageAdapter;'
+    + ' global.ApiClient = ApiClient; global.AccountAuth = AccountAuth;');
 
 // Run timers immediately so animated actions (markEasy, markBuried, ...) finish synchronously
 global.setTimeout = (fn) => fn();
