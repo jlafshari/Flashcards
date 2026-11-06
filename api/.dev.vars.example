@@ -1,0 +1,15 @@
+# Local-only settings for `wrangler dev` (npm run dev). Copy this file to `.dev.vars` in the
+# same folder; `.dev.vars` is gitignored. Anything here overrides the same-named value in
+# wrangler.toml [vars], so local development can use its own database.
+
+# The database to connect to. For the Docker MongoDB from `npm run mongo:start`:
+MONGODB_URI=mongodb://localhost:27017/?replicaSet=rs0&directConnection=true
+# ...or a separate Atlas user/cluster for development:
+# MONGODB_URI=mongodb+srv://dev-user:password@dev-cluster.xxxxx.mongodb.net/
+
+# Database name. Production uses `flashcards` (wrangler.toml); keep local data apart.
+DB_NAME=flashcards_dev
+
+# Auth0 values can be overridden here too, e.g. to point at a separate development tenant:
+# AUTH0_DOMAIN=dev-xxxxx.us.auth0.com
+# AUTH0_AUDIENCE=https://flashcards-api

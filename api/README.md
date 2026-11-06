@@ -124,8 +124,14 @@ Fill in the root `config.js` with `AUTH0_DOMAIN`, `AUTH0_CLIENT_ID`, `AUTH0_AUDI
 npm run dev            # wrangler dev on http://localhost:8787
 ```
 
-Put `MONGODB_URI=...` in `api/.dev.vars` (gitignored) so `wrangler dev` has the secret. Point
-the frontend's `API_BASE` at `http://localhost:8787` and serve it with
+`wrangler dev` reads `api/.dev.vars` (gitignored; copy `.dev.vars.example` to start). Values
+there override the same-named `[vars]` in `wrangler.toml`, so local development uses its own
+database: set `DB_NAME=flashcards_dev` and point `MONGODB_URI` at either the Docker MongoDB
+from `npm run mongo:start` or a separate Atlas cluster/user. Production keeps `DB_NAME`
+from `wrangler.toml` and the `MONGODB_URI` secret set with `wrangler secret put`; nothing in
+`.dev.vars` is ever deployed.
+
+Point the frontend's `API_BASE` at `http://localhost:8787` and serve it with
 `python3 -m http.server 8080` from the repository root. Calls need a real Auth0 token; the
 Auth0 dashboard's API "Test" tab issues one for curl:
 
