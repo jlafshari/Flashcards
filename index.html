@@ -15,15 +15,29 @@
             <button class="tab-button" data-tab="stats">Stats</button>
         </nav>
 
+        <!-- Account (shown only when config.js points at the API) -->
+        <div id="account-bar" class="account-bar" style="display: none;">
+            <span id="account-name" class="account-name">Not signed in</span>
+            <span id="sync-status" class="sync-status"></span>
+            <button id="sign-in-btn" class="new-user-btn primary">Sign in</button>
+            <button id="sign-out-btn" class="new-user-btn" style="display: none;">Sign out</button>
+        </div>
+        <div id="sync-banner" class="sync-banner" style="display: none;">
+            <span>Could not reach your account. Your changes are kept in this browser and will be sent when the connection is back.</span>
+            <button id="sync-retry-btn" class="new-user-btn">Retry now</button>
+        </div>
+
         <!-- Study Tab -->
         <div id="study-tab" class="tab-content active">
             <div class="study-user-bar">
-                <label for="user-select">Studying as:</label>
-                <select id="user-select"></select>
-                <span id="new-user-form" class="new-user-form" style="display: none;">
-                    <input type="text" id="new-user-input" placeholder="Name" maxlength="40">
-                    <button id="new-user-save" class="new-user-btn primary">Add</button>
-                    <button id="new-user-cancel" class="new-user-btn">Cancel</button>
+                <span id="local-user-controls" class="local-user-controls">
+                    <label for="user-select">Studying as:</label>
+                    <select id="user-select"></select>
+                    <span id="new-user-form" class="new-user-form" style="display: none;">
+                        <input type="text" id="new-user-input" placeholder="Name" maxlength="40">
+                        <button id="new-user-save" class="new-user-btn primary">Add</button>
+                        <button id="new-user-cancel" class="new-user-btn">Cancel</button>
+                    </span>
                 </span>
             </div>
 
@@ -104,7 +118,7 @@
                     <button id="stats-range-7" class="range-btn active">Last 7 days</button>
                     <button id="stats-range-30" class="range-btn">Last 30 days</button>
                 </div>
-                <label class="stats-user-filter">
+                <label id="stats-user-filter" class="stats-user-filter">
                     <span>Show:</span>
                     <select id="stats-user-select"></select>
                 </label>
@@ -166,6 +180,8 @@
         </div>
     </div>
 
+    <script src="config.js"></script>
+    <script src="https://cdn.auth0.com/js/auth0-spa-js/2.30.0/auth0-spa-js.production.js"></script>
     <script src="app.js"></script>
 </body>
 </html>

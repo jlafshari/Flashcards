@@ -90,7 +90,9 @@ const elementIds = [
     'timer-display', 'stats', 'study-content', 'user-select', 'stats-tab', 'stats-summary',
     'stats-empty', 'stats-chart', 'stats-chart-title', 'stats-user-table', 'stats-user-select',
     'stats-range-7', 'stats-range-30', 'new-user-form', 'new-user-input',
-    'new-user-save', 'new-user-cancel'
+    'new-user-save', 'new-user-cancel', 'local-user-controls', 'stats-user-filter',
+    'account-bar', 'account-name', 'sync-status', 'sign-in-btn', 'sign-out-btn',
+    'sync-banner', 'sync-retry-btn'
 ];
 
 elementIds.forEach(id => {
@@ -161,6 +163,12 @@ global.localStorage = {
     },
     clear: function() {
         this.data = {};
+    },
+    key: function(index) {
+        return Object.keys(this.data)[index] ?? null;
+    },
+    get length() {
+        return Object.keys(this.data).length;
     }
 };
 

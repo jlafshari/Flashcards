@@ -6,6 +6,378 @@ const NEW_USER_OPTION = '__new__';  // Sentinel value of the "add a user" option
 const ALL_USERS_OPTION = '__all__'; // Sentinel value of the "all users" option in the stats filter
 const STUDY_HISTORY_DAYS = 365;     // How long finished sessions are kept
 
+// Optional account backend. config.js sets window.FLASHCARDS_CONFIG with the Auth0 tenant and
+// the API URL; without it the app runs exactly as before, saving only to this browser.
+const APP_CONFIG = (typeof window !== 'undefined' && window.FLASHCARDS_CONFIG) || {};
+const ACCOUNT_CACHE_PREFIX = 'account:'; // localStorage keys for a signed-in account's cached copy
+const PENDING_OPS_KEY = 'pendingOps';    // Changes not yet accepted by the API
+const RETRY_BASE_MS = 5000;
+const RETRY_MAX_MS = 60000;
+
+// Everything the app persists goes through one of these. The local adapter is today's
+// behaviour: whole arrays rewritten into browser storage. An optional key prefix keeps a
+// signed-in account's cached copy apart from the signed-out ("Guest") data.
+class LocalStorageAdapter {
+    constructor(prefix = '') {
+        this.prefix = prefix;
+    }
+
+    get isRemote() {
+        return false;
+    }
+
+    key(name) {
+        return this.prefix + name;
+    }
+
+    getItem(name) {
+        return localStorage.getItem(this.key(name));
+    }
+
+    setItem(name, value) {
+        localStorage.setItem(this.key(name), value);
+    }
+
+    removeItem(name) {
+        localStorage.removeItem(this.key(name));
+    }
+
+    saveCards(cards) {
+        this.setItem('flashcards', JSON.stringify(cards));
+    }
+
+    saveSessions(sessions) {
+        this.setItem('studySessions', JSON.stringify(sessions));
+    }
+
+    // Card and session changes: `card`/`session` is what changed, the array is the full
+    // current state, which is all the local copy needs
+    createCard(card, cards) { this.saveCards(cards); return Promise.resolve(true); }
+    updateCard(id, fields, cards) { this.saveCards(cards); return Promise.resolve(true); }
+    deleteCard(id, cards) { this.saveCards(cards); return Promise.resolve(true); }
+    replaceCards(cards) { this.saveCards(cards); return Promise.resolve(true); }
+    addCards(newCards, cards) { this.saveCards(cards); return Promise.resolve(true); }
+    appendSession(session, sessions) { this.saveSessions(sessions); return Promise.resolve(true); }
+
+    // Preferences are written key by key as they change; nothing more to do locally
+    savePreferences(prefs) { return Promise.resolve(true); }
+
+    flush() { return Promise.resolve(true); }
+
+    // Removes every key under this adapter's prefix
+    clear() {
+        if (!this.prefix || typeof localStorage.key !== 'function') return;
+        const doomed = [];
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key && key.startsWith(this.prefix)) doomed.push(key);
+        }
+        doomed.forEach(key => localStorage.removeItem(key));
+    }
+}
+
+// Thin fetch wrapper for the Flashcards API: adds the bearer token, parses JSON, and turns
+// non-2xx responses into errors carrying `status`. Network failures have no status.
+class ApiClient {
+    constructor(baseUrl, getToken) {
+        this.baseUrl = String(baseUrl || '').replace(/\/+$/, '');
+        this.getToken = getToken;
+    }
+
+    async request(method, path, body) {
+        const token = await this.getToken();
+        const headers = { Authorization: `Bearer ${token}` };
+        const init = { method, headers };
+        if (body !== undefined) {
+            headers['Content-Type'] = 'application/json';
+            init.body = JSON.stringify(body);
+        }
+        const response = await fetch(this.baseUrl + path, init);
+        if (response.status === 204) return null;
+        let data = null;
+        try {
+            data = await response.json();
+        } catch (e) {
+            // Non-JSON body (gateway error page); the status code is what matters
+        }
+        if (!response.ok) {
+            const error = new Error((data && data.error) || `Request failed with status ${response.status}`);
+            error.status = response.status;
+            throw error;
+        }
+        return data;
+    }
+
+    // Server-side or network trouble is worth retrying; a 4xx means the request itself is wrong
+    static isTransient(error) {
+        return !error || !error.status || error.status >= 500 || error.status === 429;
+    }
+}
+
+// Cards and sessions as the API represents them
+function toApiCard(card) {
+    return {
+        clientId: card.id,
+        bulgarian: card.bulgarian,
+        english: card.english,
+        category: card.category || '',
+        createdAt: card.createdAt,
+        buried: card.buried === true
+    };
+}
+
+function fromApiCard(card) {
+    return {
+        id: card.clientId,
+        bulgarian: card.bulgarian,
+        english: card.english,
+        category: card.category || '',
+        createdAt: card.createdAt,
+        buried: card.buried === true
+    };
+}
+
+function toApiSession(session) {
+    return {
+        clientId: session.id,
+        date: session.date,
+        startedAt: session.startedAt || null,
+        seconds: session.seconds,
+        cards: session.cards
+    };
+}
+
+function fromApiSession(session, user) {
+    return {
+        id: session.clientId,
+        user,
+        date: session.date,
+        startedAt: session.startedAt || null,
+        seconds: Number(session.seconds) || 0,
+        cards: Number(session.cards) || 0
+    };
+}
+
+// Signed-in storage: every change is written to the account's local cache first, then sent
+// to the API. Changes the API has not accepted yet wait in a persisted queue and are replayed
+// in order, so a dropped connection never loses an edit.
+class ApiStorageAdapter extends LocalStorageAdapter {
+    constructor(api, accountId, onStatus = () => {}) {
+        super(`${ACCOUNT_CACHE_PREFIX}${accountId}:`);
+        this.api = api;
+        this.onStatus = onStatus;
+        this.queue = this.loadQueue();
+        this.flushing = null;
+        this.retryTimer = null;
+        this.retryDelay = 0;
+    }
+
+    get isRemote() {
+        return true;
+    }
+
+    get pendingCount() {
+        return this.queue.length;
+    }
+
+    loadQueue() {
+        try {
+            const parsed = JSON.parse(this.getItem(PENDING_OPS_KEY) || '[]');
+            return Array.isArray(parsed) ? parsed : [];
+        } catch (e) {
+            return [];
+        }
+    }
+
+    saveQueue() {
+        if (this.queue.length > 0) {
+            this.setItem(PENDING_OPS_KEY, JSON.stringify(this.queue));
+        } else {
+            this.removeItem(PENDING_OPS_KEY);
+        }
+    }
+
+    enqueue(op) {
+        // Only the latest preferences matter, so an unsent one is replaced rather than queued twice
+        if (op.kind === 'preferences') {
+            this.queue = this.queue.filter(queued => queued.kind !== 'preferences');
+        }
+        this.queue.push(op);
+        this.saveQueue();
+        return this.flush();
+    }
+
+    createCard(card, cards) {
+        super.saveCards(cards);
+        return this.enqueue({ kind: 'card', method: 'POST', path: '/cards', body: toApiCard(card) });
+    }
+
+    updateCard(id, fields, cards) {
+        super.saveCards(cards);
+        return this.enqueue({ kind: 'card', method: 'PATCH', path: `/cards/${id}`, body: fields });
+    }
+
+    deleteCard(id, cards) {
+        super.saveCards(cards);
+        return this.enqueue({ kind: 'card', method: 'DELETE', path: `/cards/${id}` });
+    }
+
+    replaceCards(cards) {
+        super.saveCards(cards);
+        return this.enqueue({ kind: 'cards', method: 'POST', path: '/cards/bulk', body: { cards: cards.map(toApiCard), replace: true } });
+    }
+
+    addCards(newCards, cards) {
+        super.saveCards(cards);
+        if (newCards.length === 0) return Promise.resolve(true);
+        return this.enqueue({ kind: 'cards', method: 'POST', path: '/cards/bulk', body: { cards: newCards.map(toApiCard) } });
+    }
+
+    appendSession(session, sessions) {
+        super.saveSessions(sessions);
+        return this.enqueue({ kind: 'session', method: 'POST', path: '/sessions', body: toApiSession(session) });
+    }
+
+    savePreferences(prefs) {
+        return this.enqueue({ kind: 'preferences', method: 'PUT', path: '/preferences', body: prefs });
+    }
+
+    // Sends queued changes in order. Resolves true when the queue is empty, false when the
+    // server could not be reached (a retry is then scheduled).
+    flush() {
+        if (!this.flushing) {
+            this.flushing = this.drain().finally(() => {
+                this.flushing = null;
+            });
+        }
+        return this.flushing;
+    }
+
+    async drain() {
+        if (this.retryTimer) {
+            clearTimeout(this.retryTimer);
+            this.retryTimer = null;
+        }
+        if (this.queue.length === 0) {
+            this.onStatus({ state: 'synced', pending: 0 });
+            return true;
+        }
+        this.onStatus({ state: 'syncing', pending: this.queue.length });
+        while (this.queue.length > 0) {
+            const op = this.queue[0];
+            try {
+                await this.api.request(op.method, op.path, op.body);
+            } catch (error) {
+                if (ApiClient.isTransient(error)) {
+                    this.scheduleRetry();
+                    this.onStatus({ state: 'offline', pending: this.queue.length, error });
+                    return false;
+                }
+                // The server will never accept this change (for example the card was already
+                // deleted on another device); drop it so the changes behind it can go through
+                console.error('Change rejected by the server; skipping it', op, error);
+            }
+            this.queue.shift();
+            this.saveQueue();
+        }
+        this.retryDelay = 0;
+        this.onStatus({ state: 'synced', pending: 0 });
+        return true;
+    }
+
+    scheduleRetry() {
+        this.retryDelay = Math.min(this.retryDelay ? this.retryDelay * 2 : RETRY_BASE_MS, RETRY_MAX_MS);
+        this.retryTimer = setTimeout(() => this.flush(), this.retryDelay);
+    }
+
+    fetchMe() {
+        return this.api.request('GET', '/me');
+    }
+
+    bootstrap() {
+        return this.api.request('GET', '/bootstrap');
+    }
+
+    migrate(payload) {
+        return this.api.request('POST', '/migrate', payload);
+    }
+}
+
+// Wraps the Auth0 SPA SDK (loaded from its CDN by index.html as the `auth0` global).
+class AccountAuth {
+    constructor(config = APP_CONFIG) {
+        this.config = config;
+        this.client = null;
+        this.user = null;
+    }
+
+    // True only when config.js is filled in and the SDK loaded
+    get configured() {
+        const c = this.config;
+        return Boolean(c.AUTH0_DOMAIN && c.AUTH0_CLIENT_ID && c.AUTH0_AUDIENCE && c.API_BASE) &&
+            typeof auth0 !== 'undefined' && typeof auth0.createAuth0Client === 'function';
+    }
+
+    get accountId() {
+        return this.user ? this.user.sub : null;
+    }
+
+    get displayName() {
+        if (!this.user) return null;
+        return this.user.email || this.user.name || this.user.sub;
+    }
+
+    redirectUri() {
+        return window.location.origin + window.location.pathname;
+    }
+
+    // Creates the client and completes a login redirect if we are returning from one
+    async init() {
+        this.client = await auth0.createAuth0Client({
+            domain: this.config.AUTH0_DOMAIN,
+            clientId: this.config.AUTH0_CLIENT_ID,
+            // Silent renewal in a hidden iframe needs third-party cookies, which browsers block
+            // for a github.io origin; refresh tokens work without them
+            useRefreshTokens: true,
+            cacheLocation: 'localstorage',
+            authorizationParams: {
+                audience: this.config.AUTH0_AUDIENCE,
+                redirect_uri: this.redirectUri()
+            }
+        });
+
+        const params = new URLSearchParams(window.location.search);
+        if (params.has('code') && params.has('state')) {
+            try {
+                await this.client.handleRedirectCallback();
+            } catch (error) {
+                console.error('Sign-in could not be completed', error);
+            } finally {
+                window.history.replaceState({}, document.title, this.redirectUri());
+            }
+        } else if (params.has('error')) {
+            console.error('Sign-in failed:', params.get('error_description') || params.get('error'));
+            window.history.replaceState({}, document.title, this.redirectUri());
+        }
+
+        this.user = (await this.client.isAuthenticated()) ? await this.client.getUser() : null;
+        return this.user;
+    }
+
+    login() {
+        return this.client.loginWithRedirect();
+    }
+
+    logout() {
+        this.user = null;
+        return this.client.logout({ logoutParams: { returnTo: this.redirectUri() } });
+    }
+
+    getToken() {
+        return this.client.getTokenSilently();
+    }
+}
+
 class FlashcardApp {
     constructor() {
         this.cards = [];
@@ -42,8 +414,15 @@ class FlashcardApp {
         
         // Edit state
         this.editingCardId = null; // ID of card currently being edited
-        
+
+        // Persistence: this browser until someone signs in, then their account's API
+        this.storage = new LocalStorageAdapter();
+        this.auth = new AccountAuth();
+        this.account = null; // { id, name } while signed in
+        this.syncStatus = { state: 'local', pending: 0 };
+
         this.init();
+        this.connectAccount();
     }
 
     init() {
@@ -60,7 +439,7 @@ class FlashcardApp {
 
     // Data management
     loadFromStorage() {
-        const stored = localStorage.getItem('flashcards');
+        const stored = this.storage.getItem('flashcards');
         if (stored) {
             this.cards = this.parseStoredCards(stored);
             // Ensure existing cards have buried property
@@ -71,27 +450,31 @@ class FlashcardApp {
             });
             // Keep newly generated ids above every saved id (imports can leave ids ahead of the clock)
             this.lastCardId = this.cards.reduce((max, card) => Math.max(max, Number(card.id) || 0), 0);
+        } else if (this.storage.isRemote) {
+            // Nothing cached for this account yet; the deck arrives from the API
+            this.cards = [];
+            this.lastCardId = 0;
         } else {
             // First-time usage - initialize with sample cards
             this.initializeSampleCards();
         }
         
-        const reviewDate = localStorage.getItem('reviewDate');
+        const reviewDate = this.storage.getItem('reviewDate');
         const today = new Date().toDateString();
         
         if (reviewDate === today) {
-            this.reviewedToday = parseInt(localStorage.getItem('reviewedToday') || '0');
-            this.totalTimeToday = parseInt(localStorage.getItem('totalTimeToday') || '0');
+            this.reviewedToday = parseInt(this.storage.getItem('reviewedToday') || '0');
+            this.totalTimeToday = parseInt(this.storage.getItem('totalTimeToday') || '0');
         } else {
             this.reviewedToday = 0;
             this.totalTimeToday = 0;
-            localStorage.setItem('reviewDate', today);
-            localStorage.setItem('reviewedToday', '0');
-            localStorage.setItem('totalTimeToday', '0');
+            this.storage.setItem('reviewDate', today);
+            this.storage.setItem('reviewedToday', '0');
+            this.storage.setItem('totalTimeToday', '0');
         }
         
         // Load direction preference
-        const savedDirection = localStorage.getItem('studyDirection');
+        const savedDirection = this.storage.getItem('studyDirection');
         if (savedDirection) {
             this.direction = savedDirection;
         }
@@ -108,7 +491,7 @@ class FlashcardApp {
         }
         // Keep the unreadable data so it can be recovered, and start with an empty deck
         // instead of failing to load the app
-        localStorage.setItem('flashcardsCorruptBackup', stored);
+        this.storage.setItem('flashcardsCorruptBackup', stored);
         console.error('Saved flashcards were unreadable; starting with an empty deck.');
         return [];
     }
@@ -135,13 +518,20 @@ class FlashcardApp {
     }
 
     saveToStorage() {
-        localStorage.setItem('flashcards', JSON.stringify(this.cards));
+        this.storage.saveCards(this.cards);
     }
 
     // Study profiles: several people can share one copy of the app, each with their own study time
     loadUsers() {
+        // A signed-in account is the only person studying; the local profiles stay with Guest mode
+        if (this.account) {
+            this.users = [this.account.name];
+            this.currentUser = this.account.name;
+            return;
+        }
+
         let users = [];
-        const stored = localStorage.getItem('studyUsers');
+        const stored = this.storage.getItem('studyUsers');
         if (stored) {
             try {
                 const parsed = JSON.parse(stored);
@@ -159,14 +549,15 @@ class FlashcardApp {
         }
         this.users = users;
 
-        const saved = localStorage.getItem('currentUser');
+        const saved = this.storage.getItem('currentUser');
         this.currentUser = this.users.includes(saved) ? saved : this.users[0];
         this.saveUsers();
     }
 
     saveUsers() {
-        localStorage.setItem('studyUsers', JSON.stringify(this.users));
-        localStorage.setItem('currentUser', this.currentUser);
+        if (this.account) return;
+        this.storage.setItem('studyUsers', JSON.stringify(this.users));
+        this.storage.setItem('currentUser', this.currentUser);
     }
 
     addUser(name) {
@@ -207,15 +598,15 @@ class FlashcardApp {
         );
         this.totalTimeToday = todaysSessions.reduce((total, session) => total + session.seconds, 0);
         this.reviewedToday = todaysSessions.reduce((total, session) => total + session.cards, 0);
-        localStorage.setItem('reviewDate', new Date().toDateString());
-        localStorage.setItem('reviewedToday', this.reviewedToday.toString());
-        localStorage.setItem('totalTimeToday', this.totalTimeToday.toString());
+        this.storage.setItem('reviewDate', new Date().toDateString());
+        this.storage.setItem('reviewedToday', this.reviewedToday.toString());
+        this.storage.setItem('totalTimeToday', this.totalTimeToday.toString());
     }
 
     // Study history
     loadStudySessions() {
         let sessions = [];
-        const stored = localStorage.getItem('studySessions');
+        const stored = this.storage.getItem('studySessions');
         if (stored) {
             try {
                 const parsed = JSON.parse(stored);
@@ -244,7 +635,7 @@ class FlashcardApp {
     }
 
     saveStudySessions() {
-        localStorage.setItem('studySessions', JSON.stringify(this.studySessions));
+        this.storage.saveSessions(this.studySessions);
     }
 
     recordStudySession(user, seconds, cards, startedAt) {
@@ -260,7 +651,7 @@ class FlashcardApp {
         };
         this.studySessions.push(record);
         this.pruneStudySessions();
-        this.saveStudySessions();
+        this.storage.appendSession(record, this.studySessions);
         return record;
     }
 
@@ -271,8 +662,8 @@ class FlashcardApp {
 
     // Time tracked before study history existed would otherwise disappear from today's stats
     migrateLegacyTodayTime() {
-        if (localStorage.getItem('studyHistoryMigrated') === 'true') return;
-        localStorage.setItem('studyHistoryMigrated', 'true');
+        if (this.storage.getItem('studyHistoryMigrated') === 'true') return;
+        this.storage.setItem('studyHistoryMigrated', 'true');
 
         if (this.studySessions.length === 0 && (this.totalTimeToday > 0 || this.reviewedToday > 0)) {
             const startedAt = Date.now() - this.totalTimeToday * 1000;
@@ -361,7 +752,7 @@ class FlashcardApp {
         };
         
         this.cards.push(card);
-        this.saveToStorage();
+        this.storage.createCard(card, this.cards);
         this.updateUI();
         
         return card;
@@ -369,7 +760,7 @@ class FlashcardApp {
 
     deleteCard(id) {
         this.cards = this.cards.filter(card => card.id !== id);
-        this.saveToStorage();
+        this.storage.deleteCard(id, this.cards);
         
         // Adjust current index if needed
         if (this.currentCardIndex >= this.cards.length) {
@@ -385,7 +776,7 @@ class FlashcardApp {
             card.bulgarian = bulgarian.trim();
             card.english = english.trim();
             card.category = category.trim();
-            this.saveToStorage();
+            this.storage.updateCard(id, { bulgarian: card.bulgarian, english: card.english, category: card.category }, this.cards);
             this.updateUI();
         }
     }
@@ -394,7 +785,7 @@ class FlashcardApp {
         const card = this.cards.find(c => c.id === id);
         if (card) {
             card.buried = !card.buried;
-            this.saveToStorage();
+            this.storage.updateCard(id, { buried: card.buried }, this.cards);
             this.updateUI();
         }
     }
@@ -471,7 +862,7 @@ class FlashcardApp {
         if (this.sessionStartTime !== null) {
             const elapsedSeconds = Math.max(0, Math.round((Date.now() - this.sessionStartTime) / 1000) - this.sessionPausedTime);
             this.totalTimeToday += elapsedSeconds;
-            localStorage.setItem('totalTimeToday', this.totalTimeToday.toString());
+            this.storage.setItem('totalTimeToday', this.totalTimeToday.toString());
             this.recordStudySession(
                 this.sessionUser || this.currentUser,
                 elapsedSeconds,
@@ -552,7 +943,7 @@ class FlashcardApp {
 
     incrementReviewCount() {
         this.reviewedToday++;
-        localStorage.setItem('reviewedToday', this.reviewedToday.toString());
+        this.storage.setItem('reviewedToday', this.reviewedToday.toString());
     }
 
     showFeedbackButtons() {
@@ -609,7 +1000,7 @@ class FlashcardApp {
                 if (currentCard) {
                     // Mark card as buried
                     currentCard.buried = true;
-                    this.saveToStorage();
+                    this.storage.updateCard(currentCard.id, { buried: true }, this.cards);
                     
                     // Mark as reviewed
                     this.sessionReviewedCards.add(currentCard.id);
@@ -740,7 +1131,8 @@ class FlashcardApp {
 
     setActiveCategories(categories) {
         this.activeCategories = categories;
-        localStorage.setItem('activeCategories', JSON.stringify(categories));
+        this.storage.setItem('activeCategories', JSON.stringify(categories));
+        this.syncPreferences();
         this.currentCardIndex = 0; // Reset to first card when filter changes
         this.reviewQueue = []; // Clear review queue when filter changes
         this.resetFlip();
@@ -825,7 +1217,7 @@ class FlashcardApp {
     }
 
     loadCategoryPreference() {
-        const saved = localStorage.getItem('activeCategories');
+        const saved = this.storage.getItem('activeCategories');
         if (saved) {
             try {
                 this.activeCategories = JSON.parse(saved);
@@ -836,24 +1228,61 @@ class FlashcardApp {
     }
 
     loadSessionPreferences() {
-        const shuffleSaved = localStorage.getItem('shuffleEnabled');
+        const shuffleSaved = this.storage.getItem('shuffleEnabled');
         if (shuffleSaved !== null) {
             this.shuffleEnabled = shuffleSaved === 'true';
         }
         
-        const cardLimitSaved = localStorage.getItem('cardLimit');
+        const cardLimitSaved = this.storage.getItem('cardLimit');
         if (cardLimitSaved !== null && cardLimitSaved !== '') {
             this.cardLimit = parseInt(cardLimitSaved);
         }
     }
 
     saveSessionPreferences() {
-        localStorage.setItem('shuffleEnabled', this.shuffleEnabled.toString());
+        this.storage.setItem('shuffleEnabled', this.shuffleEnabled.toString());
         if (this.cardLimit !== null) {
-            localStorage.setItem('cardLimit', this.cardLimit.toString());
+            this.storage.setItem('cardLimit', this.cardLimit.toString());
         } else {
-            localStorage.removeItem('cardLimit');
+            this.storage.removeItem('cardLimit');
         }
+        this.syncPreferences();
+    }
+
+    // Preferences as the API stores them (the app's "no filter" is an empty array; the API's is null)
+    collectPreferences() {
+        return {
+            studyDirection: this.direction,
+            activeCategories: this.activeCategories.length > 0 ? this.activeCategories.slice() : null,
+            shuffleEnabled: this.shuffleEnabled,
+            cardLimit: this.cardLimit !== null && this.cardLimit > 0 ? this.cardLimit : null,
+            statsRangeDays: this.statsRangeDays
+        };
+    }
+
+    syncPreferences() {
+        this.storage.savePreferences(this.collectPreferences());
+    }
+
+    // Takes preferences from the API into the app state and the local cache
+    applyPreferences(prefs) {
+        if (!prefs) return;
+        if (prefs.studyDirection === 'bg-en' || prefs.studyDirection === 'en-bg') {
+            this.direction = prefs.studyDirection;
+            this.storage.setItem('studyDirection', this.direction);
+        }
+        this.activeCategories = Array.isArray(prefs.activeCategories) ? prefs.activeCategories.slice() : [];
+        this.storage.setItem('activeCategories', JSON.stringify(this.activeCategories));
+        this.shuffleEnabled = prefs.shuffleEnabled === true;
+        this.cardLimit = Number.isInteger(prefs.cardLimit) && prefs.cardLimit > 0 ? prefs.cardLimit : null;
+        this.storage.setItem('shuffleEnabled', this.shuffleEnabled.toString());
+        if (this.cardLimit !== null) {
+            this.storage.setItem('cardLimit', this.cardLimit.toString());
+        } else {
+            this.storage.removeItem('cardLimit');
+        }
+        this.statsRangeDays = prefs.statsRangeDays === 30 ? 30 : 7;
+        this.storage.setItem('statsRangeDays', this.statsRangeDays.toString());
     }
 
     // UI updates
@@ -864,6 +1293,12 @@ class FlashcardApp {
     }
 
     updateUserSelect() {
+        const localControls = document.getElementById('local-user-controls');
+        if (localControls && localControls.style) {
+            localControls.style.display = this.account ? 'none' : '';
+        }
+        this.updateAccountBar();
+
         const select = document.getElementById('user-select');
         if (!select) return;
 
@@ -1240,6 +1675,11 @@ class FlashcardApp {
             }
         });
 
+        const filter = document.getElementById('stats-user-filter');
+        if (filter && filter.style) {
+            filter.style.display = this.account ? 'none' : '';
+        }
+
         const select = document.getElementById('stats-user-select');
         if (!select) return;
 
@@ -1320,21 +1760,22 @@ class FlashcardApp {
 
     setStatsRange(days) {
         this.statsRangeDays = days;
-        localStorage.setItem('statsRangeDays', days.toString());
+        this.storage.setItem('statsRangeDays', days.toString());
+        this.syncPreferences();
         this.updateStatsTab();
     }
 
     setStatsUser(name) {
         this.statsUser = name;
-        localStorage.setItem('statsUser', name);
+        this.storage.setItem('statsUser', name);
         this.updateStatsTab();
     }
 
     loadStatsPreferences() {
-        const savedRange = parseInt(localStorage.getItem('statsRangeDays') || '7');
+        const savedRange = parseInt(this.storage.getItem('statsRangeDays') || '7');
         this.statsRangeDays = savedRange === 30 ? 30 : 7;
 
-        const savedUser = localStorage.getItem('statsUser');
+        const savedUser = this.storage.getItem('statsUser');
         if (savedUser) {
             this.statsUser = savedUser;
         }
@@ -1540,11 +1981,12 @@ class FlashcardApp {
 
                 if (replace) {
                     this.cards = newCards;
+                    this.storage.replaceCards(this.cards);
                 } else {
                     this.cards.push(...newCards);
+                    this.storage.addCards(newCards, this.cards);
                 }
 
-                this.saveToStorage();
                 this.updateUI();
 
                 // Show feedback
@@ -1629,6 +2071,11 @@ class FlashcardApp {
                 }
             });
         }
+
+        // Account controls
+        this.listen('sign-in-btn', 'click', () => this.signIn());
+        this.listen('sign-out-btn', 'click', () => this.signOut());
+        this.listen('sync-retry-btn', 'click', () => this.resyncAccount());
 
         // Stats tab controls
         const range7Btn = document.getElementById('stats-range-7');
@@ -1862,6 +2309,196 @@ class FlashcardApp {
         return user;
     }
 
+    listen(elementId, event, handler) {
+        const element = document.getElementById(elementId);
+        if (element && typeof element.addEventListener === 'function') {
+            element.addEventListener(event, handler);
+        }
+    }
+
+    // Account sync. Without config.js values (or the Auth0 SDK) this is a no-op and the app
+    // stays local, exactly as before.
+    connectAccount() {
+        if (!this.auth.configured) return null;
+        return this.startAccountSession().catch(error => {
+            console.error('Account sign-in failed', error);
+            this.account = null;
+            this.setSyncStatus({ state: 'local', pending: 0 });
+            this.updateUI();
+        });
+    }
+
+    async startAccountSession() {
+        this.setSyncStatus({ state: 'connecting', pending: 0 });
+        await this.auth.init();
+        if (!this.auth.accountId) {
+            this.setSyncStatus({ state: 'local', pending: 0 });
+            this.updateUI();
+            return null;
+        }
+
+        const api = new ApiClient(this.auth.config.API_BASE, () => this.auth.getToken());
+        const storage = new ApiStorageAdapter(api, this.auth.accountId, status => this.setSyncStatus(status));
+        this.account = { id: this.auth.accountId, name: this.auth.displayName };
+        // Show the cached copy of this account's data right away, then refresh it from the API
+        this.useStorage(storage);
+        await this.resyncAccount();
+        return this.account;
+    }
+
+    // Switches persistence and reloads every piece of state from it
+    useStorage(storage) {
+        if (this.inSession) {
+            this.endSession();
+        }
+        this.storage = storage;
+        this.loadUsers();
+        this.loadStudySessions();
+        this.loadFromStorage();
+        this.loadCategoryPreference();
+        this.loadSessionPreferences();
+        this.loadStatsPreferences();
+        if (this.account) {
+            this.statsUser = ALL_USERS_OPTION;
+            this.loadTodayTotals();
+        }
+        this.editingCardId = null;
+        this.updateUI();
+    }
+
+    // Pushes unsent changes, then takes the account's data from the API
+    async resyncAccount() {
+        if (!this.account || !this.storage.isRemote) return false;
+        this.setSyncStatus({ state: 'syncing', pending: this.storage.pendingCount });
+        try {
+            const me = await this.storage.fetchMe();
+            if (!me.migratedFromLocalAt) {
+                await this.migrateLocalData();
+            }
+            const flushed = await this.storage.flush();
+            if (!flushed) return false;
+            this.applyRemoteState(await this.storage.bootstrap());
+            this.setSyncStatus({ state: 'synced', pending: 0 });
+            return true;
+        } catch (error) {
+            console.error('Could not sync with the account', error);
+            this.setSyncStatus({ state: 'offline', pending: this.storage.pendingCount, error });
+            return false;
+        }
+    }
+
+    // First sign-in: whatever this browser collected in Guest mode becomes the account's data
+    async migrateLocalData() {
+        const guest = new LocalStorageAdapter();
+        const parseList = value => {
+            try {
+                const parsed = JSON.parse(value || '[]');
+                return Array.isArray(parsed) ? parsed : [];
+            } catch (e) {
+                return [];
+            }
+        };
+        const cards = parseList(guest.getItem('flashcards')).filter(card => card && card.bulgarian && card.english);
+        const sessions = parseList(guest.getItem('studySessions')).filter(session => session && typeof session.date === 'string');
+
+        const activeCategories = parseList(guest.getItem('activeCategories'));
+        const cardLimit = parseInt(guest.getItem('cardLimit'));
+        const preferences = {
+            studyDirection: guest.getItem('studyDirection') || 'bg-en',
+            activeCategories: activeCategories.length > 0 ? activeCategories : null,
+            shuffleEnabled: guest.getItem('shuffleEnabled') === 'true',
+            cardLimit: cardLimit > 0 ? cardLimit : null,
+            statsRangeDays: parseInt(guest.getItem('statsRangeDays')) === 30 ? 30 : 7
+        };
+
+        return this.storage.migrate({
+            cards: cards.map(toApiCard),
+            studySessions: sessions.map(toApiSession),
+            preferences
+        });
+    }
+
+    applyRemoteState(state) {
+        if (!state || !this.account) return;
+        this.cards = (state.cards || []).map(fromApiCard);
+        this.lastCardId = this.cards.reduce((max, card) => Math.max(max, Number(card.id) || 0), 0);
+        this.studySessions = (state.studySessions || []).map(session => fromApiSession(session, this.account.name));
+        this.pruneStudySessions();
+        this.applyPreferences(state.preferences);
+        // Cache the account's data so the next load shows it before the API answers
+        this.storage.saveCards(this.cards);
+        this.storage.saveSessions(this.studySessions);
+        this.currentCardIndex = 0;
+        this.reviewQueue = [];
+        this.editingCardId = null;
+        this.loadTodayTotals();
+        this.updateUI();
+    }
+
+    setSyncStatus(status) {
+        this.syncStatus = status || { state: 'local', pending: 0 };
+        this.updateAccountBar();
+    }
+
+    signIn() {
+        if (!this.auth.configured || !this.auth.client) return null;
+        return this.auth.login();
+    }
+
+    async signOut() {
+        if (!this.auth.configured || !this.auth.client) return;
+        if (this.inSession) {
+            this.endSession();
+        }
+        if (this.storage.isRemote) {
+            const flushed = await this.storage.flush();
+            // Keep the cache only while it still holds changes the server has not seen
+            if (flushed) this.storage.clear();
+        }
+        this.account = null;
+        return this.auth.logout();
+    }
+
+    updateAccountBar() {
+        const bar = document.getElementById('account-bar');
+        if (!bar || !bar.style) return;
+        if (!this.auth.configured) {
+            bar.style.display = 'none';
+            return;
+        }
+        bar.style.display = 'flex';
+
+        const setText = (id, text) => {
+            const element = document.getElementById(id);
+            if (element) element.textContent = text;
+        };
+        const show = (id, visible) => {
+            const element = document.getElementById(id);
+            if (element && element.style) element.style.display = visible ? '' : 'none';
+        };
+
+        setText('account-name', this.account ? this.account.name : 'Not signed in');
+        show('sign-in-btn', !this.account);
+        show('sign-out-btn', Boolean(this.account));
+
+        const status = this.syncStatus || { state: 'local', pending: 0 };
+        const messages = {
+            local: this.account ? '' : 'Cards are saved in this browser only',
+            connecting: 'Connecting…',
+            syncing: 'Syncing…',
+            synced: 'Saved to your account',
+            offline: status.pending > 0
+                ? `Offline: ${status.pending} change${status.pending !== 1 ? 's' : ''} waiting`
+                : 'Offline: showing your last synced copy'
+        };
+        setText('sync-status', messages[status.state] || '');
+        const statusElement = document.getElementById('sync-status');
+        if (statusElement && statusElement.classList) {
+            statusElement.classList.toggle('offline', status.state === 'offline');
+        }
+        show('sync-banner', status.pending > 0 || status.state === 'offline');
+    }
+
     setDirection(direction) {
         // Don't allow direction changes during an active session
         // But allow them when showing options (before session starts)
@@ -1870,7 +2507,8 @@ class FlashcardApp {
         }
         
         this.direction = direction;
-        localStorage.setItem('studyDirection', direction);
+        this.storage.setItem('studyDirection', direction);
+        this.syncPreferences();
         this.reviewQueue = []; // Clear review queue when direction changes
         this.resetFlip();
         this.updateUI();

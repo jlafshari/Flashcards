@@ -1,0 +1,17 @@
+name = "flashcards-api"
+main = "src/index.js"
+# The MongoDB Node driver needs node:net/node:tls, available with nodejs_compat from 2025-03-20
+compatibility_date = "2026-09-01"
+compatibility_flags = ["nodejs_compat"]
+
+[observability]
+enabled = true
+
+# Public configuration. Fill these in after creating the Auth0 tenant (see README.md).
+# MONGODB_URI is a secret, not a var: `npx wrangler secret put MONGODB_URI`
+# (for `wrangler dev`, put MONGODB_URI=... in api/.dev.vars, which is gitignored).
+[vars]
+AUTH0_DOMAIN = "dev-37cez0xecdxxjbam.us.auth0.com"
+AUTH0_AUDIENCE = "https://flashcards-api"
+ALLOWED_ORIGINS = "https://jlafshari.github.io,http://localhost:8080"
+DB_NAME = "flashcards"

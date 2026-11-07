@@ -1,0 +1,9 @@
+# Local-only config for test/smoke/worker.js. Never deploy this.
+name = "flashcards-api-smoke"
+main = "worker.js"
+compatibility_date = "2026-09-01"
+compatibility_flags = ["nodejs_compat"]
+
+[vars]
+DB_NAME = "flashcards_smoke"
+# MONGODB_URI is passed on the command line: see `npm run smoke`
