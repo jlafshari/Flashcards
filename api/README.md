@@ -69,9 +69,13 @@ on first use.
 
 1. Create a tenant at auth0.com.
 2. **Applications → Create Application → Single Page Web Applications**. In its settings:
-   - Allowed Callback URLs, Allowed Logout URLs and Allowed Web Origins:
-     `https://jlafshari.github.io/Flashcards, http://localhost:8080`
-     (use the exact URL the app is served from; the callback must include the path).
+   - If the quickstart asks for an "Application Origin", enter only `https://jlafshari.github.io`
+     (one origin: scheme, host and port, no path), then set these in the application's Settings:
+     - Allowed Callback URLs: `https://jlafshari.github.io/Flashcards/, http://localhost:8080/`
+     - Allowed Logout URLs: `https://jlafshari.github.io/Flashcards/, http://localhost:8080/`
+     - Allowed Web Origins: `https://jlafshari.github.io, http://localhost:8080`
+     The app redirects to its own origin plus path with a trailing slash, and Auth0 matches
+     callback URLs exactly, so the slashes matter.
    - Refresh Token Rotation: on (the default). The browser app uses refresh tokens because
      silent iframe renewal is blocked by third-party-cookie rules on github.io.
 3. **Applications → APIs → Create API**: name `Flashcards API`, identifier `https://flashcards-api`
