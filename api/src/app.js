@@ -51,9 +51,9 @@ export function createApp({ verifyToken, openRepo, allowedOrigins = [], fetchUse
     app.onError((error, c) => {
         if (error instanceof ValidationError) return c.json({ error: error.message }, 400);
         if (error instanceof DuplicateError) return c.json({ error: error.message }, 409);
-        if (error.name === 'MongoServerSelectionError' || error.name === 'MongoNetworkError') {
+        if (typeof error.name === 'string' && error.name.startsWith('Mongo')) {
             console.error('database unavailable', error);
-            return c.json({ error: 'Database unavailable' }, 503);
+            return c.json({ error: `Database unavailable: ${error.message}` }, 503);
         }
         console.error('unhandled error', error);
         return c.json({ error: 'Internal error' }, 500);
