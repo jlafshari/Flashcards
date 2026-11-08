@@ -259,6 +259,22 @@ await test('when the API is unreachable the cached account copy is shown and a b
     assertEquals(mockDOM['sync-status'].textContent, 'Offline: showing your last synced copy');
 });
 
+await test('a server-side failure shows the server\'s reason instead of the generic offline text', async () => {
+    const app = createApp([sampleCard]);
+    mockFetch({ 'GET /me': { status: 503, body: { error: 'Database unavailable: No SRV records found' } } });
+    const originalError = console.error;
+    console.error = () => {};
+    try {
+        app.auth = fakeAuth();
+        await app.startAccountSession();
+    } finally {
+        console.error = originalError;
+    }
+    assertEquals(app.syncStatus.state, 'offline');
+    assertEquals(mockDOM['sync-status'].textContent, 'Server error 503: Database unavailable: No SRV records found');
+    assertEquals(mockDOM['sync-banner'].style.display, '');
+});
+
 await test('signing out sends pending changes, clears the account cache and calls Auth0', async () => {
     const app = createApp([sampleCard]);
     mockFetch({

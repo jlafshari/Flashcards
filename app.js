@@ -2482,14 +2482,19 @@ class FlashcardApp {
         show('sign-out-btn', Boolean(this.account));
 
         const status = this.syncStatus || { state: 'local', pending: 0 };
+        const waiting = status.pending > 0 ? ` (${status.pending} change${status.pending !== 1 ? 's' : ''} waiting)` : '';
+        // A response from the server is a different problem from no response at all
+        const serverError = status.error && status.error.status
+            ? `Server error ${status.error.status}: ${status.error.message}${waiting}`
+            : null;
         const messages = {
             local: this.account ? '' : 'Cards are saved in this browser only',
             connecting: 'Connecting…',
             syncing: 'Syncing…',
             synced: 'Saved to your account',
-            offline: status.pending > 0
+            offline: serverError || (status.pending > 0
                 ? `Offline: ${status.pending} change${status.pending !== 1 ? 's' : ''} waiting`
-                : 'Offline: showing your last synced copy'
+                : 'Offline: showing your last synced copy')
         };
         setText('sync-status', messages[status.state] || '');
         const statusElement = document.getElementById('sync-status');

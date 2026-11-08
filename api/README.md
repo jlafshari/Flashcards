@@ -62,6 +62,12 @@ Sessions older than 365 days are pruned on `/bootstrap`, matching the app's rete
    them; the strong password and TLS are the protection.
 5. Connect → Drivers → copy the `mongodb+srv://...` URI and put the password in it.
 
+   The Workers runtime has no `dns.resolveSrv`, which the driver needs for `mongodb+srv://`
+   strings, so `src/db.js` expands the SRV and TXT records itself over DNS-over-HTTPS
+   (`cloudflare-dns.com`) and caches the result for the record's TTL. If that ever fails,
+   the plain seed-list form works without any DNS lookups: in the Connect dialog pick the
+   Node.js driver version "2.2.12 or later" to get a `mongodb://host1,host2,host3/...` string.
+
 The database is named by `DB_NAME` (default `flashcards`). Collections and indexes are created
 on first use.
 

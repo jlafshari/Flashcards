@@ -21,9 +21,123 @@ const COLLECTIONS = {
 // Indexes are idempotent to create; we do it at most once per isolate, off the request path
 let indexesEnsured = false;
 
+// --- mongodb+srv:// support -------------------------------------------------------------
+// The driver expands an SRV connection string with dns.resolveSrv, which the Workers runtime
+// does not implement. We do the same expansion here over DNS-over-HTTPS (JSON API, RFC 8484
+// style): SRV records give the hosts, the TXT record gives authSource/replicaSet, and the
+// result is a plain mongodb:// seed list the driver connects to without any DNS calls.
+export const DOH_URL = 'https://cloudflare-dns.com/dns-query';
+const DNS_TYPE = { SRV: 33, TXT: 16 };
+const SRV_CACHE_MIN_MS = 60_000;
+const SRV_CACHE_MAX_MS = 3_600_000;
+const srvCache = new Map(); // hostname -> { hosts, txtOptions, expires }
+
+export class SrvResolutionError extends Error {
+    constructor(message) {
+        super(message);
+        this.name = 'MongoSrvResolutionError';
+    }
+}
+
+async function dohQuery(name, type, fetchImpl) {
+    const url = `${DOH_URL}?name=${encodeURIComponent(name)}&type=${type}`;
+    let response;
+    try {
+        response = await fetchImpl(url, { headers: { accept: 'application/dns-json' } });
+    } catch (error) {
+        throw new SrvResolutionError(`DNS lookup for ${name} failed: ${error.message}`);
+    }
+    if (!response.ok) throw new SrvResolutionError(`DNS lookup for ${name} failed with HTTP ${response.status}`);
+    const result = await response.json();
+    // Status 0 = NOERROR, 3 = NXDOMAIN (fine for an optional TXT record)
+    if (result.Status !== 0 && result.Status !== 3) {
+        throw new SrvResolutionError(`DNS lookup for ${name} returned status ${result.Status}`);
+    }
+    const answers = (result.Answer || []).filter(answer => answer.type === DNS_TYPE[type]);
+    return {
+        data: answers.map(answer => String(answer.data)),
+        ttl: answers.reduce((min, answer) => Math.min(min, Number(answer.TTL) || SRV_CACHE_MAX_MS / 1000), SRV_CACHE_MAX_MS / 1000)
+    };
+}
+
+function parseTxtOptions(records) {
+    if (records.length === 0) return {};
+    if (records.length > 1) throw new SrvResolutionError('More than one TXT record found for the SRV host');
+    // DoH returns TXT data quoted, possibly split into several quoted strings
+    const text = records[0].replace(/"\s*"/g, '').replace(/^"|"$/g, '');
+    const options = {};
+    for (const [key, value] of new URLSearchParams(text)) {
+        // Per the connection-string spec only these two may come from DNS
+        if (key === 'authSource' || key === 'replicaSet') options[key] = value;
+        else throw new SrvResolutionError(`TXT record sets a disallowed option: ${key}`);
+    }
+    return options;
+}
+
+async function lookupSrv(hostname, fetchImpl, now) {
+    const cached = srvCache.get(hostname);
+    if (cached && cached.expires > now()) return cached;
+
+    const [srv, txt] = await Promise.all([
+        dohQuery(`_mongodb._tcp.${hostname}`, 'SRV', fetchImpl),
+        dohQuery(hostname, 'TXT', fetchImpl)
+    ]);
+
+    const labels = hostname.split('.');
+    if (labels.length < 3) throw new SrvResolutionError(`SRV host ${hostname} must have at least three labels`);
+    const parentDomain = labels.slice(1).join('.');
+
+    const hosts = srv.data.map(record => {
+        // "priority weight port target."
+        const parts = record.trim().split(/\s+/);
+        if (parts.length !== 4) throw new SrvResolutionError(`Unexpected SRV record: ${record}`);
+        const port = Number(parts[2]);
+        const target = parts[3].replace(/\.$/, '');
+        if (!Number.isInteger(port) || port <= 0) throw new SrvResolutionError(`Unexpected SRV port in: ${record}`);
+        if (!target.endsWith(`.${parentDomain}`)) {
+            throw new SrvResolutionError(`SRV target ${target} is outside ${parentDomain}`);
+        }
+        return `${target}:${port}`;
+    });
+    if (hosts.length === 0) throw new SrvResolutionError(`No SRV records found for _mongodb._tcp.${hostname}`);
+
+    const ttlMs = Math.min(Math.max(Math.min(srv.ttl, txt.ttl) * 1000, SRV_CACHE_MIN_MS), SRV_CACHE_MAX_MS);
+    const entry = { hosts, txtOptions: parseTxtOptions(txt.data), expires: now() + ttlMs };
+    srvCache.set(hostname, entry);
+    return entry;
+}
+
+// mongodb+srv://user:pass@cluster0.abc.mongodb.net/db?opts  ->  mongodb://user:pass@h1:p,h2:p/db?tls=true&...
+export async function resolveSrvUri(uri, { fetchImpl = globalThis.fetch, now = Date.now } = {}) {
+    if (!/^mongodb\+srv:\/\//i.test(uri)) return uri;
+    let parsed;
+    try {
+        parsed = new URL(uri.replace(/^mongodb\+srv:/i, 'https:'));
+    } catch (error) {
+        throw new SrvResolutionError('MONGODB_URI is not a valid mongodb+srv:// connection string');
+    }
+    if (parsed.port) throw new SrvResolutionError('A mongodb+srv:// connection string must not include a port');
+
+    const { hosts, txtOptions } = await lookupSrv(parsed.hostname, fetchImpl, now);
+
+    const params = new URLSearchParams();
+    for (const [key, value] of Object.entries(txtOptions)) params.set(key, value);
+    for (const [key, value] of parsed.searchParams) params.set(key, value); // the URI wins over TXT
+    if (!params.has('tls') && !params.has('ssl')) params.set('tls', 'true');
+
+    const auth = parsed.username ? `${parsed.username}${parsed.password ? `:${parsed.password}` : ''}@` : '';
+    const path = parsed.pathname && parsed.pathname !== '/' ? parsed.pathname : '/';
+    return `mongodb://${auth}${hosts.join(',')}${path}?${params.toString()}`;
+}
+
+export function clearSrvCache() {
+    srvCache.clear();
+}
+
 export async function openRepo(uri, dbName = 'flashcards', { ensureIndexes = true } = {}) {
     if (!uri) throw new Error('MONGODB_URI is not configured');
-    const client = new MongoClient(uri, {
+    const connectUri = await resolveSrvUri(uri);
+    const client = new MongoClient(connectUri, {
         maxPoolSize: 3,
         serverSelectionTimeoutMS: 8000,
         connectTimeoutMS: 8000,
