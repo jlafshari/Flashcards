@@ -2501,7 +2501,8 @@ class FlashcardApp {
         if (statusElement && statusElement.classList) {
             statusElement.classList.toggle('offline', status.state === 'offline');
         }
-        show('sync-banner', status.pending > 0 || status.state === 'offline');
+        // Pending changes are normal while a sync is in flight; only warn once one has failed
+        show('sync-banner', status.state === 'offline');
     }
 
     setDirection(direction) {
