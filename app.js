@@ -1624,10 +1624,14 @@ class FlashcardApp {
         
         if (cardLimitInput) {
             const filteredCount = this.getFilteredCards().length;
-            if (this.cardLimit === null || this.cardLimit <= 0) {
-                cardLimitInput.value = filteredCount;
-            } else {
-                cardLimitInput.value = this.cardLimit;
+            // Leave the box alone while it is being edited; it is filled in again on blur
+            const editing = typeof document !== 'undefined' && document.activeElement === cardLimitInput;
+            if (!editing) {
+                if (this.cardLimit === null || this.cardLimit <= 0) {
+                    cardLimitInput.value = filteredCount;
+                } else {
+                    cardLimitInput.value = this.cardLimit;
+                }
             }
             cardLimitInput.max = filteredCount;
         }
@@ -2117,6 +2121,8 @@ class FlashcardApp {
                 this.saveSessionPreferences();
                 this.updateUI();
             });
+            // An emptied box shows the total card count only once the user leaves it
+            cardLimitInput.addEventListener('blur', () => this.updateSessionOptionsDisplay());
         }
 
         // Study tab controls
