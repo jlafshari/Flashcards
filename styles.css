@@ -1133,6 +1133,10 @@ body {
 .chart-label {
     margin-top: 6px;
     font-size: 0.7em;
+    /* Same height whether or not the day has a text, so every baseline lines up */
+    height: 1.2em;
+    line-height: 1.2em;
+    flex: none;
     color: #666;
     white-space: nowrap;
     /* Only every fifth day is labelled on a long range, so a label may spill over its
